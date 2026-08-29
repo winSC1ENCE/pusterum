@@ -1,0 +1,11 @@
+title = "Gitleaks Configuration for Atem"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+    '''tests/.*''',
+    '''\.env\.example$''',
+]

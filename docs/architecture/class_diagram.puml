@@ -1,0 +1,284 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Helvetica"
+skinparam defaultFontSize 12
+skinparam roundCorner 8
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+
+skinparam class {
+    BackgroundColor #F8FAFC
+    BorderColor #94A3B8
+    ArrowColor #64748B
+}
+
+skinparam package {
+    BackgroundColor #F1F5F9
+    BorderColor #CBD5E1
+}
+
+' ==============================================================================
+' DOMAIN LAYER
+' ==============================================================================
+package "Domain Layer" {
+    abstract class BaseEntity {
+        + UUID id
+        + datetime created_at
+        + datetime updated_at
+    }
+
+    enum MessageStatus {
+        NEW
+        READ
+        REPLIED
+        ARCHIVED
+    }
+
+    enum UserRole {
+        ADMIN
+        EDITOR
+    }
+
+    class TherapistProfile {
+        + str full_name
+        + str title
+        + str diploma
+        + str tagline
+        + str bio
+        + str quote
+        + str profile_image_url
+        + str? booking_external_url
+    }
+
+    class Competency {
+        + str title
+        + str description
+        + str icon_name
+        + int sort_order
+        + bool is_active
+    }
+
+    class ServiceOffering {
+        + str title
+        + str slug
+        + str subtitle
+        + str description
+        + int duration_minutes
+        + float price_chf
+        + bool is_health_insurance_recognized
+        + int sort_order
+        + bool is_active
+    }
+
+    class PracticeInfo {
+        + str name
+        + str street
+        + str zip_code
+        + str city
+        + str canton
+        + str country
+        + str phone
+        + str email
+        + str directions_info
+        + str accessibility_info
+        + float? latitude
+        + float? longitude
+    }
+
+    class ContactMessage {
+        + str sender_name
+        + str sender_email
+        + str? sender_phone
+        + str subject
+        + str message
+        + MessageStatus status
+        + str? notes
+        + str? ip_address
+    }
+
+    class User {
+        + str username
+        + str email
+        + str password_hash
+        + UserRole role
+        + bool is_active
+    }
+
+    ' Inheritance
+    BaseEntity <|-- TherapistProfile
+    BaseEntity <|-- Competency
+    BaseEntity <|-- ServiceOffering
+    BaseEntity <|-- PracticeInfo
+    BaseEntity <|-- ContactMessage
+    BaseEntity <|-- User
+
+    ' Domain Ports (ABCs)
+    interface IProfileRepository {
+        + {abstract} get_profile() : TherapistProfile
+        + {abstract} save_profile(profile: TherapistProfile) : TherapistProfile
+        + {abstract} get_competencies(active_only: bool) : list[Competency]
+        + {abstract} get_services(active_only: bool) : list[ServiceOffering]
+        + {abstract} get_service_by_id(service_id: UUID) : ServiceOffering?
+        + {abstract} save_service(service: ServiceOffering) : ServiceOffering
+        + {abstract} delete_service(service_id: UUID) : bool
+        + {abstract} get_practice_info() : PracticeInfo?
+        + {abstract} save_practice_info(practice: PracticeInfo) : PracticeInfo
+    }
+
+    interface IContactRepository {
+        + {abstract} create_message(message: ContactMessage) : ContactMessage
+        + {abstract} get_messages(status: MessageStatus?, limit: int, offset: int) : list[ContactMessage]
+        + {abstract} get_message_by_id(message_id: UUID) : ContactMessage?
+        + {abstract} update_message(message: ContactMessage) : ContactMessage
+        + {abstract} delete_message(message_id: UUID) : bool
+    }
+
+    interface IUserRepository {
+        + {abstract} get_by_username(username: str) : User?
+        + {abstract} get_by_email(email: str) : User?
+        + {abstract} get_by_id(user_id: UUID) : User?
+        + {abstract} create_user(user: User) : User
+        + {abstract} update_user(user: User) : User
+    }
+
+    interface IEmailService {
+        + {abstract} send_contact_notification(message: ContactMessage) : bool
+        + {abstract} send_contact_confirmation(message: ContactMessage) : bool
+    }
+
+    interface IPasswordHasher {
+        + {abstract} hash_password(plain_password: str) : str
+        + {abstract} verify_password(plain_password: str, hashed_password: str) : bool
+    }
+}
+
+' ==============================================================================
+' INFRASTRUCTURE LAYER
+' ==============================================================================
+package "Infrastructure Layer" {
+    class SqlAlchemyProfileRepository {
+        - AsyncSession _session
+        + get_profile() : TherapistProfile
+        + save_profile(profile) : TherapistProfile
+        + get_competencies(active_only) : list[Competency]
+        + get_services(active_only) : list[ServiceOffering]
+        + get_service_by_id(service_id) : ServiceOffering?
+        + save_service(service) : ServiceOffering
+        + delete_service(service_id) : bool
+        + get_practice_info() : PracticeInfo?
+        + save_practice_info(practice) : PracticeInfo
+    }
+
+    class SqlAlchemyContactRepository {
+        - AsyncSession _session
+        + create_message(message) : ContactMessage
+        + get_messages(status, limit, offset) : list[ContactMessage]
+        + get_message_by_id(message_id) : ContactMessage?
+        + update_message(message) : ContactMessage
+        + delete_message(message_id) : bool
+    }
+
+    class SqlAlchemyUserRepository {
+        - AsyncSession _session
+        + get_by_username(username) : User?
+        + get_by_email(email) : User?
+        + get_by_id(user_id) : User?
+        + create_user(user) : User
+        + update_user(user) : User
+    }
+
+    class SmtpEmailService {
+        - Settings _settings
+        + send_contact_notification(message) : bool
+        + send_contact_confirmation(message) : bool
+    }
+
+    class MockEmailService {
+        + list[ContactMessage] sent_messages
+        + send_contact_notification(message) : bool
+        + send_contact_confirmation(message) : bool
+    }
+
+    class Argon2PasswordHasher {
+        - PasswordHasher _ph
+        + hash_password(plain_password) : str
+        + verify_password(plain_password, hashed_password) : bool
+    }
+
+    IProfileRepository <|.. SqlAlchemyProfileRepository
+    IContactRepository <|.. SqlAlchemyContactRepository
+    IUserRepository <|.. SqlAlchemyUserRepository
+    IEmailService <|.. SmtpEmailService
+    IEmailService <|.. MockEmailService
+    IPasswordHasher <|.. Argon2PasswordHasher
+}
+
+' ==============================================================================
+' APPLICATION LAYER
+' ==============================================================================
+package "Application Layer" {
+    class ProfileService {
+        - IProfileRepository _repository
+        + get_public_profile() : TherapistProfileDTO
+        + update_profile(dto: TherapistProfileDTO) : TherapistProfileDTO
+        + create_service(dto: ServiceOfferingDTO) : ServiceOfferingDTO
+        + update_service(service_id: UUID, dto: ServiceOfferingDTO) : ServiceOfferingDTO
+        + delete_service(service_id: UUID) : bool
+        + update_practice_info(dto: PracticeInfoDTO) : PracticeInfoDTO
+    }
+
+    class ContactService {
+        - IContactRepository _repository
+        - IEmailService _email_service
+        + submit_contact_form(dto: CreateContactMessageDTO, client_ip: str?) : ContactMessageResponseDTO
+        + list_messages(status: MessageStatus?, limit: int, offset: int) : list[ContactMessageResponseDTO]
+        + update_message_status(message_id: UUID, dto: UpdateContactMessageStatusDTO) : ContactMessageResponseDTO
+    }
+
+    class AuthService {
+        - IUserRepository _user_repository
+        - IPasswordHasher _password_hasher
+        + authenticate(dto: LoginRequestDTO) : UserResponseDTO
+        + ensure_initial_admin(username: str, email: str, initial_password: str) : void
+    }
+
+    ProfileService --> IProfileRepository : uses
+    ContactService --> IContactRepository : uses
+    ContactService --> IEmailService : uses
+    AuthService --> IUserRepository : uses
+    AuthService --> IPasswordHasher : uses
+}
+
+' ==============================================================================
+' PRESENTATION LAYER
+' ==============================================================================
+package "Presentation Layer" {
+    class PublicController {
+        + index(profile_service: ProfileService) : Template
+        + handle_contact_form(request, contact_service, data) : Template
+        + impressum(profile_service: ProfileService) : Template
+        + datenschutz(profile_service: ProfileService) : Template
+    }
+
+    class AdminController {
+        + login_page(request) : Template | Redirect
+        + process_login(request, auth_service, data) : Template | Redirect
+        + logout(request) : Redirect
+        + dashboard(request, profile_service, contact_service) : Template | Redirect
+    }
+
+    class HealthController {
+        + check_health() : dict
+        + check_readiness() : Response
+    }
+
+    PublicController ..> ProfileService : dependency injection
+    PublicController ..> ContactService : dependency injection
+    AdminController ..> AuthService : dependency injection
+    AdminController ..> ProfileService : dependency injection
+    AdminController ..> ContactService : dependency injection
+}
+
+@enduml

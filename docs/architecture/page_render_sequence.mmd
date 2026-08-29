@@ -1,0 +1,62 @@
+sequenceDiagram
+    autonumber
+    actor Besucher as Besucher (Browser)
+    participant Litestar as Litestar ASGI App
+    participant DI as DI Container (Lifespan & State)
+    participant Ctrl as PublicController
+    participant ProfSvc as ProfileService
+    participant ProfRepo as SqlAlchemyProfileRepository
+    participant DB as PostgreSQL 16
+    participant Jinja as JinjaTemplateEngine
+
+    Besucher->>Litestar: GET /
+    activate Litestar
+
+    Litestar->>DI: Resolve Dependencies for PublicController.index()
+    activate DI
+    DI->>DI: Provide AsyncSession (from session_factory)
+    DI->>DI: Provide SqlAlchemyProfileRepository(session)
+    DI->>DI: Provide ProfileService(profile_repository)
+    DI-->>Litestar: ProfileService Instance
+    deactivate DI
+
+    Litestar->>Ctrl: index(profile_service)
+    activate Ctrl
+    Ctrl->>ProfSvc: get_public_profile()
+    activate ProfSvc
+
+    par Daten abrufen
+        ProfSvc->>ProfRepo: get_profile()
+        ProfRepo->>DB: SELECT * FROM therapist_profiles LIMIT 1
+        DB-->>ProfRepo: TherapistProfileModel
+        ProfRepo-->>ProfSvc: TherapistProfile
+    and Kompetenzen abrufen
+        ProfSvc->>ProfRepo: get_competencies(active_only=True)
+        ProfRepo->>DB: SELECT * FROM competencies WHERE is_active = True
+        DB-->>ProfRepo: list[CompetencyModel]
+        ProfRepo-->>ProfSvc: list[Competency]
+    and Angebote abrufen
+        ProfSvc->>ProfRepo: get_services(active_only=True)
+        ProfRepo->>DB: SELECT * FROM service_offerings WHERE is_active = True
+        DB-->>ProfRepo: list[ServiceOfferingModel]
+        ProfRepo-->>ProfSvc: list[ServiceOffering]
+    and Praxisinfo abrufen
+        ProfSvc->>ProfRepo: get_practice_info()
+        ProfRepo->>DB: SELECT * FROM practice_info LIMIT 1
+        DB-->>ProfRepo: PracticeInfoModel
+        ProfRepo-->>ProfSvc: PracticeInfo
+    end
+
+    ProfSvc-->>Ctrl: TherapistProfileDTO
+    deactivate ProfSvc
+
+    Ctrl->>Jinja: render("pages/index.html", context={profile})
+    activate Jinja
+    Jinja-->>Ctrl: HTML5 Response String
+    deactivate Jinja
+
+    Ctrl-->>Litestar: Template Response
+    deactivate Ctrl
+
+    Litestar-->>Besucher: 200 OK (HTML5 + Tailwind CSS + Alpine.js + HTMX)
+    deactivate Litestar

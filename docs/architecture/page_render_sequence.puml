@@ -1,0 +1,80 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Helvetica"
+skinparam defaultFontSize 12
+skinparam roundCorner 8
+skinparam shadowing false
+autonumber
+
+actor "Besucher (Browser)" as Visitor
+participant "Litestar ASGI App\n(Presentation)" as Litestar
+participant "DI Container\n(Litestar Dependency Injection)" as DI
+participant "PublicController\n(Presentation)" as Controller
+participant "ProfileService\n(Application Use Case)" as Service
+participant "SqlAlchemyProfileRepository\n(Infrastructure)" as Repo
+database "PostgreSQL 16\n(Database)" as DB
+participant "JinjaTemplateEngine\n(Template Engine)" as Jinja
+
+Visitor -> Litestar: GET /
+activate Litestar
+
+Litestar -> DI: Resolve dependencies for PublicController.index()
+activate DI
+DI -> DI: Provide AsyncSession (from session_factory)
+DI -> DI: Provide SqlAlchemyProfileRepository(db_session)
+DI -> DI: Provide ProfileService(profile_repository)
+DI --> Litestar: ProfileService Instance
+deactivate DI
+
+Litestar -> Controller: index(profile_service)
+activate Controller
+
+Controller -> Service: get_public_profile()
+activate Service
+
+par Datenabruf
+    Service -> Repo: get_profile()
+    activate Repo
+    Repo -> DB: SELECT * FROM therapist_profiles LIMIT 1
+    DB --> Repo: TherapistProfileModel
+    Repo --> Service: TherapistProfile Entity
+    deactivate Repo
+and Kompetenzen abrufen
+    Service -> Repo: get_competencies(active_only=True)
+    activate Repo
+    Repo -> DB: SELECT * FROM competencies WHERE is_active = True
+    DB --> Repo: list[CompetencyModel]
+    Repo --> Service: list[Competency]
+    deactivate Repo
+and Angebote abrufen
+    Service -> Repo: get_services(active_only=True)
+    activate Repo
+    Repo -> DB: SELECT * FROM service_offerings WHERE is_active = True
+    DB --> Repo: list[ServiceOfferingModel]
+    Repo --> Service: list[ServiceOffering]
+    deactivate Repo
+and Praxisinfo abrufen
+    Service -> Repo: get_practice_info()
+    activate Repo
+    Repo -> DB: SELECT * FROM practice_info LIMIT 1
+    DB --> Repo: PracticeInfoModel
+    Repo --> Service: PracticeInfo
+    deactivate Repo
+end
+
+Service --> Controller: TherapistProfileDTO
+deactivate Service
+
+Controller -> Jinja: render("pages/index.html", context={"profile": profile})
+activate Jinja
+Jinja --> Controller: HTML5 Content
+deactivate Jinja
+
+Controller --> Litestar: Template Response
+deactivate Controller
+
+Litestar --> Visitor: 200 OK (HTML5 + Tailwind CSS + HTMX)
+deactivate Litestar
+
+@enduml

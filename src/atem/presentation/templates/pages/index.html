@@ -1,0 +1,27 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+    <!-- Hero Section -->
+    <div id="hero">
+        {% include "components/hero.html" %}
+    </div>
+
+    <!-- About & Method -->
+    {% include "components/about.html" %}
+
+    <!-- Competencies & Indications -->
+    {% include "components/competencies.html" %}
+
+    <!-- Service Offerings & Pricing -->
+    {% include "components/services.html" %}
+
+    <!-- Practice Location & Accessibility -->
+    {% include "components/practice.html" %}
+
+    <!-- Contact & Appointment Section -->
+    <section id="kontakt" class="py-24 bg-sand-100/60 border-t border-sand-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {% include "components/contact_form.html" %}
+        </div>
+    </section>
+{% endblock %}

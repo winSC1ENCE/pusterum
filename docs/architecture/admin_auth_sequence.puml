@@ -1,0 +1,57 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Helvetica"
+skinparam defaultFontSize 12
+skinparam roundCorner 8
+skinparam shadowing false
+autonumber
+
+actor "Therapeutin / Admin" as Admin
+participant "AdminController\n(Presentation)" as Controller
+participant "AuthService\n(Application Use Case)" as Service
+participant "SqlAlchemyUserRepository\n(Infrastructure)" as Repo
+database "PostgreSQL 16\n(Database)" as DB
+participant "Argon2PasswordHasher\n(Security)" as Hasher
+participant "CookieBackend\n(Litestar Session Middleware)" as Session
+
+Admin -> Controller: POST /admin/login (username, password)
+activate Controller
+
+Controller -> Service: authenticate(LoginRequestDTO)
+activate Service
+
+Service -> Repo: get_by_username(username)
+activate Repo
+Repo -> DB: SELECT * FROM users WHERE username = :username
+DB --> Repo: UserModel (password_hash)
+Repo --> Service: User Entity
+deactivate Repo
+
+alt Benutzer nicht gefunden oder inaktiv
+    Service --> Controller: raise AuthenticationException("Ungültige Anmeldedaten.")
+    Controller --> Admin: Render login.html mit Fehlermeldung
+else Benutzer gefunden
+    Service -> Hasher: verify_password(plain_password, password_hash)
+    activate Hasher
+    Hasher --> Service: True / False (Argon2id Verifikation)
+    deactivate Hasher
+
+    alt Passwort stimmt nicht überein
+        Service --> Controller: raise AuthenticationException("Ungültige Anmeldedaten.")
+        Controller --> Admin: Render login.html mit Fehlermeldung
+    else Passwort verifiziert
+        Service --> Controller: UserResponseDTO(id, username, role)
+        deactivate Service
+
+        Controller -> Session: request.session["user"] = {id, username, role}
+        activate Session
+        Session --> Controller: AES-GCM Encrypted Session Cookie
+        deactivate Session
+
+        Controller --> Admin: 302 Redirect to /admin\n(Set-Cookie: atem_session=...)
+        deactivate Controller
+    end
+end
+
+@enduml

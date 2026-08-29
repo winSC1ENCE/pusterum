@@ -1,0 +1,62 @@
+<header x-data="{ mobileOpen: false, scrolled: false }"
+        @scroll.window="scrolled = (window.pageYOffset > 20)"
+        :class="scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm border-b border-sand-200' : 'bg-transparent'"
+        class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+            <!-- Brand Logo -->
+            <a href="/" class="flex items-center space-x-3 group">
+                <div class="w-10 h-10 rounded-full bg-sage-100 flex items-center justify-center text-sage-700 border border-sage-200 group-hover:bg-sage-200 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-serif text-xl font-medium tracking-tight text-slate-900 group-hover:text-sage-800 transition-colors">Atemtherapie</span>
+                    <span class="text-xs tracking-wider uppercase text-slate-500 font-medium">Praxis für Komplementärtherapie</span>
+                </div>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-600">
+                <a href="#ueber-mich" class="hover:text-sage-700 transition-colors">Über mich</a>
+                <a href="#kompetenzen" class="hover:text-sage-700 transition-colors">Kompetenzen</a>
+                <a href="#angebot" class="hover:text-sage-700 transition-colors">Angebot & Tarife</a>
+                <a href="#praxis" class="hover:text-sage-700 transition-colors">Praxis</a>
+                <a href="#kontakt" class="inline-flex items-center px-4 py-2.5 rounded-full text-white bg-sage-600 hover:bg-sage-700 shadow-sm hover:shadow transition-all">
+                    Termin anfragen
+                </a>
+            </nav>
+
+            <!-- Mobile Hamburger Button -->
+            <div class="md:hidden flex items-center">
+                <button @click="mobileOpen = !mobileOpen" type="button" class="p-2 rounded-lg text-slate-600 hover:bg-sand-100 focus:outline-none">
+                    <svg class="w-6 h-6" x-show="!mobileOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                    <svg class="w-6 h-6" x-show="mobileOpen" x-cloak fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Dropdown Menu -->
+    <div x-show="mobileOpen" x-cloak @click.away="mobileOpen = false"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 -translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 -translate-y-2"
+         class="md:hidden bg-white/95 backdrop-blur-md border-b border-sand-200 px-4 pt-2 pb-6 space-y-3">
+        <a @click="mobileOpen = false" href="#ueber-mich" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-sand-50">Über mich</a>
+        <a @click="mobileOpen = false" href="#kompetenzen" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-sand-50">Kompetenzen</a>
+        <a @click="mobileOpen = false" href="#angebot" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-sand-50">Angebot & Tarife</a>
+        <a @click="mobileOpen = false" href="#praxis" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-sand-50">Praxis</a>
+        <a @click="mobileOpen = false" href="#kontakt" class="block text-center w-full px-4 py-3 rounded-full text-white bg-sage-600 hover:bg-sage-700 font-medium">
+            Termin anfragen
+        </a>
+    </div>
+</header>

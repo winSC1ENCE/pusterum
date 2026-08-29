@@ -1,8 +1,8 @@
 <section id="kontakt" class="py-20 bg-theme-surface border-t border-theme transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            
+
             <!-- Left Contact Info -->
             <div class="lg:col-span-5 space-y-6">
                 <div>
@@ -53,7 +53,7 @@
             <!-- Right Interactive Form (HTMX powered) -->
             <div class="lg:col-span-7">
                 <div id="contact-form-container" class="bg-theme-main border border-theme p-8 sm:p-10 rounded-3xl shadow-sm">
-                    
+
                     {% if error %}
                     <div class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3">
                         <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
@@ -63,10 +63,10 @@
                     </div>
                     {% endif %}
 
-                    <form 
-                        hx-post="/contact" 
-                        hx-target="#contact-form-container" 
-                        hx-swap="outerHTML" 
+                    <form
+                        hx-post="/contact"
+                        hx-target="#contact-form-container"
+                        hx-swap="outerHTML"
                         class="space-y-6"
                     >
                         <!-- Honeypot Anti-Spam Field (Hidden from humans) -->
@@ -81,12 +81,12 @@
                                 <label for="sender_name" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
                                     Ihr Name <span class="text-theme-primary">*</span>
                                 </label>
-                                <input 
-                                    type="text" 
-                                    id="sender_name" 
-                                    name="sender_name" 
-                                    value="{{ form_data.sender_name if form_data else '' }}" 
-                                    required 
+                                <input
+                                    type="text"
+                                    id="sender_name"
+                                    name="sender_name"
+                                    value="{{ form_data.sender_name if form_data else '' }}"
+                                    required
                                     class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none"
                                     placeholder="Vor- und Nachname"
                                 />
@@ -96,12 +96,12 @@
                                 <label for="sender_email" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
                                     Ihre E-Mail-Adresse <span class="text-theme-primary">*</span>
                                 </label>
-                                <input 
-                                    type="email" 
-                                    id="sender_email" 
-                                    name="sender_email" 
-                                    value="{{ form_data.sender_email if form_data else '' }}" 
-                                    required 
+                                <input
+                                    type="email"
+                                    id="sender_email"
+                                    name="sender_email"
+                                    value="{{ form_data.sender_email if form_data else '' }}"
+                                    required
                                     class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none"
                                     placeholder="ihre.mail@beispiel.ch"
                                 />
@@ -114,11 +114,11 @@
                                 <label for="sender_phone" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
                                     Telefonnummer (optional)
                                 </label>
-                                <input 
-                                    type="tel" 
-                                    id="sender_phone" 
-                                    name="sender_phone" 
-                                    value="{{ form_data.sender_phone if form_data else '' }}" 
+                                <input
+                                    type="tel"
+                                    id="sender_phone"
+                                    name="sender_phone"
+                                    value="{{ form_data.sender_phone if form_data else '' }}"
                                     class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none"
                                     placeholder="+41 79 123 45 67"
                                 />
@@ -128,9 +128,9 @@
                                 <label for="subject" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
                                     Betreff / Anliegen
                                 </label>
-                                <select 
-                                    id="subject" 
-                                    name="subject" 
+                                <select
+                                    id="subject"
+                                    name="subject"
                                     class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none"
                                 >
                                     <option value="Terminanfrage Erstgespräch">Terminanfrage Erstgespräch</option>
@@ -146,11 +146,11 @@
                             <label for="message" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
                                 Ihre Nachricht <span class="text-theme-primary">*</span>
                             </label>
-                            <textarea 
-                                id="message" 
-                                name="message" 
-                                rows="5" 
-                                required 
+                            <textarea
+                                id="message"
+                                name="message"
+                                rows="5"
+                                required
                                 class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none resize-y"
                                 placeholder="Beschreiben Sie kurz Ihr Anliegen oder mögliche Terminvorschläge..."
                             >{{ form_data.message if form_data else '' }}</textarea>
@@ -158,8 +158,8 @@
 
                         <!-- Submit Button with HTMX loading indicator -->
                         <div class="pt-2">
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 class="w-full py-4 rounded-full bg-theme-primary text-white hover-bg-theme-primary font-medium text-base shadow-sm hover:shadow transition-all duration-300 flex items-center justify-center gap-2 group"
                             >
                                 <span>Nachricht absenden</span>

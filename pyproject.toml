@@ -3,7 +3,7 @@ name = "atem"
 version = "0.1.0"
 description = "Webapplikation für Atemtherapie-Praxis (Litestar, PostgreSQL, HTMX, Tailwind, Clean Architecture)"
 readme = "README.md"
-requires-python = ">=3.12, <3.14"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
     { name = "Atemtherapie Praxis", email = "info@atem-praxis.ch" }

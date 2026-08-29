@@ -3,8 +3,8 @@
         <div class="flex justify-between items-center h-20">
             <!-- Brand / Logo -->
             <a href="/" class="flex items-center gap-3 group">
-                <div class="w-11 h-11 rounded-full bg-theme-secondary/40 flex items-center justify-center p-2 border border-theme group-hover:scale-105 transition-transform duration-300">
-                    <img src="/static/images/favicon.svg" alt="Atemtherapie Logo" class="w-full h-full object-contain" />
+                <div class="w-11 h-11 rounded-full bg-theme-secondary/40 flex items-center justify-center p-2 border border-theme group-hover:scale-105 transition-transform duration-300" style="width: 44px; height: 44px;">
+                    <img src="/static/images/favicon.svg" alt="Atemtherapie Logo" class="w-full h-full object-contain" width="28" height="28" />
                 </div>
                 <div>
                     <span class="font-heading text-xl sm:text-2xl font-bold tracking-tight text-theme-primary block leading-tight">
@@ -27,7 +27,7 @@
 
                 <a href="/#kontakt" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary transition-all duration-300 shadow-sm hover:shadow text-sm font-medium">
                     <span>Termin anfragen</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                     </svg>
                 </a>
@@ -35,16 +35,16 @@
 
             <!-- Mobile Menu Toggle Button -->
             <div class="flex items-center md:hidden">
-                <button
-                    @click="mobileOpen = !mobileOpen"
-                    type="button"
+                <button 
+                    @click="mobileOpen = !mobileOpen" 
+                    type="button" 
                     class="p-2 rounded-lg text-theme-text-main hover:bg-theme-secondary/30 transition-colors focus:outline-none"
                     aria-label="Menü öffnen"
                 >
-                    <svg x-show="!mobileOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg x-show="!mobileOpen" class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
-                    <svg x-show="mobileOpen" x-cloak class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg x-show="mobileOpen" x-cloak class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
@@ -53,8 +53,8 @@
     </div>
 
     <!-- Mobile Dropdown Menu -->
-    <div
-        x-show="mobileOpen"
+    <div 
+        x-show="mobileOpen" 
         x-cloak
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 -translate-y-2"

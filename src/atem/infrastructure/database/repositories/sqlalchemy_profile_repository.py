@@ -30,17 +30,22 @@ class SqlAlchemyProfileRepository(IProfileRepository):
         if not model:
             # Default placeholder profile for initialization
             return TherapistProfile(
-                full_name="Therapeutin Name",
+                full_name="Atemtherapie Haʻa Ola",
                 title="Dipl. Komplementärtherapeutin OdA KT",
                 diploma="Methode Atemtherapie",
-                tagline="Den eigenen Atem entdecken - Raum für Heilung und innere Ruhe.",
+                tagline="Atemtherapie Haʻa Ola – Der heilsame Atem des Lebens.",
                 bio=(
-                    "Willkommen in der Praxis für Atemtherapie. Mit achtsamer Atem- "
-                    "und Körperarbeit begleite ich Sie auf Ihrem Weg zu mehr Lebendigkeit, "
-                    "Entspannung und Gesundheit."
+                    "Willkommen bei Atemtherapie Haʻa Ola. Der Name verbindet die "
+                    "hawaiianischen Begriffe «Haʻa» (Atem) und «Ola» (Leben, Gesundheit, Heilung). "
+                    "In unserer Gemeinschaftspraxis in den Räumlichkeiten der Physiotherapie "
+                    "begleite ich Sie mit achtsamer Atem- und Körperarbeit auf Ihrem Weg zu "
+                    "nachhaltiger Genesung, Entlastung und innerer Balance."
                 ),
-                quote="Der Atem ist die Brücke, die das Leben mit dem Bewusstsein verbindet.",
-                profile_image_url="/static/images/profile.jpg",
+                quote=(
+                    "Haʻa Ola – Wenn der Atem frei fliesst, "
+                    "entfaltet sich das Leben in seiner ganzen Kraft."
+                ),
+                profile_image_url="/static/images/therapist_portrait.png",
                 booking_external_url=None,
             )
 
@@ -209,16 +214,21 @@ class SqlAlchemyProfileRepository(IProfileRepository):
         model = result.scalar_one_or_none()
         if not model:
             return PracticeInfo(
-                name="Praxis für Atemtherapie",
-                street="Musterstrasse 10",
-                zip_code="8001",
-                city="Zürich",
-                canton="ZH",
+                name="Atemtherapie Haʻa Ola (in Gemeinschaftspraxis Physiotherapie)",
+                street="Praxisgasse 10",
+                zip_code="3000",
+                city="Bern",
+                canton="BE",
                 country="Schweiz",
-                phone="+41 44 123 45 67",
-                email="praxis@atem-therapie.ch",
-                directions_info="Zentral gelegen, 5 Gehminuten vom Hauptbahnhof.",
-                accessibility_info="Rollstuhlgängig (Lift im Haus).",
+                phone="+41 31 123 45 67",
+                email="kontakt@haa-ola.ch",
+                directions_info=(
+                    "In den Praxisräumen der Physiotherapie-Gemeinschaftspraxis. "
+                    "Zentral gelegen und bestens mit ÖV und Auto erreichbar."
+                ),
+                accessibility_info=(
+                    "Vollständig rollstuhlgängig (Lift im Haus, ebenerdiger Zugang)."
+                ),
             )
         return PracticeInfo(
             id=model.id,

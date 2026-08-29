@@ -76,6 +76,9 @@ ignore = [
     "TRY003",  # Avoid specifying long messages outside the exception class
     "EM101",   # Exception must not use a string literal
     "EM102",   # Exception must not use an f-string literal
+    "RUF001",  # String contains ambiguous unicode character (e.g. Hawaiian okina, dashes)
+    "RUF002",  # Docstring contains ambiguous unicode character
+    "RUF003",  # Comment contains ambiguous unicode character
 ]
 
 [tool.ruff.lint.per-file-ignores]

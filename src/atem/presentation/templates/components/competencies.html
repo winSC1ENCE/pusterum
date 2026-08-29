@@ -1,69 +1,63 @@
-<section id="kompetenzen" class="py-24 bg-sand-50">
+<section id="kompetenzen" class="py-20 bg-theme-main transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="max-w-3xl mx-auto text-center space-y-4">
-            <span class="text-xs font-bold uppercase tracking-widest text-sage-600">Kompetenzen & Indikationen</span>
-            <h2 class="font-serif text-3xl sm:text-4xl text-slate-900 font-normal">
-                Wann Atemtherapie wirksam unterstützt
+
+        <!-- Section Header -->
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-xs uppercase font-bold tracking-widest text-theme-primary block mb-2">
+                Anwendungsbereiche &amp; Indikationen
+            </span>
+            <h2 class="font-heading text-3xl sm:text-4xl font-bold text-theme-text-main">
+                Wann hilft Atemtherapie?
             </h2>
-            <p class="text-slate-600 text-base">
-                Die Methode eignet sich für Menschen jeden Alters – sowohl als präventive Gesundheitsförderung als auch bei akuten oder chronischen Beschwerden.
+            <p class="text-theme-text-muted mt-3 text-base leading-relaxed">
+                Atemtherapie eignet sich sowohl zur gezielten Behandlung körperlicher und seelischer Beschwerden als auch zur präventiven Gesundheitsförderung und Entspannung.
             </p>
-            <div class="w-16 h-0.5 bg-sage-400 mx-auto mt-4 mb-6"></div>
         </div>
 
-        <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% if profile.competencies %}
-                {% for comp in profile.competencies %}
-                <div class="bg-white p-7 rounded-2xl border border-sand-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-10 h-10 rounded-lg bg-sage-100 flex-shrink-0 flex items-center justify-center text-sage-700">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="font-serif text-lg font-medium text-slate-900 mb-1">{{ comp.title }}</h3>
-                            <p class="text-slate-600 text-sm leading-relaxed">{{ comp.description }}</p>
-                        </div>
+        <!-- Competency Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for comp in profile.competencies %}
+            <div class="bg-theme-card border border-theme p-8 rounded-3xl shadow-sm hover:shadow-md hover:border-theme-primary/40 transition-all duration-300 group flex flex-col justify-between">
+                <div>
+                    <!-- Icon / Shape Frame -->
+                    <div class="w-14 h-14 rounded-2xl bg-theme-secondary/40 border border-theme flex items-center justify-center text-theme-primary mb-6 group-hover:scale-110 group-hover:bg-theme-primary group-hover:text-white transition-all duration-300">
+                        {% if comp.icon_name == "lungs" %}
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v16m0-16c-3 0-6 2-6 7 0 4 2 7 6 9m0-16c3 0 6 2 6 7 0 4-2 7-6 9"/>
+                        </svg>
+                        {% elif comp.icon_name == "heart-pulse" %}
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                        {% elif comp.icon_name == "feather" %}
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        {% else %}
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        {% endif %}
                     </div>
+
+                    <h3 class="font-heading text-xl font-bold text-theme-text-main mb-3 group-hover:text-theme-primary transition-colors">
+                        {{ comp.title }}
+                    </h3>
+
+                    <p class="text-sm text-theme-text-muted leading-relaxed">
+                        {{ comp.description }}
+                    </p>
                 </div>
-                {% endfor %}
-            {% else %}
-                <!-- Default Competency Cards -->
-                <div class="bg-white p-7 rounded-2xl border border-sand-200 shadow-sm">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-10 h-10 rounded-lg bg-sage-100 flex-shrink-0 flex items-center justify-center text-sage-700">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        </div>
-                        <div>
-                            <h3 class="font-serif text-lg font-medium text-slate-900 mb-1">Stress & Erschöpfung</h3>
-                            <p class="text-slate-600 text-sm leading-relaxed">Begleitung bei Burnout, chronischer Überlastung, innerer Unruhe und Schlafstörungen.</p>
-                        </div>
-                    </div>
+
+                <div class="pt-6 mt-6 border-t border-theme/50 flex items-center text-xs font-semibold text-theme-primary">
+                    <span>Mehr erfahren</span>
+                    <svg class="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
                 </div>
-                <div class="bg-white p-7 rounded-2xl border border-sand-200 shadow-sm">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-10 h-10 rounded-lg bg-sage-100 flex-shrink-0 flex items-center justify-center text-sage-700">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        </div>
-                        <div>
-                            <h3 class="font-serif text-lg font-medium text-slate-900 mb-1">Atemwegsbeschwerden</h3>
-                            <p class="text-slate-600 text-sm leading-relaxed">Unterstützung bei Asthma, chronischer Bronchitis, Hyperventilation und Post-Covid.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white p-7 rounded-2xl border border-sand-200 shadow-sm">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-10 h-10 rounded-lg bg-sage-100 flex-shrink-0 flex items-center justify-center text-sage-700">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        </div>
-                        <div>
-                            <h3 class="font-serif text-lg font-medium text-slate-900 mb-1">Verspannungen & Schmerzen</h3>
-                            <p class="text-slate-600 text-sm leading-relaxed">Lösung von Nacken-, Schulter- und Rückenverspannungen sowie funktionellen Atembeschwerden.</p>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
+            </div>
+            {% endfor %}
         </div>
+
     </div>
 </section>

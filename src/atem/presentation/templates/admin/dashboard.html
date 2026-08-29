@@ -3,90 +3,98 @@
 {% block title %}Dashboard | Praxis Administration{% endblock %}
 
 {% block content %}
-<div class="py-28 bg-sand-50 min-h-[85vh]">
+<div class="py-24 bg-theme-main min-h-[85vh] transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header Bar -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-8 border-b border-sand-200 gap-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-8 border-b border-theme gap-4">
             <div>
-                <span class="text-xs font-bold uppercase tracking-wider text-sage-600">Verwaltung</span>
-                <h1 class="font-serif text-3xl text-slate-900 font-medium">Praxis Dashboard</h1>
-                <p class="text-xs text-slate-500 mt-1">Angemeldet als <strong>{{ user.username }}</strong> ({{ user.role }})</p>
+                <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Verwaltung</span>
+                <h1 class="font-heading text-3xl sm:text-4xl text-theme-text-main font-bold mt-1">Praxis Dashboard</h1>
+                <p class="text-xs text-theme-text-muted mt-1">Angemeldet als <strong>{{ user.username }}</strong> ({{ user.role }})</p>
             </div>
-            <div class="flex items-center space-x-3">
-                <a href="/" target="_blank" class="px-4 py-2 rounded-full border border-sand-300 bg-white text-xs font-medium text-slate-700 hover:bg-sand-100 transition-colors">
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="/admin/design" class="px-5 py-2.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary text-xs font-semibold shadow-sm flex items-center gap-2 transition-all">
+                    <span>🎨 Corporate Design Studio</span>
+                </a>
+                <a href="/" target="_blank" class="px-4 py-2.5 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted transition-colors">
                     Webseite anzeigen ↗
                 </a>
-                <a href="/admin/logout" class="px-4 py-2 rounded-full bg-slate-200 hover:bg-slate-300 text-xs font-medium text-slate-800 transition-colors">
+                <a href="/admin/logout" class="px-4 py-2.5 rounded-full bg-slate-200 hover:bg-slate-300 text-xs font-medium text-slate-800 transition-colors">
                     Abmelden
                 </a>
             </div>
         </div>
 
         <!-- Stats Overview -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 my-8">
-            <div class="bg-white p-6 rounded-2xl border border-sand-200 shadow-sm">
-                <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Eingegangene Anfragen</span>
-                <div class="text-3xl font-serif font-bold text-slate-900 mt-2">{{ messages|length }}</div>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 my-8">
+            <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
+                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Aktives Design</span>
+                <div class="text-xl font-heading font-bold text-theme-primary mt-2">{{ theme.name }}</div>
+                <a href="/admin/design" class="text-[11px] text-theme-primary hover:underline mt-1 block">Design bearbeiten &rarr;</a>
             </div>
-            <div class="bg-white p-6 rounded-2xl border border-sand-200 shadow-sm">
-                <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Aktive Angebote</span>
-                <div class="text-3xl font-serif font-bold text-slate-900 mt-2">{{ profile.services|length }}</div>
+            <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
+                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Eingegangene Anfragen</span>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ messages|length }}</div>
             </div>
-            <div class="bg-white p-6 rounded-2xl border border-sand-200 shadow-sm">
-                <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Kompetenzen</span>
-                <div class="text-3xl font-serif font-bold text-slate-900 mt-2">{{ profile.competencies|length }}</div>
+            <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
+                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Aktive Angebote</span>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ profile.services|length }}</div>
+            </div>
+            <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
+                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Kompetenzen</span>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ profile.competencies|length }}</div>
             </div>
         </div>
 
         <!-- Contact Inquiries Table -->
-        <div class="bg-white rounded-3xl border border-sand-200 shadow-sm overflow-hidden mb-12">
-            <div class="p-6 border-b border-sand-200 flex justify-between items-center">
-                <h2 class="font-serif text-xl text-slate-900 font-medium">Neueste Kontaktanfragen</h2>
-                <span class="text-xs text-slate-500">{{ messages|length }} Einträge</span>
+        <div class="bg-theme-card rounded-3xl border border-theme shadow-sm overflow-hidden mb-12">
+            <div class="p-6 border-b border-theme flex justify-between items-center bg-theme-muted/50">
+                <h2 class="font-heading text-xl text-theme-text-main font-bold">Neueste Kontaktanfragen</h2>
+                <span class="text-xs text-theme-text-muted font-medium">{{ messages|length }} Einträge</span>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-600">
-                    <thead class="bg-sand-50/70 text-xs uppercase text-slate-500 border-b border-sand-200">
+                <table class="w-full text-left text-sm text-theme-text-muted">
+                    <thead class="bg-theme-muted text-xs uppercase text-theme-text-main border-b border-theme">
                         <tr>
-                            <th class="py-3 px-6">Datum</th>
-                            <th class="py-3 px-6">Name</th>
-                            <th class="py-3 px-6">E-Mail / Tel</th>
-                            <th class="py-3 px-6">Betreff & Nachricht</th>
-                            <th class="py-3 px-6">Status</th>
+                            <th class="py-3.5 px-6 font-bold">Datum</th>
+                            <th class="py-3.5 px-6 font-bold">Name</th>
+                            <th class="py-3.5 px-6 font-bold">E-Mail / Tel</th>
+                            <th class="py-3.5 px-6 font-bold">Betreff &amp; Nachricht</th>
+                            <th class="py-3.5 px-6 font-bold">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-sand-200">
+                    <tbody class="divide-y divide-theme">
                         {% if messages %}
                             {% for msg in messages %}
-                            <tr class="hover:bg-sand-50/40 transition-colors">
-                                <td class="py-4 px-6 text-xs text-slate-500 whitespace-nowrap">{{ msg.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                                <td class="py-4 px-6 font-medium text-slate-900">{{ msg.sender_name }}</td>
+                            <tr class="hover:bg-theme-muted/40 transition-colors">
+                                <td class="py-4 px-6 text-xs text-theme-text-muted whitespace-nowrap">{{ msg.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td class="py-4 px-6 font-bold text-theme-text-main">{{ msg.sender_name }}</td>
                                 <td class="py-4 px-6 text-xs">
-                                    <a href="mailto:{{ msg.sender_email }}" class="text-sage-700 hover:underline block">{{ msg.sender_email }}</a>
+                                    <a href="mailto:{{ msg.sender_email }}" class="text-theme-primary font-semibold hover:underline block">{{ msg.sender_email }}</a>
                                     {% if msg.sender_phone %}
-                                    <span class="text-slate-500 block">{{ msg.sender_phone }}</span>
+                                    <span class="text-theme-text-muted block">{{ msg.sender_phone }}</span>
                                     {% endif %}
                                 </td>
                                 <td class="py-4 px-6 max-w-md">
-                                    <span class="font-medium text-slate-800 block text-xs">{{ msg.subject }}</span>
-                                    <p class="text-xs text-slate-600 mt-1 line-clamp-2">{{ msg.message }}</p>
+                                    <span class="font-bold text-theme-text-main block text-xs">{{ msg.subject }}</span>
+                                    <p class="text-xs text-theme-text-muted mt-1 line-clamp-2">{{ msg.message }}</p>
                                 </td>
                                 <td class="py-4 px-6 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        {% if msg.status == 'NEW' %}bg-amber-100 text-amber-800
-                                        {% elif msg.status == 'READ' %}bg-blue-100 text-blue-800
-                                        {% elif msg.status == 'REPLIED' %}bg-sage-100 text-sage-800
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
+                                        {% if msg.status.value == 'NEW' %}bg-amber-100 text-amber-800
+                                        {% elif msg.status.value == 'READ' %}bg-blue-100 text-blue-800
+                                        {% elif msg.status.value == 'REPLIED' %}bg-emerald-100 text-emerald-800
                                         {% else %}bg-slate-100 text-slate-800{% endif %}">
-                                        {{ msg.status }}
+                                        {{ msg.status.value }}
                                     </span>
                                 </td>
                             </tr>
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="5" class="py-12 text-center text-slate-400 text-sm">
+                                <td colspan="5" class="py-12 text-center text-theme-text-muted text-sm">
                                     Noch keine Kontaktanfragen vorhanden.
                                 </td>
                             </tr>

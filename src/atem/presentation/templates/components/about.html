@@ -1,49 +1,107 @@
-<section id="ueber-mich" class="py-24 bg-white border-y border-sand-200">
+<section id="ueber-mich" class="py-20 bg-theme-surface border-y border-theme transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="max-w-3xl mx-auto text-center space-y-4">
-            <span class="text-xs font-bold uppercase tracking-widest text-sage-600">Atem- & Körpertherapie</span>
-            <h2 class="font-serif text-3xl sm:text-4xl text-slate-900 font-normal">
-                Der Atem als Quelle von Lebenskraft und Gelassenheit
-            </h2>
-            <div class="w-16 h-0.5 bg-sage-400 mx-auto mt-4 mb-6"></div>
-        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
-        <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-            <div class="bg-sand-50/70 p-8 rounded-2xl border border-sand-200/80 hover:border-sage-300 transition-all">
-                <div class="w-12 h-12 rounded-xl bg-sage-100 flex items-center justify-center text-sage-700 mb-6">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                    </svg>
+            <!-- Left Portrait Visual -->
+            <div class="lg:col-span-5 flex justify-center order-2 lg:order-1">
+                <div class="relative w-full max-w-sm">
+                    <!-- Dynamic Organic Shape Glow -->
+                    <div class="absolute -inset-3 bg-theme-secondary/40 shape-organic filter blur-sm -z-10 transform -rotate-3"></div>
+
+                    <!-- Portrait Container -->
+                    <div class="bg-theme-main border border-theme p-3 shadow-md shape-organic overflow-hidden">
+                        <img
+                            src="/static/images/therapist_portrait.png"
+                            alt="{{ profile.full_name }} – Atemtherapeutin OdA KT"
+                            class="w-full h-auto aspect-square object-cover shape-organic shadow-inner"
+                        />
+                    </div>
+
+                    <!-- Floating Quality Badge -->
+                    <div class="absolute -bottom-4 -right-2 bg-theme-card border border-theme px-4 py-2.5 rounded-2xl shadow-lg flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-theme-primary/10 flex items-center justify-center text-theme-primary">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-theme-primary block">OdA KT Diplom</span>
+                            <span class="text-[10px] text-theme-text-muted">Branchenzertifikat KT</span>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="font-serif text-xl font-medium text-slate-900 mb-2">Achtsames Wahrnehmen</h3>
-                <p class="text-slate-600 text-sm leading-relaxed">
-                    Wir spüren den natürlichen Rhythmus Ihres Atems, ohne ihn zu manipulieren. Dadurch lernen Sie, Körpersignale frühzeitig zu deuten und Spannungen loszulassen.
-                </p>
             </div>
 
-            <div class="bg-sand-50/70 p-8 rounded-2xl border border-sand-200/80 hover:border-sage-300 transition-all">
-                <div class="w-12 h-12 rounded-xl bg-sage-100 flex items-center justify-center text-sage-700 mb-6">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
+            <!-- Right Profile & Method Description -->
+            <div class="lg:col-span-7 space-y-6 order-1 lg:order-2">
+                <div>
+                    <span class="text-xs uppercase font-bold tracking-widest text-theme-primary block mb-2">
+                        Über mich &amp; die Methode
+                    </span>
+                    <h2 class="font-heading text-3xl sm:text-4xl font-bold text-theme-text-main">
+                        {{ profile.full_name }}
+                    </h2>
+                    <p class="text-theme-primary font-medium text-lg mt-1">
+                        {{ profile.diploma }}
+                    </p>
                 </div>
-                <h3 class="font-serif text-xl font-medium text-slate-900 mb-2">Selbstregulation stärken</h3>
-                <p class="text-slate-600 text-sm leading-relaxed">
-                    Gezielte Atemimpulse und Berührungen unterstützen das vegetative Nervensystem, bringen den Puls zur Ruhe und fördern tiefe Regeneration.
-                </p>
+
+                <div class="space-y-4 text-theme-text-muted leading-relaxed text-base">
+                    <p>
+                        {{ profile.bio }}
+                    </p>
+                    <p>
+                        In meiner Praxis verbinde ich fundierte atem- und körpertherapeutische Methoden mit achtsamer Gesprächsführung. Der Atem ist unser unmittelbarstes Bindeglied zwischen Körper und Geist. Durch gezielte Berührung, Bewegung und bewusste Atemwahrnehmung lösen sich muskuläre und emotionale Blockaden.
+                    </p>
+                </div>
+
+                <!-- Personal Quote -->
+                {% if profile.quote %}
+                <div class="p-5 rounded-2xl bg-theme-muted border-l-4 border-theme-primary italic text-theme-text-main font-heading text-lg">
+                    „{{ profile.quote }}“
+                </div>
+                {% endif %}
+
+                <!-- Key Credentials List -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <span class="text-sm text-theme-text-main">Diplomierte Komplementärtherapeutin OdA KT</span>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <span class="text-sm text-theme-text-main">EMR / ASCA / EGK Qualitätslabel</span>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <span class="text-sm text-theme-text-main">Mitglied Berufsverband Atemtherapie Schweiz</span>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <span class="text-sm text-theme-text-main">Laufende fachliche Weiterbildung &amp; Supervision</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="bg-sand-50/70 p-8 rounded-2xl border border-sand-200/80 hover:border-sage-300 transition-all">
-                <div class="w-12 h-12 rounded-xl bg-sage-100 flex items-center justify-center text-sage-700 mb-6">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                    </svg>
-                </div>
-                <h3 class="font-serif text-xl font-medium text-slate-900 mb-2">Transfer in den Alltag</h3>
-                <p class="text-slate-600 text-sm leading-relaxed">
-                    Sie erhalten einfache, wirkungsvolle Übungen für zu Hause und den Beruf, um im Alltag gelassen und in Ihrer Mitte zu bleiben.
-                </p>
-            </div>
         </div>
     </div>
 </section>

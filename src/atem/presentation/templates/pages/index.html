@@ -1,27 +1,21 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
-    <!-- Hero Section -->
-    <div id="hero">
-        {% include "components/hero.html" %}
-    </div>
+    <!-- Hero Section with Pusteblume Artwork -->
+    {% include "components/hero.html" %}
 
-    <!-- About & Method -->
+    <!-- About & Method with Therapist Portrait -->
     {% include "components/about.html" %}
 
     <!-- Competencies & Indications -->
     {% include "components/competencies.html" %}
 
-    <!-- Service Offerings & Pricing -->
+    <!-- Service Offerings, Pricing & EMR/ASCA Insurance -->
     {% include "components/services.html" %}
 
-    <!-- Practice Location & Accessibility -->
+    <!-- Practice Space & Location -->
     {% include "components/practice.html" %}
 
     <!-- Contact & Appointment Section -->
-    <section id="kontakt" class="py-24 bg-sand-100/60 border-t border-sand-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {% include "components/contact_form.html" %}
-        </div>
-    </section>
+    {% include "components/contact_form.html" %}
 {% endblock %}

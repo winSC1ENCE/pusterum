@@ -18,10 +18,12 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
 from atem.application.services.profile_service import ProfileService
+from atem.application.services.theme_service import ThemeService
 from atem.domain.interfaces.contact_repository import IContactRepository
 from atem.domain.interfaces.email_service import IEmailService
 from atem.domain.interfaces.password_hasher import IPasswordHasher
 from atem.domain.interfaces.profile_repository import IProfileRepository
+from atem.domain.interfaces.theme_repository import IThemeRepository
 from atem.domain.interfaces.user_repository import IUserRepository
 from atem.infrastructure.config.settings import Settings, get_settings
 from atem.infrastructure.database.base import Base
@@ -30,6 +32,9 @@ from atem.infrastructure.database.repositories.sqlalchemy_contact_repository imp
 )
 from atem.infrastructure.database.repositories.sqlalchemy_profile_repository import (
     SqlAlchemyProfileRepository,
+)
+from atem.infrastructure.database.repositories.sqlalchemy_theme_repository import (
+    SqlAlchemyThemeRepository,
 )
 from atem.infrastructure.database.repositories.sqlalchemy_user_repository import (
     SqlAlchemyUserRepository,
@@ -89,6 +94,16 @@ async def provide_user_repository(db_session: AsyncSession) -> IUserRepository:
     return SqlAlchemyUserRepository(session=db_session)
 
 
+async def provide_theme_repository(db_session: AsyncSession) -> IThemeRepository:
+    """Provide theme repository implementing IThemeRepository ABC."""
+    return SqlAlchemyThemeRepository(session=db_session)
+
+
+async def provide_theme_service(theme_repository: IThemeRepository) -> ThemeService:
+    """Provide ThemeService."""
+    return ThemeService(theme_repository=theme_repository)
+
+
 async def provide_profile_service(profile_repository: IProfileRepository) -> ProfileService:
     """Provide ProfileService."""
     return ProfileService(profile_repository=profile_repository)
@@ -126,11 +141,15 @@ async def lifespan(app: Litestar) -> AsyncGenerator[None, None]:
     setup_logging(is_dev=settings.is_dev)
     logger.info("Starting Atemtherapie Application", environment=settings.ENVIRONMENT)
 
-    # Initialize Async Engine and Sessionmaker
-    engine: AsyncEngine = create_engine()
-    session_factory = create_session_factory(engine)
-    app.state.engine = engine
-    app.state.session_factory = session_factory
+    # Initialize Async Engine and Sessionmaker if not already provided (e.g. in test fixture)
+    if not hasattr(app.state, "engine") or app.state.engine is None:
+        engine: AsyncEngine = create_engine()
+        session_factory = create_session_factory(engine)
+        app.state.engine = engine
+        app.state.session_factory = session_factory
+    else:
+        engine = app.state.engine
+        session_factory = app.state.session_factory
 
     # In dev or testing, ensure tables are created
     if settings.is_dev or settings.ENVIRONMENT == "test":
@@ -206,8 +225,10 @@ def create_app() -> Litestar:
         dependencies={
             "settings": Provide(get_settings, sync_to_thread=False),
             "db_session": Provide(provide_db_session),
-            "password_hasher": Provide(provide_password_hasher),
+            "password_hasher": Provide(provide_password_hasher, sync_to_thread=False),
             "email_service": Provide(provide_email_service),
+            "theme_repository": Provide(provide_theme_repository),
+            "theme_service": Provide(provide_theme_service),
             "profile_repository": Provide(provide_profile_repository),
             "contact_repository": Provide(provide_contact_repository),
             "user_repository": Provide(provide_user_repository),

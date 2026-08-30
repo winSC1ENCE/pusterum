@@ -1,0 +1,47 @@
+sequenceDiagram
+    autonumber
+    actor Admin as Therapeutin / Admin
+    participant Ctrl as AdminController
+    participant AuthSvc as AuthService
+    participant UserRepo as SqlAlchemyUserRepository
+    participant DB as PostgreSQL 16
+    participant Hasher as Argon2PasswordHasher
+    participant Session as CookieBackend (Litestar)
+
+    Admin->>Ctrl: POST /admin/login (username, password)
+    activate Ctrl
+    Ctrl->>AuthSvc: authenticate(LoginRequestDTO)
+    activate AuthSvc
+
+    AuthSvc->>UserRepo: get_by_username(username)
+    activate UserRepo
+    UserRepo->>DB: SELECT * FROM users WHERE username = :username
+    DB-->>UserRepo: UserModel (mit password_hash)
+    UserRepo-->>AuthSvc: User Entity
+    deactivate UserRepo
+
+    alt Benutzer nicht gefunden oder inaktiv
+        AuthSvc-->>Ctrl: raise AuthenticationException("Ungültige Anmeldedaten")
+        Ctrl-->>Admin: Render login.html mit Fehlermeldung
+    else Benutzer gefunden
+        AuthSvc->>Hasher: verify_password(plain_password, password_hash)
+        activate Hasher
+        Hasher-->>AuthSvc: True / False (Argon2id Verification)
+        deactivate Hasher
+
+        alt Passwort ungültig
+            AuthSvc-->>Ctrl: raise AuthenticationException("Ungültige Anmeldedaten")
+            Ctrl-->>Admin: Render login.html mit Fehlermeldung
+        else Passwort gültig
+            AuthSvc-->>Ctrl: UserResponseDTO(id, username, role)
+            deactivate AuthSvc
+
+            Ctrl->>Session: Set request.session["user"] = {id, username, role}
+            activate Session
+            Session-->>Ctrl: Encrypted AES Cookie
+            deactivate Session
+
+            Ctrl-->>Admin: 302 Redirect to /admin (Set-Cookie: atem_session=...)
+        end
+    end
+    deactivate Ctrl

@@ -1,0 +1,68 @@
+{% from "components/editable_block.html" import editable with context %}
+
+<section id="start" class="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-28 bg-theme-main transition-colors duration-300">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+
+            <!-- Left Text Content -->
+            <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                <!-- Quality / OdA KT Badge -->
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-theme-secondary/50 border border-theme text-xs font-semibold uppercase tracking-wider text-theme-primary">
+                    <span class="w-2 h-2 rounded-full bg-theme-primary animate-pulse" style="width: 8px; height: 8px;"></span>
+                    {{ editable('hero.badge', 'Atemtherapie Hā Ola • OdA KT • In Gemeinschaftspraxis Physiotherapie', tag='span') }}
+                </div>
+
+                <!-- Main Heading with Playfair/Lora -->
+                <h1 class="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-theme-text-main leading-[1.15]">
+                    {{ editable('hero.title', 'Hā Ola.', tag='span') }}<br/>
+                    {{ editable('hero.subtitle', 'Der heilsame Atem des Lebens.', tag='span', class='text-theme-primary italic font-normal') }}
+                </h1>
+
+                <!-- Subtitle / Tagline -->
+                <div class="max-w-2xl mx-auto lg:mx-0">
+                    {{ editable('hero.text', '«Hā» (Atem, Lebenshauch) und «Ola» (Leben, Gesundheit & Heilung) verbinden sich zu einer tiefen Quelle für Regeneration. Eingebettet in eine moderne Physiotherapie-Gemeinschaftspraxis begleite ich Sie mit achtsamer Atem- und Körpertherapie bei Erschöpfung, Atemwegsbeschwerden, chronischen Schmerzen und innerer Unruhe.', tag='p', class='text-lg sm:text-xl text-theme-text-muted leading-relaxed font-normal', type='textarea', rows=4) }}
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+                    <a href="#kontakt" class="w-full sm:w-auto px-8 py-3.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary font-medium text-center shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5">
+                        Erstgespräch &amp; Termin anfragen
+                    </a>
+                    <a href="#ueber-mich" class="w-full sm:w-auto px-7 py-3.5 rounded-full bg-theme-card border border-theme text-theme-text-main hover:bg-theme-muted font-medium text-center transition-all duration-300">
+                        Über mich &amp; Hā Ola
+                    </a>
+                </div>
+
+                <!-- Trust Indicators -->
+                <div class="pt-6 border-t border-theme/60 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-theme-text-muted">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-theme-primary flex-shrink-0" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        {{ editable('hero.trust_1', 'Krankenkassen-Zusatzversicherung (EMR • ASCA • EGK • Visana)', tag='span') }}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-theme-primary flex-shrink-0" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        {{ editable('hero.trust_2', 'Interdisziplinäre Praxis • OdA KT Methode', tag='span') }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Pure Dandelion Artwork (No Card, No Box, No Text) -->
+            <div class="lg:col-span-5 flex justify-center items-center">
+                <div class="relative w-full max-w-sm sm:max-w-md flex justify-center items-center">
+                    <!-- Subtle Organic Color Glow behind Dandelion -->
+                    <div class="absolute w-72 h-72 sm:w-96 sm:h-96 bg-theme-secondary/40 shape-organic filter blur-2xl -z-10 transform rotate-6"></div>
+
+                    <!-- Pure Isolated Transparent Dandelion -->
+                    <div id="hero-dandelion-artwork" class="relative w-full aspect-[3/4] max-h-[500px] flex items-center justify-center select-none">
+                        {{ editable('hero.image', '/static/images/dandelion_hero.png', type='image', img_alt='Botanische Pusteblume – Atemtherapie Hā Ola', img_class='max-h-full w-auto object-contain filter drop-shadow-md hover:scale-105 transition-transform duration-700') }}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>

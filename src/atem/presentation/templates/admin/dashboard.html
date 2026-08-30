@@ -1,0 +1,132 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Dashboard | Praxis Administration{% endblock %}
+
+{% block content %}
+<div class="py-24 bg-theme-main min-h-[85vh] transition-colors duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Header Bar -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-8 border-b border-theme gap-4">
+            <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Verwaltung</span>
+                <h1 class="font-heading text-3xl sm:text-4xl text-theme-text-main font-bold mt-1">Praxis Dashboard</h1>
+                <p class="text-xs text-theme-text-muted mt-1">Angemeldet als <strong>{{ user.username }}</strong> ({{ user.role }})</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="/admin/design" class="px-5 py-2.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary text-xs font-semibold shadow-sm flex items-center gap-2 transition-all">
+                    <svg class="w-3.5 h-3.5" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                    </svg>
+                    <span>Corporate Design Studio</span>
+                </a>
+                <a href="/" target="_blank" class="px-4 py-2.5 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted transition-colors">
+                    Webseite anzeigen ↗
+                </a>
+                <a href="/admin/logout" class="px-4 py-2.5 rounded-full bg-slate-200 hover:bg-slate-300 text-xs font-medium text-slate-800 transition-colors">
+                    Abmelden
+                </a>
+            </div>
+        </div>
+
+        <!-- Live Edit Action Banner -->
+        <div class="bg-gradient-to-r from-theme-primary/10 via-theme-secondary/20 to-transparent p-6 rounded-3xl border border-theme my-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+            <div class="space-y-1">
+                <h2 class="font-heading text-lg font-bold text-theme-text-main flex items-center gap-2">
+                    <svg class="w-4 h-4 text-theme-primary" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Live-Inhalte direkt auf der Webseite bearbeiten
+                </h2>
+                <p class="text-xs text-theme-text-muted">
+                    Alle Texte, Titel, Zitate und Bilder können Sie direkt in ihrem echten Layout bearbeiten, versionieren und bei Bedarf mit 1 Klick wiederherstellen.
+                </p>
+            </div>
+            <a href="/" class="px-6 py-3 rounded-full bg-theme-primary text-white hover-bg-theme-primary text-xs font-bold shadow-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <span>Zur Startseite (Live-Editor)</span>
+                <svg class="w-3.5 h-3.5" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                </svg>
+            </a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 my-8">
+            <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
+                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Aktives Design</span>
+                <div class="text-xl font-heading font-bold text-theme-primary mt-2">{{ theme.name }}</div>
+                <a href="/admin/design" class="text-[11px] text-theme-primary hover:underline mt-1 block">Design bearbeiten &rarr;</a>
+            </div>
+            <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
+                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Eingegangene Anfragen</span>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ messages|length }}</div>
+            </div>
+            <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
+                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Aktive Angebote</span>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ profile.services|length }}</div>
+            </div>
+            <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
+                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Kompetenzen</span>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ profile.competencies|length }}</div>
+            </div>
+        </div>
+
+        <!-- Contact Inquiries Table -->
+        <div class="bg-theme-card rounded-3xl border border-theme shadow-sm overflow-hidden mb-12">
+            <div class="p-6 border-b border-theme flex justify-between items-center bg-theme-muted/50">
+                <h2 class="font-heading text-xl text-theme-text-main font-bold">Neueste Kontaktanfragen</h2>
+                <span class="text-xs text-theme-text-muted font-medium">{{ messages|length }} Einträge</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-theme-text-muted">
+                    <thead class="bg-theme-muted text-xs uppercase text-theme-text-main border-b border-theme">
+                        <tr>
+                            <th class="py-3.5 px-6 font-bold">Datum</th>
+                            <th class="py-3.5 px-6 font-bold">Name</th>
+                            <th class="py-3.5 px-6 font-bold">E-Mail / Tel</th>
+                            <th class="py-3.5 px-6 font-bold">Betreff &amp; Nachricht</th>
+                            <th class="py-3.5 px-6 font-bold">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-theme">
+                        {% if messages %}
+                            {% for msg in messages %}
+                            <tr class="hover:bg-theme-muted/40 transition-colors">
+                                <td class="py-4 px-6 text-xs text-theme-text-muted whitespace-nowrap">{{ msg.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td class="py-4 px-6 font-bold text-theme-text-main">{{ msg.sender_name }}</td>
+                                <td class="py-4 px-6 text-xs">
+                                    <a href="mailto:{{ msg.sender_email }}" class="text-theme-primary font-semibold hover:underline block">{{ msg.sender_email }}</a>
+                                    {% if msg.sender_phone %}
+                                    <span class="text-theme-text-muted block">{{ msg.sender_phone }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-4 px-6 max-w-md">
+                                    <span class="font-bold text-theme-text-main block text-xs">{{ msg.subject }}</span>
+                                    <p class="text-xs text-theme-text-muted mt-1 line-clamp-2">{{ msg.message }}</p>
+                                </td>
+                                <td class="py-4 px-6 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
+                                        {% if msg.status.value == 'NEW' %}bg-amber-100 text-amber-800
+                                        {% elif msg.status.value == 'READ' %}bg-blue-100 text-blue-800
+                                        {% elif msg.status.value == 'REPLIED' %}bg-emerald-100 text-emerald-800
+                                        {% else %}bg-slate-100 text-slate-800{% endif %}">
+                                        {{ msg.status.value }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="py-12 text-center text-theme-text-muted text-sm">
+                                    Noch keine Kontaktanfragen vorhanden.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

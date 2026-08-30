@@ -1,0 +1,43 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: atem_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://atem_user:atem_secure_password@db:5432/atem_db
+      - SECRET_KEY=dev-secret-key-at-least-32-characters-long-12345
+      - ALLOWED_HOSTS=["localhost", "127.0.0.1", "0.0.0.0"]
+    volumes:
+      - ./src:/app/src
+      - ./storage/uploads:/app/storage/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: atem_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: atem_user
+      POSTGRES_PASSWORD: atem_secure_password
+      POSTGRES_DB: atem_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atem_user -d atem_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local

@@ -1,0 +1,342 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Helvetica"
+skinparam defaultFontSize 12
+skinparam roundCorner 8
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+
+skinparam class {
+    BackgroundColor #F8FAFC
+    BorderColor #94A3B8
+    ArrowColor #64748B
+}
+
+skinparam package {
+    BackgroundColor #F1F5F9
+    BorderColor #CBD5E1
+}
+
+' ==============================================================================
+' DOMAIN LAYER
+' ==============================================================================
+package "Domain Layer" {
+    abstract class BaseEntity {
+        + UUID id
+        + datetime created_at
+        + datetime updated_at
+    }
+
+    enum MessageStatus {
+        NEW
+        READ
+        REPLIED
+        ARCHIVED
+    }
+
+    enum UserRole {
+        ADMIN
+        EDITOR
+    }
+
+    enum ContentBlockType {
+        TEXT
+        TEXTAREA
+        RICH_TEXT
+        IMAGE_URL
+        PHONE
+        EMAIL
+    }
+
+    class TherapistProfile {
+        + str full_name
+        + str title
+        + str diploma
+        + str tagline
+        + str bio
+        + str quote
+        + str profile_image_url
+        + str? booking_external_url
+    }
+
+    class Competency {
+        + str title
+        + str description
+        + str icon_name
+        + int sort_order
+        + bool is_active
+    }
+
+    class ServiceOffering {
+        + str title
+        + str slug
+        + str subtitle
+        + str description
+        + int duration_minutes
+        + float price_chf
+        + bool is_health_insurance_recognized
+        + int sort_order
+        + bool is_active
+    }
+
+    class PracticeInfo {
+        + str name
+        + str street
+        + str zip_code
+        + str city
+        + str canton
+        + str country
+        + str phone
+        + str email
+        + str directions_info
+        + str accessibility_info
+        + float? latitude
+        + float? longitude
+    }
+
+    class ContactMessage {
+        + str sender_name
+        + str sender_email
+        + str? sender_phone
+        + str subject
+        + str message
+        + MessageStatus status
+        + str? notes
+        + str? ip_address
+    }
+
+    class User {
+        + str username
+        + str email
+        + str password_hash
+        + UserRole role
+        + bool is_active
+    }
+
+    class ContentBlock {
+        + str key
+        + ContentBlockType block_type
+        + str section
+        + int current_version_number
+        + str current_content
+        + datetime updated_at
+    }
+
+    class ContentBlockVersion {
+        + UUID id
+        + str block_key
+        + int version_number
+        + str content
+        + UUID? author_id
+        + str author_name
+        + str? change_summary
+        + datetime created_at
+    }
+
+    class ThemeConfig {
+        + str name
+        + str preset_key
+        + str shape_type
+        + str dandelion_mode
+        + int dandelion_seed_size
+        + int dandelion_seed_opacity
+        + str primary_color
+        + str secondary_color
+        + str accent_color
+        + str bg_color
+        + str surface_color
+        + str text_main_color
+        + str font_heading
+        + str font_body
+    }
+
+    BaseEntity <|-- TherapistProfile
+    BaseEntity <|-- Competency
+    BaseEntity <|-- ServiceOffering
+    BaseEntity <|-- PracticeInfo
+    BaseEntity <|-- ContactMessage
+    BaseEntity <|-- User
+    BaseEntity <|-- ThemeConfig
+    ContentBlock *-- ContentBlockVersion : versions
+
+    ' Interfaces / Ports
+    interface IProfileRepository {
+        + get_profile(): TherapistProfile
+        + save_profile(profile: TherapistProfile): TherapistProfile
+        + get_competencies(active_only: bool): list[Competency]
+        + get_services(active_only: bool): list[ServiceOffering]
+        + get_service_by_id(service_id: UUID): ServiceOffering?
+        + save_service(service: ServiceOffering): ServiceOffering
+        + delete_service(service_id: UUID): bool
+        + get_practice_info(): PracticeInfo?
+        + save_practice_info(practice: PracticeInfo): PracticeInfo
+    }
+
+    interface IContactRepository {
+        + create_message(message: ContactMessage): ContactMessage
+        + get_messages(status, limit, offset): list[ContactMessage]
+        + get_message_by_id(message_id: UUID): ContactMessage?
+        + update_message(message: ContactMessage): ContactMessage
+        + delete_message(message_id: UUID): bool
+    }
+
+    interface IUserRepository {
+        + get_by_username(username: str): User?
+        + get_by_email(email: str): User?
+        + get_by_id(user_id: UUID): User?
+        + create_user(user: User): User
+        + update_user(user: User): User
+    }
+
+    interface IContentRepository {
+        + get_block(key: str): ContentBlock?
+        + get_all_blocks(): dict[str, ContentBlock]
+        + save_version(key, content, author_id, author_name, summary): ContentBlockVersion
+        + get_version_history(key: str): list[ContentBlockVersion]
+        + restore_version(key: str, version: int, author_id, author_name): ContentBlockVersion
+    }
+
+    interface IThemeRepository {
+        + get_active_theme(): ThemeConfig
+        + save_theme(theme: ThemeConfig): ThemeConfig
+        + apply_preset(preset_key): ThemeConfig
+        + apply_shape(shape_type): ThemeConfig
+        + apply_dandelion_modes(modes, size, opacity): ThemeConfig
+    }
+
+    interface IEmailService {
+        + send_contact_notification(message: ContactMessage): bool
+        + send_contact_confirmation(message: ContactMessage): bool
+    }
+
+    interface IPasswordHasher {
+        + hash_password(plain_password: str): str
+        + verify_password(plain_password: str, hashed_password: str): bool
+    }
+}
+
+' ==============================================================================
+' INFRASTRUCTURE LAYER
+' ==============================================================================
+package "Infrastructure Layer" {
+    class SqlAlchemyProfileRepository implements IProfileRepository {
+        - AsyncSession _session
+    }
+
+    class SqlAlchemyContactRepository implements IContactRepository {
+        - AsyncSession _session
+    }
+
+    class SqlAlchemyUserRepository implements IUserRepository {
+        - AsyncSession _session
+    }
+
+    class SqlAlchemyContentRepository implements IContentRepository {
+        - AsyncSession _session
+    }
+
+    class SqlAlchemyThemeRepository implements IThemeRepository {
+        - AsyncSession _session
+    }
+
+    class SmtpEmailService implements IEmailService {
+        - Settings _settings
+    }
+
+    class MockEmailService implements IEmailService {
+    }
+
+    class Argon2PasswordHasher implements IPasswordHasher {
+        - PasswordHasher _ph
+    }
+}
+
+' ==============================================================================
+' APPLICATION LAYER
+' ==============================================================================
+package "Application Layer" {
+    class ProfileService {
+        - IProfileRepository _repository
+        + get_public_profile(): TherapistProfileDTO
+        + update_profile(dto): TherapistProfileDTO
+    }
+
+    class ContactService {
+        - IContactRepository _repository
+        - IEmailService _email_service
+        + submit_contact_form(dto, client_ip): ContactMessageResponseDTO
+        + list_messages(status): list[ContactMessageResponseDTO]
+    }
+
+    class AuthService {
+        - IUserRepository _user_repository
+        - IPasswordHasher _password_hasher
+        + authenticate(dto): UserResponseDTO
+    }
+
+    class ContentService {
+        - IContentRepository _repository
+        + get_content_map(): dict[str, ContentBlockResponseDTO]
+        + save_block_content(key, content, author_id, author_name): ContentBlockResponseDTO
+        + get_block_history(key): list[ContentVersionItemDTO]
+        + restore_block_version(key, version, author_id, author_name): ContentBlockResponseDTO
+    }
+
+    class ThemeService {
+        - IThemeRepository _repository
+        + get_active_theme(): ThemeConfigDTO
+        + apply_preset(key): ThemeConfigDTO
+        + apply_shape(shape_type): ThemeConfigDTO
+        + apply_dandelion_modes(modes, size, opacity): ThemeConfigDTO
+        + update_theme(dto): ThemeConfigDTO
+        + generate_css_variables(theme): str
+    }
+
+    ProfileService --> IProfileRepository
+    ContactService --> IContactRepository
+    ContactService --> IEmailService
+    AuthService --> IUserRepository
+    AuthService --> IPasswordHasher
+    ContentService --> IContentRepository
+    ThemeService --> IThemeRepository
+}
+
+' ==============================================================================
+' PRESENTATION LAYER
+' ==============================================================================
+package "Presentation Layer" {
+    class PublicController {
+        + index(profile_service, theme_service, content_service): Template
+        + handle_contact_form(request, contact_service, data): Template
+        + impressum(profile_service, theme_service, content_service): Template
+        + datenschutz(profile_service, theme_service, content_service): Template
+    }
+
+    class AdminController {
+        + login_page(request, theme_service): Template
+        + process_login(request, auth_service, data): Redirect
+        + dashboard(request, profile_service, contact_service): Template
+        + design_studio(request, theme_service): Template
+        + apply_preset(request, theme_service, data): Redirect
+        + apply_shape(request, theme_service, data): Redirect
+        + apply_dandelion_mode(request, theme_service, data): Redirect
+        + save_content_block(request, content_service, key, data): Template
+        + get_content_history(request, content_service, key): Template
+        + restore_content_version(request, content_service, key, version): Template
+        + list_images(request): list[dict]
+        + upload_image(request, data): dict
+    }
+
+    PublicController ..> ProfileService
+    PublicController ..> ContactService
+    PublicController ..> ThemeService
+    PublicController ..> ContentService
+    AdminController ..> AuthService
+    AdminController ..> ProfileService
+    AdminController ..> ContactService
+    AdminController ..> ThemeService
+    AdminController ..> ContentService
+}
+@enduml

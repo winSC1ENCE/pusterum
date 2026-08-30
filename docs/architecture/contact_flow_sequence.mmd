@@ -1,0 +1,53 @@
+sequenceDiagram
+    autonumber
+    actor Klient as Klient (Browser)
+    participant Caddy as Caddy Proxy (HTTPS / TLS)
+    participant Controller as PublicController (Litestar)
+    participant ContactSvc as ContactService (Application)
+    participant Repo as SqlAlchemyContactRepository
+    participant DB as PostgreSQL 16 (asyncpg)
+    participant Mailer as IEmailService (SMTP / Mock)
+    actor Therapeutin as Therapeutin (E-Mail)
+
+    Klient->>Caddy: POST /contact (Form Data: Name, Mail, Msg, Honeypot)
+    Caddy->>Controller: Reverse Proxy Request
+
+    activate Controller
+    Controller->>ContactSvc: submit_contact_form(CreateContactMessageDTO, client_ip)
+    activate ContactSvc
+
+    Note over ContactSvc: 1. Anti-Spam Honeypot Prüfung
+    alt Honeypot Feld ist ausgefüllt (Spam-Bot)
+        ContactSvc-->>Controller: raise ValidationException("Spam detected")
+        Controller-->>Klient: HTMX Swap: Fehlermeldung im Formular
+    else Gültige Anfrage
+        Note over ContactSvc: 2. Domain-Entity erzeugen & speichern
+        ContactSvc->>Repo: create_message(ContactMessage)
+        activate Repo
+        Repo->>DB: INSERT INTO contact_messages (...)
+        DB-->>Repo: Stored Row (UUID, Timestamps)
+        Repo-->>ContactSvc: ContactMessage Entity
+        deactivate Repo
+
+        Note over ContactSvc: 3. E-Mail Benachrichtigungen
+        par Benachrichtigung an Therapeutin
+            ContactSvc->>Mailer: send_contact_notification(ContactMessage)
+            activate Mailer
+            Mailer->>Therapeutin: E-Mail: Neue Anfrage von Klient
+            Mailer-->>ContactSvc: Delivery OK
+            deactivate Mailer
+        and Empfangsbestätigung an Klient
+            ContactSvc->>Mailer: send_contact_confirmation(ContactMessage)
+            activate Mailer
+            Mailer->>Klient: E-Mail: Bestätigung des Eingangs
+            Mailer-->>ContactSvc: Delivery OK
+            deactivate Mailer
+        end
+
+        ContactSvc-->>Controller: ContactMessageResponseDTO
+        deactivate ContactSvc
+
+        Controller-->>Caddy: 200 OK (contact_success.html Template)
+        deactivate Controller
+        Caddy-->>Klient: HTMX outerHTML Swap (Erfolgsanzeige)
+    end

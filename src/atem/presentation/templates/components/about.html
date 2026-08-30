@@ -1,0 +1,107 @@
+{% from "components/editable_block.html" import editable with context %}
+
+<section id="ueber-mich" class="py-20 bg-theme-surface border-y border-theme transition-colors duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+
+            <!-- Left Portrait Visual -->
+            <div class="lg:col-span-5 flex justify-center order-2 lg:order-1">
+                <div class="relative w-full max-w-sm">
+                    <!-- Dynamic Organic Shape Glow -->
+                    <div class="absolute -inset-3 bg-theme-secondary/40 shape-organic filter blur-sm -z-10 transform -rotate-3"></div>
+
+                    <!-- Portrait Container -->
+                    <div class="bg-theme-main border border-theme p-3 shadow-md shape-organic overflow-hidden aspect-square flex items-center justify-center">
+                        {{ editable('about.portrait', '/static/images/ste_aquarel.png', type='image', img_alt='Atemtherapie Hā Ola – Komplementärtherapie OdA KT', img_class='w-full h-full aspect-square object-cover shape-organic shadow-inner') }}
+                    </div>
+
+                    <!-- Floating Quality Badge (Editable) -->
+                    <div class="absolute -bottom-4 -right-2 bg-theme-card border border-theme px-4 py-2.5 rounded-2xl shadow-lg flex items-center gap-3 z-10">
+                        <div class="w-8 h-8 rounded-full bg-theme-primary/10 flex items-center justify-center text-theme-primary flex-shrink-0" style="width: 32px; height: 32px;">
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            {{ editable('about.badge_title', 'OdA KT Diplom', tag='span', class='text-xs font-bold text-theme-primary block') }}
+                            {{ editable('about.badge_subtitle', 'Branchenzertifikat KT', tag='span', class='text-[10px] text-theme-text-muted block') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Profile & Method Description -->
+            <div class="lg:col-span-7 space-y-6 order-1 lg:order-2">
+                <div>
+                    <span class="text-xs uppercase font-bold tracking-widest text-theme-primary block mb-2">
+                        Philosophie &amp; Praxis
+                    </span>
+                    {{ editable('about.title', 'Atemtherapie Hā Ola', tag='h2', class='font-heading text-3xl sm:text-4xl font-bold text-theme-text-main') }}
+                    {{ editable('about.subtitle', 'Dipl. Komplementärtherapeutin OdA KT • Gemeinschaftspraxis Physiotherapie', tag='p', class='text-theme-primary font-medium text-lg mt-1') }}
+                </div>
+
+                <div class="space-y-4 text-theme-text-muted leading-relaxed text-base">
+                    <!-- Hā Ola Meaning Callout Box -->
+                    <div class="p-5 rounded-2xl bg-theme-main border border-theme shadow-sm space-y-2">
+                        <h3 class="font-heading font-bold text-theme-text-main text-base flex items-center gap-2">
+                            <svg class="w-4 h-4 text-theme-primary" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            </svg>
+                            {{ editable('about.meaning_title', 'Die Bedeutung von «Hā Ola»', tag='span') }}
+                        </h3>
+                        {{ editable('about.meaning_text', '«Hā» ist das hawaiianische Wort für den lebendigen Atem, den Lebenshauch und die geistige Lebenskraft (Mana). «Ola» steht für Leben, Gesundheit und ganzheitliche Heilung. Zusammen verkörpert Hā Ola [Haa-Oh-lah] den heilsamen Lebensatem: Wenn wir lernen, dem eigenen Atem wieder Raum zu geben, entfaltet sich die natürliche Selbstheilungskraft unseres Körpers.', tag='p', class='text-xs sm:text-sm text-theme-text-muted leading-relaxed', type='textarea', rows=4) }}
+                    </div>
+
+                    {{ editable('about.bio', profile.bio, tag='p', type='textarea', rows=4) }}
+
+                    {{ editable('about.interdisciplinary', 'In der Gemeinschaftspraxis in den Räumlichkeiten der Physiotherapie schätze ich den interdisziplinären Austausch besonders. Während die Physiotherapie den Bewegungsapparat funktionell stärkt, setzt die Atemtherapie an den feinen vegetativen Regulationsprozessen an: Atemmuster vertiefen sich, Muskelverspannungen lockern sich und das Nervensystem findet zurück in die Entspannung.', tag='p', type='textarea', rows=4) }}
+                </div>
+
+                <!-- Personal Quote -->
+                <div>
+                    {{ editable('about.quote', profile.quote, tag='div', class='p-5 rounded-2xl bg-theme-muted border-l-4 border-theme-primary italic text-theme-text-main font-heading text-lg') }}
+                </div>
+
+                <!-- Key Credentials List -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0" style="width: 24px; height: 24px;">
+                            <svg class="w-4 h-4" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        {{ editable('about.credential_1', 'Diplomierte Komplementärtherapeutin OdA KT', tag='span', class='text-sm text-theme-text-main') }}
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0" style="width: 24px; height: 24px;">
+                            <svg class="w-4 h-4" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        {{ editable('about.credential_2', 'EMR • ASCA • EGK • OdA KT anerkannt', tag='span', class='text-sm text-theme-text-main') }}
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0" style="width: 24px; height: 24px;">
+                            <svg class="w-4 h-4" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        {{ editable('about.credential_3', 'Eingebettet in Physiotherapie-Gemeinschaftspraxis', tag='span', class='text-sm text-theme-text-main') }}
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0" style="width: 24px; height: 24px;">
+                            <svg class="w-4 h-4" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        {{ editable('about.credential_4', 'Abrechnung via Zusatzversicherung (VVG)', tag='span', class='text-sm text-theme-text-main') }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>

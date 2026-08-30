@@ -1,0 +1,68 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Helvetica"
+skinparam defaultFontSize 12
+skinparam roundCorner 8
+skinparam shadowing false
+autonumber
+
+actor "Klient (Browser)" as Klient
+participant "Caddy Reverse Proxy\n(HTTPS / TLS)" as Caddy
+participant "PublicController\n(Litestar)" as Controller
+participant "ContactService\n(Application Use Case)" as Service
+participant "SqlAlchemyContactRepository\n(Infrastructure)" as Repo
+database "PostgreSQL 16\n(asyncpg)" as DB
+participant "IEmailService\n(SMTP / Mock)" as Mail
+actor "Therapeutin\n(E-Mail Client)" as Therapist
+
+Klient -> Caddy: POST /contact (Form Data: Name, Email, Phone, Msg, Honeypot)
+activate Caddy
+Caddy -> Controller: Proxy Request (ASGI)
+activate Controller
+
+Controller -> Service: submit_contact_form(CreateContactMessageDTO, client_ip)
+activate Service
+
+note over Service: 1. Anti-Spam Prüfung
+alt Honeypot Feld ist ausgefüllt (Spam Bot)
+    Service --> Controller: raise ValidationException("Spam submission detected")
+    Controller --> Caddy: HTTP 200 (Render contact_form.html mit Fehler)
+    Caddy --> Klient: HTMX Swap: Fehlermeldung anzeigen
+else Gültige Anfrage
+    note over Service: 2. Persistierung in PostgreSQL
+    Service -> Repo: create_message(ContactMessage)
+    activate Repo
+    Repo -> DB: INSERT INTO contact_messages (id, sender_name, sender_email, ...)\nVALUES ($1, $2, $3, ...)
+    activate DB
+    DB --> Repo: Stored Record (UUID, Timestamps)
+    deactivate DB
+    Repo --> Service: ContactMessage Entity
+    deactivate Repo
+
+    note over Service: 3. Asynchrone Benachrichtigungen
+    par E-Mail an Praxis
+        Service -> Mail: send_contact_notification(ContactMessage)
+        activate Mail
+        Mail -> Therapist: SMTP Mail: Neue Anfrage von Klient
+        Mail --> Service: OK
+        deactivate Mail
+    and Empfangsbestätigung an Klient
+        Service -> Mail: send_contact_confirmation(ContactMessage)
+        activate Mail
+        Mail -> Klient: SMTP Mail: Empfangsbestätigung
+        Mail --> Service: OK
+        deactivate Mail
+    end
+
+    Service --> Controller: ContactMessageResponseDTO
+    deactivate Service
+
+    Controller --> Caddy: HTTP 200 (Template contact_success.html)
+    deactivate Controller
+
+    Caddy --> Klient: HTMX outerHTML Swap (Erfolgsanzeige im Browser)
+    deactivate Caddy
+end
+
+@enduml

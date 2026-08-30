@@ -7,6 +7,7 @@ from atem.domain.interfaces.theme_repository import IThemeRepository
 from atem.domain.models.theme import (
     PRESET_THEMES,
     ColorPresetKey,
+    DandelionEffectMode,
     ShapeType,
     ThemeConfig,
 )
@@ -46,6 +47,7 @@ class SqlAlchemyThemeRepository(IThemeRepository):
                 active_shape=default.active_shape,
                 motif_enabled=default.motif_enabled,
                 motif_animation_speed=default.motif_animation_speed,
+                dandelion_mode=default.dandelion_mode.value,
                 is_active=True,
             )
             self._session.add(model)
@@ -80,6 +82,13 @@ class SqlAlchemyThemeRepository(IThemeRepository):
         model.active_shape = theme.active_shape
         model.motif_enabled = theme.motif_enabled
         model.motif_animation_speed = theme.motif_animation_speed
+        model.dandelion_mode = (
+            ",".join(m.value for m in theme.dandelion_modes)
+            if theme.dandelion_modes
+            else "disabled"
+        )
+        model.dandelion_seed_size = theme.dandelion_seed_size
+        model.dandelion_seed_opacity = theme.dandelion_seed_opacity
         model.is_active = True
 
         await self._session.flush()
@@ -112,8 +121,34 @@ class SqlAlchemyThemeRepository(IThemeRepository):
         active.active_shape = shape_type
         return await self.save_theme(active)
 
+    async def apply_dandelion_mode(self, mode: DandelionEffectMode) -> ThemeConfig:
+        """Apply a single ambient dandelion effect mode."""
+        active = await self.get_active_theme()
+        active.dandelion_modes = [mode]
+        return await self.save_theme(active)
+
+    async def apply_dandelion_modes(self, modes: list[DandelionEffectMode]) -> ThemeConfig:
+        """Apply multi-select ambient dandelion effect modes."""
+        active = await self.get_active_theme()
+        active.dandelion_modes = modes if modes else [DandelionEffectMode.DISABLED]
+        return await self.save_theme(active)
+
     @staticmethod
     def _to_entity(m: ThemeConfigModel) -> ThemeConfig:
+        mode_val = getattr(m, "dandelion_mode", "disabled") or "disabled"
+        parsed_modes: list[DandelionEffectMode] = []
+        for part in mode_val.split(","):
+            clean_part = part.strip()
+            if not clean_part:
+                continue
+            try:
+                parsed_modes.append(DandelionEffectMode(clean_part))
+            except ValueError:
+                continue
+
+        if not parsed_modes:
+            parsed_modes = [DandelionEffectMode.DISABLED]
+
         return ThemeConfig(
             id=m.id,
             created_at=m.created_at,
@@ -135,4 +170,7 @@ class SqlAlchemyThemeRepository(IThemeRepository):
             active_shape=m.active_shape,
             motif_enabled=m.motif_enabled,
             motif_animation_speed=m.motif_animation_speed,
+            dandelion_modes=parsed_modes,
+            dandelion_seed_size=getattr(m, "dandelion_seed_size", 48),
+            dandelion_seed_opacity=getattr(m, "dandelion_seed_opacity", 80),
         )

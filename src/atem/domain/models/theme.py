@@ -1,6 +1,4 @@
-"""Theme and Corporate Design Domain Models."""
-
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 
 from atem.domain.models.base import BaseEntity
@@ -25,6 +23,17 @@ class ColorPresetKey(StrEnum):
     OZEAN_KIESEL = "ozean_kiesel"  # Ozean & Kiesel (Erfrischend)
     SONNE_WEIZEN = "sonne_weizen"  # Sonne & Weizen (Vitalisierend)
     CUSTOM = "custom"
+
+
+class DandelionEffectMode(StrEnum):
+    """Ambient dandelion and floating seed effect modes across the webapp."""
+
+    DISABLED = "disabled"  # 0. Deaktiviert (Aus)
+    BREATHING_FLOW = "breathing_flow"  # 1. Der sanfte Atem-Drift (Ambient Flow)
+    SCROLL_JOURNEY = "scroll_journey"  # 2. Die Reise des Samens (Scroll-Begleiter)
+    WATERMARK_ACCENTS = "watermark_accents"  # 3. Wasserzeichen-Akzente (Statisch)
+    BREATH_WIDGET = "breath_widget"  # 4. Die interaktive Atem-Pause (Zen-Widget)
+    WHISPER_TRAIL = "whisper_trail"  # 5. Sanfter Hauch bei Mausbewegung (Seed Whisper)
 
 
 @dataclass(kw_only=True)
@@ -70,6 +79,36 @@ class ThemeConfig(BaseEntity):
     active_shape: ShapeType = ShapeType.DANDELION_SEED
     motif_enabled: bool = True
     motif_animation_speed: str = "normal"  # "slow", "normal", "fast", "static"
+
+    # Dandelion Ambient Effects Engine (Multi-Select Modes 1–5 or Disabled) & Sliders
+    dandelion_modes: list[DandelionEffectMode] = field(
+        default_factory=lambda: [DandelionEffectMode.DISABLED]
+    )
+    dandelion_seed_size: int = 48  # Pixel size (20 - 110px)
+    dandelion_seed_opacity: int = 80  # Opacity percentage (10 - 100%)
+
+    @property
+    def dandelion_mode(self) -> DandelionEffectMode:
+        """Backward-compatibility property returning the primary active mode."""
+        for m in self.dandelion_modes:
+            if m != DandelionEffectMode.DISABLED:
+                return m
+        return DandelionEffectMode.DISABLED
+
+    @dandelion_mode.setter
+    def dandelion_mode(self, val: DandelionEffectMode) -> None:
+        """Backward-compatibility setter."""
+        self.dandelion_modes = [val]
+
+    @property
+    def dandelion_modes_list(self) -> list[str]:
+        """Return list of active mode string values for templates and JSON."""
+        return [m.value for m in self.dandelion_modes]
+
+    def has_dandelion_mode(self, mode: DandelionEffectMode | str) -> bool:
+        """Check if a specific dandelion mode is active."""
+        val = mode.value if isinstance(mode, DandelionEffectMode) else mode
+        return any(m.value == val for m in self.dandelion_modes)
 
 
 # ------------------------------------------------------------------------------

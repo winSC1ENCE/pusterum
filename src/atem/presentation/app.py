@@ -1,5 +1,4 @@
-"""Litestar Application Factory with Dependency Injection and Lifespan Hooks."""
-
+import contextlib
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -13,6 +12,7 @@ from litestar.openapi.config import OpenAPIConfig
 from litestar.openapi.spec import Contact
 from litestar.static_files import create_static_files_router
 from litestar.template.config import TemplateConfig
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from atem.application.services.auth_service import AuthService
@@ -170,6 +170,14 @@ async def lifespan(app: Litestar) -> AsyncGenerator[None, None]:
     if settings.is_dev or settings.ENVIRONMENT == "test":
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            if not settings.DATABASE_URL.startswith("sqlite"):
+                with contextlib.suppress(Exception):
+                    await conn.execute(
+                        text(
+                            "ALTER TABLE theme_configs "
+                            "ALTER COLUMN dandelion_mode TYPE VARCHAR(255);"
+                        )
+                    )
 
         # Seed initial admin user if needed
         async with session_factory() as session:

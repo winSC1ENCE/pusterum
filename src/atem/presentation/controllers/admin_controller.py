@@ -1,5 +1,6 @@
 """Admin Controller for Content Management, Corporate Design, and Contact Inquiries."""
 
+import contextlib
 import re
 import time
 from pathlib import Path
@@ -12,7 +13,7 @@ from litestar.datastructures import UploadFile
 from litestar.enums import RequestEncodingType
 from litestar.exceptions import NotAuthorizedException, ValidationException
 from litestar.params import Body
-from litestar.response import Redirect, Template
+from litestar.response import Redirect, Response, Template
 
 from atem.application.dto.auth import LoginRequestDTO
 from atem.application.dto.content import SaveContentBlockRequestDTO
@@ -23,7 +24,12 @@ from atem.application.services.content_service import ContentService
 from atem.application.services.profile_service import ProfileService
 from atem.application.services.theme_service import ThemeService
 from atem.domain.exceptions import AuthenticationException
-from atem.domain.models.theme import ColorPresetKey, ShapeType
+from atem.domain.models.theme import (
+    PRESET_THEMES,
+    ColorPresetKey,
+    DandelionEffectMode,
+    ShapeType,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -135,6 +141,63 @@ class AdminController(Controller):
         theme_css = theme_service.generate_css_variables(theme)
         presets = theme_service.get_all_color_presets()
         shapes = theme_service.get_all_shapes()
+        dandelion_modes = [
+            {
+                "key": DandelionEffectMode.DISABLED.value,
+                "number": "0",
+                "name": "Deaktiviert",
+                "badge": "Standard / Aus",
+                "description": (
+                    "Vollständig statische Seite ohne Hintergrund-Partikel oder Widgets."
+                ),
+            },
+            {
+                "key": DandelionEffectMode.BREATHING_FLOW.value,
+                "number": "1",
+                "name": "Sanfter Atem-Drift",
+                "badge": "Ambient Flow",
+                "description": (
+                    "5–6 zarte Vektor-Samen schweben mit 3–5% Deckkraft im 4s/6s-Atemrhythmus."
+                ),
+            },
+            {
+                "key": DandelionEffectMode.SCROLL_JOURNEY.value,
+                "number": "2",
+                "name": "Die Reise des Samens",
+                "badge": "Scroll-Begleiter",
+                "description": (
+                    "Ein einzelner Samen begleitet den Besucher beim Scrollen bis zum Kontakt."
+                ),
+            },
+            {
+                "key": DandelionEffectMode.WATERMARK_ACCENTS.value,
+                "number": "3",
+                "name": "Wasserzeichen-Akzente",
+                "badge": "Statisch & Edel",
+                "description": (
+                    "100% statische, feine Vektor-Wasserzeichen an Sektionsrändern & beim Zitat."
+                ),
+            },
+            {
+                "key": DandelionEffectMode.BREATH_WIDGET.value,
+                "number": "4",
+                "name": "Interaktive Atem-Pause",
+                "badge": "Zen-Widget",
+                "description": (
+                    "Schwebendes Zen-Widget unten rechts zum geführten 4-4-6 Durchatmen."
+                ),
+            },
+            {
+                "key": DandelionEffectMode.WHISPER_TRAIL.value,
+                "number": "5",
+                "name": "Sanfter Hauch bei Bewegung",
+                "badge": "Seed Whisper",
+                "description": (
+                    "Ephemere Samenpartikel entstehen bei sanfter Mausbewegung und verfliegen nach"
+                    " 1.2s."
+                ),
+            },
+        ]
 
         return Template(
             template_name="admin/design.html",
@@ -144,6 +207,7 @@ class AdminController(Controller):
                 "theme_css": theme_css,
                 "presets": presets,
                 "shapes": shapes,
+                "dandelion_modes": dandelion_modes,
             },
         )
 
@@ -153,7 +217,7 @@ class AdminController(Controller):
         request: Request[Any, Any, Any],
         theme_service: ThemeService,
         data: Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)],
-    ) -> Redirect:
+    ) -> Response[bytes] | Redirect:
         """Apply one of the 5 pastel color presets."""
         if not request.session.get("user"):
             return Redirect(path="/admin/login")
@@ -165,6 +229,8 @@ class AdminController(Controller):
         except ValueError:
             logger.warning("Invalid preset key provided", key=preset_str)
 
+        if request.headers.get("hx-request") == "true":
+            return Response(content=b"", status_code=204)
         return Redirect(path="/admin/design")
 
     @post("/design/shape")
@@ -173,7 +239,7 @@ class AdminController(Controller):
         request: Request[Any, Any, Any],
         theme_service: ThemeService,
         data: Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)],
-    ) -> Redirect:
+    ) -> Response[bytes] | Redirect:
         """Apply one of the 5 geometric/organic shapes."""
         if not request.session.get("user"):
             return Redirect(path="/admin/login")
@@ -185,6 +251,62 @@ class AdminController(Controller):
         except ValueError:
             logger.warning("Invalid shape type provided", shape=shape_str)
 
+        if request.headers.get("hx-request") == "true":
+            return Response(content=b"", status_code=204)
+        return Redirect(path="/admin/design")
+
+    @staticmethod
+    def _extract_dandelion_modes(data: dict[str, Any]) -> list[DandelionEffectMode]:
+        modes_input = data.get("dandelion_modes") or data.get("dandelion_mode")
+        raw_list: list[str] = []
+        if isinstance(modes_input, list):
+            raw_list = [str(item) for item in modes_input]
+        elif isinstance(modes_input, str):
+            raw_list = [p.strip() for p in modes_input.split(",") if p.strip()]
+
+        parsed: list[DandelionEffectMode] = []
+        for m_str in raw_list:
+            with contextlib.suppress(ValueError):
+                parsed.append(DandelionEffectMode(m_str))
+
+        if not parsed or (DandelionEffectMode.DISABLED in parsed and len(parsed) == 1):
+            return [DandelionEffectMode.DISABLED]
+        return [m for m in parsed if m != DandelionEffectMode.DISABLED]
+
+    @post("/design/dandelion")
+    async def apply_dandelion_mode(
+        self,
+        request: Request[Any, Any, Any],
+        theme_service: ThemeService,
+        data: Annotated[dict[str, Any], Body(media_type=RequestEncodingType.URL_ENCODED)],
+    ) -> Response[bytes] | Redirect:
+        """Apply ambient dandelion effect multi-select modes and slider settings."""
+        if not request.session.get("user"):
+            return Redirect(path="/admin/login")
+
+        current_theme = await theme_service.get_active_theme()
+        parsed_modes = self._extract_dandelion_modes(data)
+
+        try:
+            seed_size = int(data.get("dandelion_seed_size", str(current_theme.dandelion_seed_size)))
+        except ValueError:
+            seed_size = current_theme.dandelion_seed_size
+
+        try:
+            seed_opacity = int(
+                data.get("dandelion_seed_opacity", str(current_theme.dandelion_seed_opacity))
+            )
+        except ValueError:
+            seed_opacity = current_theme.dandelion_seed_opacity
+
+        await theme_service.apply_dandelion_modes(
+            modes=parsed_modes,
+            seed_size=seed_size,
+            seed_opacity=seed_opacity,
+        )
+
+        if request.headers.get("hx-request") == "true":
+            return Response(content=b"", status_code=204)
         return Redirect(path="/admin/design")
 
     @post("/design/custom")
@@ -193,36 +315,95 @@ class AdminController(Controller):
         request: Request[Any, Any, Any],
         theme_service: ThemeService,
         data: Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)],
-    ) -> Redirect:
-        """Save custom colors and typography."""
+    ) -> Response[bytes] | Redirect:
+        """Save custom colors and typography while preserving active shapes and modes."""
         if not request.session.get("user"):
             return Redirect(path="/admin/login")
 
-        active_shape_str = data.get("active_shape", ShapeType.DANDELION_SEED.value)
+        current_theme = await theme_service.get_active_theme()
+
+        active_shape_str = data.get("active_shape", current_theme.active_shape.value)
         try:
             shape_type = ShapeType(active_shape_str)
         except ValueError:
-            shape_type = ShapeType.DANDELION_SEED
+            shape_type = current_theme.active_shape
+
+        dandelion_mode_str = data.get("dandelion_mode", current_theme.dandelion_mode.value)
+        try:
+            dandelion_mode = DandelionEffectMode(dandelion_mode_str)
+        except ValueError:
+            dandelion_mode = current_theme.dandelion_mode
+
+        try:
+            seed_size = int(data.get("dandelion_seed_size", str(current_theme.dandelion_seed_size)))
+        except ValueError:
+            seed_size = current_theme.dandelion_seed_size
+
+        try:
+            seed_opacity = int(
+                data.get("dandelion_seed_opacity", str(current_theme.dandelion_seed_opacity))
+            )
+        except ValueError:
+            seed_opacity = current_theme.dandelion_seed_opacity
+
+        primary = data.get("primary_color", current_theme.primary_color)
+        secondary = data.get("secondary_color", current_theme.secondary_color)
+        accent = data.get("accent_color", current_theme.accent_color)
+        background = data.get("background_color", current_theme.background_color)
+        surface = data.get("surface_color", current_theme.surface_color)
+        border = data.get("border_color", current_theme.border_color)
+
+        # Detect if colors match current preset or any predefined pastel preset
+        active_palette = PRESET_THEMES.get(current_theme.preset_key)
+        if active_palette and (
+            primary.lower() == active_palette.primary.lower()
+            and secondary.lower() == active_palette.secondary.lower()
+            and accent.lower() == active_palette.accent.lower()
+            and background.lower() == active_palette.background.lower()
+            and surface.lower() == active_palette.surface.lower()
+            and border.lower() == active_palette.border_color.lower()
+        ):
+            determined_preset = current_theme.preset_key
+        else:
+            matched_preset = None
+            for p_key, p_val in PRESET_THEMES.items():
+                if (
+                    primary.lower() == p_val.primary.lower()
+                    and secondary.lower() == p_val.secondary.lower()
+                    and accent.lower() == p_val.accent.lower()
+                    and background.lower() == p_val.background.lower()
+                    and surface.lower() == p_val.surface.lower()
+                    and border.lower() == p_val.border_color.lower()
+                ):
+                    matched_preset = p_key
+                    break
+            determined_preset = matched_preset if matched_preset else ColorPresetKey.CUSTOM
 
         dto = UpdateThemeRequestDTO(
-            preset_key=ColorPresetKey.CUSTOM,
-            primary_color=data.get("primary_color", "#4A6C50"),
-            primary_hover=data.get("primary_hover") or None,
-            secondary_color=data.get("secondary_color", "#CEDECF"),
-            accent_color=data.get("accent_color", "#7FA485"),
-            background_color=data.get("background_color", "#FAF8F5"),
-            surface_color=data.get("surface_color", "#FFFFFF"),
-            surface_muted=data.get("surface_muted", "#F3EFE8"),
-            text_main_color=data.get("text_main_color", "#1E293B"),
-            text_muted_color=data.get("text_muted_color", "#64748B"),
-            border_color=data.get("border_color", "#E6DED1"),
-            heading_font=data.get("heading_font", "Lora"),
-            body_font=data.get("body_font", "Plus Jakarta Sans"),
+            preset_key=determined_preset,
+            primary_color=primary,
+            primary_hover=data.get("primary_hover") or current_theme.primary_hover,
+            secondary_color=secondary,
+            accent_color=accent,
+            background_color=background,
+            surface_color=surface,
+            surface_muted=data.get("surface_muted", current_theme.surface_muted),
+            text_main_color=data.get("text_main_color", current_theme.text_main_color),
+            text_muted_color=data.get("text_muted_color", current_theme.text_muted_color),
+            border_color=border,
+            heading_font=data.get("heading_font", current_theme.heading_font),
+            body_font=data.get("body_font", current_theme.body_font),
             active_shape=shape_type,
-            motif_enabled=data.get("motif_enabled") in ("true", "on"),
-            motif_animation_speed=data.get("motif_animation_speed", "normal"),
+            motif_enabled=current_theme.motif_enabled,
+            motif_animation_speed=current_theme.motif_animation_speed,
+            dandelion_mode=dandelion_mode,
+            dandelion_seed_size=seed_size,
+            dandelion_seed_opacity=seed_opacity,
         )
         await theme_service.update_theme(dto)
+
+        if request.headers.get("hx-request") == "true":
+            return Response(content=b"", status_code=204)
         return Redirect(path="/admin/design")
 
     # =========================================================================

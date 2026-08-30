@@ -40,4 +40,7 @@ class ThemeConfigModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     motif_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     motif_animation_speed: Mapped[str] = mapped_column(String(20), default="normal", nullable=False)
+    dandelion_mode: Mapped[str] = mapped_column(String(255), default="disabled", nullable=False)
+    dandelion_seed_size: Mapped[int] = mapped_column(default=48, nullable=False)
+    dandelion_seed_opacity: Mapped[int] = mapped_column(default=80, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from atem.domain.models.theme import ColorPresetKey, ShapeType
+from atem.domain.models.theme import ColorPresetKey, DandelionEffectMode, ShapeType
 
 
 class ColorPaletteDTO(BaseModel):
@@ -57,6 +57,22 @@ class ThemeConfigDTO(BaseModel):
     active_shape: ShapeType = ShapeType.DANDELION_SEED
     motif_enabled: bool = True
     motif_animation_speed: str = Field(default="normal", max_length=20)
+    dandelion_mode: DandelionEffectMode = DandelionEffectMode.DISABLED
+    dandelion_modes: list[DandelionEffectMode] = Field(
+        default_factory=lambda: [DandelionEffectMode.DISABLED]
+    )
+    dandelion_seed_size: int = Field(default=48, ge=20, le=120)
+    dandelion_seed_opacity: int = Field(default=80, ge=10, le=100)
+
+    def has_dandelion_mode(self, mode: DandelionEffectMode | str) -> bool:
+        """Check if a specific dandelion mode is active."""
+        val = mode.value if isinstance(mode, DandelionEffectMode) else mode
+        return any(m.value == val for m in self.dandelion_modes)
+
+    @property
+    def dandelion_modes_list(self) -> list[str]:
+        """Return list of active mode string values for templates and JSON."""
+        return [m.value for m in self.dandelion_modes]
 
 
 class UpdateThemeRequestDTO(BaseModel):
@@ -78,3 +94,20 @@ class UpdateThemeRequestDTO(BaseModel):
     active_shape: ShapeType = ShapeType.DANDELION_SEED
     motif_enabled: bool = True
     motif_animation_speed: str = Field(default="normal", max_length=20)
+    dandelion_mode: DandelionEffectMode = DandelionEffectMode.DISABLED
+    dandelion_modes: list[DandelionEffectMode] = Field(
+        default_factory=lambda: [DandelionEffectMode.DISABLED]
+    )
+    dandelion_seed_size: int = Field(default=48, ge=20, le=120)
+    dandelion_seed_opacity: int = Field(default=80, ge=10, le=100)
+
+
+class UpdateDandelionModeRequestDTO(BaseModel):
+    """Request payload to update ambient dandelion effect mode and sliders."""
+
+    dandelion_mode: DandelionEffectMode = DandelionEffectMode.DISABLED
+    dandelion_modes: list[DandelionEffectMode] = Field(
+        default_factory=lambda: [DandelionEffectMode.DISABLED]
+    )
+    dandelion_seed_size: int = Field(default=48, ge=20, le=120)
+    dandelion_seed_opacity: int = Field(default=80, ge=10, le=100)

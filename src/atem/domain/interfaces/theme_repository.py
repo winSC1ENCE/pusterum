@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from atem.domain.models.theme import ColorPresetKey, ShapeType, ThemeConfig
+from atem.domain.models.theme import ColorPresetKey, DandelionEffectMode, ShapeType, ThemeConfig
 
 
 class IThemeRepository(ABC):
@@ -23,3 +23,11 @@ class IThemeRepository(ABC):
     @abstractmethod
     async def apply_shape(self, shape_type: ShapeType) -> ThemeConfig:
         """Apply an organic/geometric shape preset."""
+
+    @abstractmethod
+    async def apply_dandelion_mode(self, mode: DandelionEffectMode) -> ThemeConfig:
+        """Apply a single ambient dandelion effect mode."""
+
+    @abstractmethod
+    async def apply_dandelion_modes(self, modes: list[DandelionEffectMode]) -> ThemeConfig:
+        """Apply multi-select ambient dandelion effect modes."""

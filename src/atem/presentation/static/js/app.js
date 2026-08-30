@@ -200,9 +200,46 @@ document.addEventListener("alpine:init", () => {
             this.closeModal();
         },
     }));
+    // 3. Design Studio Live Sliders & Autosave Component
+    Alpine.data("designStudio", (initialSize = 48, initialOpacity = 80) => ({
+        seedSize: initialSize,
+        seedOpacity: initialOpacity,
+        init() {
+            this.updateLivePreview();
+        },
+        updateLivePreview() {
+            const previewEl = document.getElementById("seed-live-preview-img");
+            if (previewEl) {
+                previewEl.style.width = Math.min(this.seedSize, 90) + "px";
+                previewEl.style.opacity = String(this.seedOpacity / 100);
+            }
+            const sizeBadge = document.getElementById("seed-size-badge");
+            if (sizeBadge) sizeBadge.textContent = this.seedSize + " px";
+            const opacityBadge = document.getElementById("seed-opacity-badge");
+            if (opacityBadge) opacityBadge.textContent = this.seedOpacity + " %";
+        },
+    }));
+});
+
+// Re-initialize Alpine.js on HTMX swaps so reactivity is never lost
+document.addEventListener("htmx:afterSwap", (evt) => {
+    if (window.Alpine && typeof Alpine.initTree === "function" && evt.detail && evt.detail.target) {
+        Alpine.initTree(evt.detail.target);
+    }
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Preserve scroll position before full page navigation
+    window.addEventListener("beforeunload", () => {
+        sessionStorage.setItem("atem_scroll_y", String(window.scrollY));
+    });
+
+    const savedY = sessionStorage.getItem("atem_scroll_y");
+    if (savedY !== null && !window.location.hash) {
+        window.scrollTo({ top: parseInt(savedY, 10), behavior: "instant" });
+        sessionStorage.removeItem("atem_scroll_y");
+    }
+
     // Smooth scroll for anchor navigation
     document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener("click", function (e) {

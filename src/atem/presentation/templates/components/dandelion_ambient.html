@@ -1,0 +1,535 @@
+{# =============================================================================
+   DANDELION & AMBIENT SEED EFFECTS ENGINE (TDR-0002)
+   Features 5 subtle aesthetic modes + disabled state.
+   Uses authentic transparent PNG botanical seed (/static/images/dandelion_seed_single.png).
+   Customizable Seed Size & Opacity via Admin Console Sliders.
+   Responsive: Modes 1, 2, 3, 5 are desktop-only (hidden lg:block).
+   Mode 4 (Interaktive Atem-Pause) is active on ALL devices (Mobile, Tablet, Desktop).
+   ============================================================================= #}
+
+{% set active_modes = theme.dandelion_modes_list if theme and theme.dandelion_modes_list else ([theme.dandelion_mode.value] if theme and theme.dandelion_mode else ['disabled']) %}
+{% set seed_size = theme.dandelion_seed_size if theme and theme.dandelion_seed_size else 48 %}
+{% set seed_opacity = ((theme.dandelion_seed_opacity if theme and theme.dandelion_seed_opacity else 80) / 100.0) %}
+{% set has_effects = active_modes and ('disabled' not in active_modes or active_modes|length > 1) %}
+
+{% if has_effects %}
+<div id="dandelion-ambient-engine" class="pointer-events-none select-none" data-mode="{{ active_modes | join(',') }}">
+
+    {# =========================================================================
+       MODE 1: DER SANFTE ATEM-DRIFT (Ambient Breathing Flow)
+       Desktop-only: 5–6 delicate botanical PNG seeds drifting in an organic 4s/6s breath rhythm
+       ========================================================================= #}
+    {% if 'breathing_flow' in active_modes %}
+    <div class="fixed inset-0 overflow-hidden z-20 pointer-events-none hidden lg:block">
+        <style>
+            @keyframes seedBreathFloat1 {
+                0%, 100% { transform: translate3d(0, 0, 0) rotate(-5deg); }
+                40% { transform: translate3d(18px, -28px, 0) rotate(8deg); }
+                70% { transform: translate3d(-10px, -14px, 0) rotate(-8deg); }
+            }
+            @keyframes seedBreathFloat2 {
+                0%, 100% { transform: translate3d(0, 0, 0) rotate(6deg); }
+                45% { transform: translate3d(-20px, -32px, 0) rotate(-10deg); }
+                80% { transform: translate3d(12px, -12px, 0) rotate(7deg); }
+            }
+            @keyframes seedBreathFloat3 {
+                0%, 100% { transform: translate3d(0, 0, 0) rotate(-8deg); }
+                35% { transform: translate3d(24px, -22px, 0) rotate(12deg); }
+                65% { transform: translate3d(10px, 16px, 0) rotate(-3deg); }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                .ambient-png-seed { animation: none !important; }
+            }
+        </style>
+
+        <!-- Seed 1 (Top Left) -->
+        <div class="ambient-png-seed absolute hover:opacity-100 transition-opacity"
+             style="top: 14%; left: 8%; width: {{ seed_size }}px; opacity: {{ seed_opacity }}; animation: seedBreathFloat1 13s ease-in-out infinite;">
+            <img src="/static/images/dandelion_seed_single.png" alt="Pusteblumen-Samen" class="w-full h-auto filter drop-shadow-md transform -rotate-12" />
+        </div>
+
+        <!-- Seed 2 (Top Right-Center) -->
+        <div class="ambient-png-seed absolute hover:opacity-100 transition-opacity"
+             style="top: 24%; right: 13%; width: {{ (seed_size * 0.85) | round | int }}px; opacity: {{ (seed_opacity * 0.95) | round(2) }}; animation: seedBreathFloat2 15s ease-in-out infinite 1.5s;">
+            <img src="/static/images/dandelion_seed_single.png" alt="Pusteblumen-Samen" class="w-full h-auto filter drop-shadow-md transform rotate-15" />
+        </div>
+
+        <!-- Seed 3 (Center Floating) -->
+        <div class="ambient-png-seed absolute hover:opacity-100 transition-opacity"
+             style="top: 52%; left: 14%; width: {{ (seed_size * 1.15) | round | int }}px; opacity: {{ (seed_opacity * 0.90) | round(2) }}; animation: seedBreathFloat3 17s ease-in-out infinite 3s;">
+            <img src="/static/images/dandelion_seed_single.png" alt="Pusteblumen-Samen" class="w-full h-auto filter drop-shadow-md transform rotate-6" />
+        </div>
+
+        <!-- Seed 4 (Bottom Right) -->
+        <div class="ambient-png-seed absolute hover:opacity-100 transition-opacity"
+             style="bottom: 18%; right: 8%; width: {{ (seed_size * 0.95) | round | int }}px; opacity: {{ seed_opacity }}; animation: seedBreathFloat1 14s ease-in-out infinite 2s;">
+            <img src="/static/images/dandelion_seed_single.png" alt="Pusteblumen-Samen" class="w-full h-auto filter drop-shadow-md transform -rotate-6" />
+        </div>
+
+        <!-- Seed 5 (Bottom Left) -->
+        <div class="ambient-png-seed absolute hover:opacity-100 transition-opacity"
+             style="bottom: 28%; left: 6%; width: {{ (seed_size * 0.80) | round | int }}px; opacity: {{ (seed_opacity * 0.95) | round(2) }}; animation: seedBreathFloat2 16s ease-in-out infinite 4s;">
+            <img src="/static/images/dandelion_seed_single.png" alt="Pusteblumen-Samen" class="w-full h-auto filter drop-shadow-md transform rotate-10" />
+        </div>
+    </div>
+    {% endif %}
+
+
+    {# =========================================================================
+       MODE 2: DIE REISE DES SAMENS (Storytelling Scroll-Begleiter)
+       Desktop-only: Starts right at the Hero Dandelion Flower and gracefully glides
+       down along an organic path across sections as user scrolls.
+       ========================================================================= #}
+    {% if 'scroll_journey' in active_modes %}
+    <div
+        x-data="{
+            progress: 0,
+            initialLeft: 76,
+            initialTop: 28,
+            init() {
+                this.measureFlower();
+                this.update();
+                window.addEventListener('scroll', () => {
+                    requestAnimationFrame(() => this.update());
+                }, { passive: true });
+                window.addEventListener('resize', () => {
+                    this.measureFlower();
+                    this.update();
+                }, { passive: true });
+                window.addEventListener('load', () => {
+                    this.measureFlower();
+                    this.update();
+                }, { passive: true });
+            },
+            measureFlower() {
+                const el = document.getElementById('hero-dandelion-artwork');
+                if (el) {
+                    const rect = el.getBoundingClientRect();
+                    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+                    // Upper-right crown of dandelion head where seeds naturally detach
+                    const flowerX = rect.left + (rect.width * 0.54);
+                    const flowerY = (rect.top + scrollY) + (rect.height * 0.24);
+                    if (window.innerWidth > 0 && window.innerHeight > 0) {
+                        this.initialLeft = Math.min(Math.max((flowerX / window.innerWidth) * 100, 50), 90);
+                        this.initialTop = Math.min(Math.max((flowerY / window.innerHeight) * 100, 10), 50);
+                    }
+                }
+            },
+            update() {
+                const total = document.documentElement.scrollHeight - window.innerHeight;
+                const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+                this.progress = total > 0 ? Math.min(Math.max(scrollY / total, 0), 1) : 0;
+            },
+            getLeft() {
+                const p = this.progress;
+                const startX = this.initialLeft || 76;
+                if (p <= 0.02) return startX;
+                if (p < 0.25) {
+                    const localP = (p - 0.02) / 0.23;
+                    return startX - (localP * (startX - 30));
+                } else if (p < 0.50) {
+                    const localP = (p - 0.25) / 0.25;
+                    return 30 + (localP * 38);
+                } else if (p < 0.75) {
+                    const localP = (p - 0.50) / 0.25;
+                    return 68 - (localP * 40);
+                } else {
+                    const localP = (p - 0.75) / 0.25;
+                    return 28 + (localP * 44);
+                }
+            },
+            getTop() {
+                const p = this.progress;
+                const startY = this.initialTop || 28;
+                if (p <= 0.02) return startY;
+                const localP = (p - 0.02) / 0.98;
+                return startY + (localP * (82 - startY));
+            },
+            getRotation() {
+                const p = this.progress;
+                if (p <= 0.02) return 26; // Seamless angle matching the flying seeds in hero artwork
+                return 26 + Math.sin(p * Math.PI * 4) * 18;
+            }
+        }"
+        class="fixed inset-0 pointer-events-none z-20 overflow-hidden hidden lg:block"
+    >
+        <div
+            class="absolute transition-[top,left,transform] duration-150 ease-out will-change-transform"
+            :style="`
+                top: ${getTop()}vh;
+                left: ${getLeft()}vw;
+                transform: translate3d(0, 0, 0) rotate(${getRotation()}deg);
+                opacity: ${progress <= 0.02 ? {{ seed_opacity }} : {{ (seed_opacity * 0.9) | round(2) }}};
+                width: ${progress <= 0.02 ? '{{ seed_size }}px' : '{{ (seed_size * 0.9) | round | int }}px'};
+            `"
+        >
+            <img
+                src="/static/images/dandelion_seed_single.png"
+                alt="Reisender Pusteblumen-Samen"
+                class="w-full h-auto filter drop-shadow-lg"
+            />
+        </div>
+    </div>
+    {% endif %}
+
+
+    {# =========================================================================
+       MODE 3: WASSERZEICHEN-AKZENTE (Statisch & Ruhig)
+       Desktop-only: 100% static authentic PNG seed watermarks in corners, 0% CPU
+       ========================================================================= #}
+    {% if 'watermark_accents' in active_modes %}
+    <div class="fixed inset-0 overflow-hidden z-20 pointer-events-none hidden lg:block">
+        <!-- Top-Right Watermark Accent -->
+        <div class="absolute top-10 right-8 transform rotate-12"
+             style="width: {{ (seed_size * 3.0) | round | int }}px; opacity: {{ (seed_opacity * 0.45) | round(2) }};">
+            <img src="/static/images/dandelion_seed_single.png" alt="Wasserzeichen Samen" class="w-full h-auto filter grayscale contrast-125 drop-shadow-sm" />
+        </div>
+
+        <!-- Bottom-Left Watermark Accent -->
+        <div class="absolute bottom-12 left-6 transform -rotate-25"
+             style="width: {{ (seed_size * 2.4) | round | int }}px; opacity: {{ (seed_opacity * 0.40) | round(2) }};">
+            <img src="/static/images/dandelion_seed_single.png" alt="Wasserzeichen Samen" class="w-full h-auto filter grayscale contrast-125 drop-shadow-sm" />
+        </div>
+    </div>
+    {% endif %}
+
+
+    {# =========================================================================
+       MODE 4: DIE INTERAKTIVE ATEM-PAUSE (Zen-Widget)
+       ACTIVE ON ALL DEVICES: Mobile, Tablet & Desktop!
+       Features an ultra-clear, visual 4-4-6 guided breathing circle with countdown.
+       ========================================================================= #}
+    {% if 'breath_widget' in active_modes %}
+    <div
+        x-data="{
+            isOpen: false,
+            phase: 'inhale', // 'inhale' | 'hold' | 'exhale'
+            totalSeconds: 4,
+            currentSecond: 1,
+            phaseProgress: 0,
+            intervalId: null,
+
+            get phaseLabel() {
+                if (this.phase === 'inhale') return 'EINATMEN';
+                if (this.phase === 'hold') return 'HALTEN & SPÜREN';
+                return 'AUSATMEN & LOSLASSEN';
+            },
+
+            get phaseInstruction() {
+                if (this.phase === 'inhale') return 'Sanft & tief durch die Nase einatmen';
+                if (this.phase === 'hold') return 'In der Stille ankommen & Atem halten';
+                return 'Langsam & vollständig durch den Mund ausatmen';
+            },
+
+            get phaseBadgeClass() {
+                if (this.phase === 'inhale') return 'text-emerald-700 bg-emerald-100/90 border-emerald-300';
+                if (this.phase === 'hold') return 'text-amber-700 bg-amber-100/90 border-amber-300';
+                return 'text-sky-700 bg-sky-100/90 border-sky-300';
+            },
+
+            get ringStrokeColor() {
+                if (this.phase === 'inhale') return '#10B981';
+                if (this.phase === 'hold') return '#F59E0B';
+                return '#0284C7';
+            },
+
+            get strokeDashoffset() {
+                const circumference = 364.4; // 2 * PI * 58
+                if (this.phase === 'inhale') {
+                    return circumference * (1 - (this.phaseProgress / 100));
+                } else if (this.phase === 'hold') {
+                    return 0;
+                } else {
+                    return circumference * (this.phaseProgress / 100);
+                }
+            },
+
+            startBreathCycle() {
+                this.clearIntervals();
+                this.runPhase('inhale', 4);
+            },
+
+            runPhase(phaseName, durationSec) {
+                if (!this.isOpen) return;
+                this.phase = phaseName;
+                this.totalSeconds = durationSec;
+                this.currentSecond = 1;
+                this.phaseProgress = 0;
+
+                const startTime = Date.now();
+                const totalMs = durationSec * 1000;
+
+                this.intervalId = setInterval(() => {
+                    if (!this.isOpen) {
+                        this.clearIntervals();
+                        return;
+                    }
+                    const elapsed = Date.now() - startTime;
+                    this.currentSecond = Math.min(Math.floor(elapsed / 1000) + 1, durationSec);
+                    this.phaseProgress = Math.min((elapsed / totalMs) * 100, 100);
+
+                    if (elapsed >= totalMs) {
+                        clearInterval(this.intervalId);
+                        if (!this.isOpen) return;
+                        if (phaseName === 'inhale') {
+                            this.runPhase('hold', 4);
+                        } else if (phaseName === 'hold') {
+                            this.runPhase('exhale', 6);
+                        } else {
+                            this.runPhase('inhale', 4);
+                        }
+                    }
+                }, 40);
+            },
+
+            clearIntervals() {
+                if (this.intervalId) clearInterval(this.intervalId);
+            },
+
+            openWidget() {
+                this.isOpen = true;
+                this.startBreathCycle();
+            },
+
+            closeWidget() {
+                this.isOpen = false;
+                this.clearIntervals();
+            }
+        }"
+        class="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 font-sans pointer-events-auto block"
+    >
+        <!-- Floating Trigger Button -->
+        <button
+            type="button"
+            x-show="!isOpen"
+            @click="openWidget()"
+            class="group bg-white/95 hover:bg-white border-2 border-emerald-600/30 text-emerald-800 hover:text-emerald-900 px-4 py-2.5 rounded-full shadow-xl backdrop-blur-md flex items-center gap-2.5 transition-all duration-300 transform hover:scale-105"
+            title="Geführte Atem-Pause starten"
+        >
+            <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <img src="/static/images/dandelion_seed_single.png" alt="Samen" class="w-4 h-auto animate-pulse" />
+            </div>
+            <div class="flex flex-col text-left">
+                <span class="text-xs font-bold leading-tight text-slate-800 group-hover:text-slate-950">Atem-Pause</span>
+                <span class="text-[9px] text-emerald-700 font-medium leading-none">4-4-6 Rhythmus</span>
+            </div>
+        </button>
+
+        <!-- Zen Breathing Popover Modal -->
+        <div
+            x-show="isOpen"
+            x-cloak
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-90 translate-y-4"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-90 translate-y-4"
+            class="bg-white/98 backdrop-blur-lg border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-2xl w-[320px] sm:w-[360px] flex flex-col items-center text-center relative"
+        >
+            <!-- Close Button -->
+            <button
+                type="button"
+                @click="closeWidget()"
+                class="absolute top-3.5 right-3.5 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                aria-label="Schließen"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+
+            <!-- Brand Header -->
+            <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-theme-primary mb-1">Atemtherapie Hā Ola</span>
+            <h4 class="text-base font-bold text-slate-900 mb-3">Geführte Atem-Pause</h4>
+
+            <!-- 3-Phase Step Indicators -->
+            <div class="grid grid-cols-3 gap-1.5 w-full mb-4">
+                <div
+                    class="py-1 px-1.5 rounded-lg border text-[10px] font-bold transition-all"
+                    :class="phase === 'inhale' ? 'bg-emerald-50 border-emerald-400 text-emerald-800 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-400'"
+                >
+                    1. Einatmen (4s)
+                </div>
+                <div
+                    class="py-1 px-1.5 rounded-lg border text-[10px] font-bold transition-all"
+                    :class="phase === 'hold' ? 'bg-amber-50 border-amber-400 text-amber-800 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-400'"
+                >
+                    2. Halten (4s)
+                </div>
+                <div
+                    class="py-1 px-1.5 rounded-lg border text-[10px] font-bold transition-all"
+                    :class="phase === 'exhale' ? 'bg-sky-50 border-sky-400 text-sky-800 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-400'"
+                >
+                    3. Ausatmen (6s)
+                </div>
+            </div>
+
+            <!-- Dynamic Interactive Breathing Stage -->
+            <div class="relative w-44 h-44 sm:w-48 sm:h-48 flex items-center justify-center my-2">
+                <!-- Expanding/Contracting Background Aura -->
+                <div
+                    class="absolute inset-2 rounded-full transition-all ease-out"
+                    :class="{
+                        'scale-125 duration-[4000ms] bg-emerald-500/15 ring-8 ring-emerald-400/20': phase === 'inhale',
+                        'scale-125 duration-300 bg-amber-500/20 ring-8 ring-amber-400/30 animate-pulse': phase === 'hold',
+                        'scale-80 duration-[6000ms] ease-in-out bg-sky-500/15 ring-4 ring-sky-300/20': phase === 'exhale'
+                    }"
+                ></div>
+
+                <!-- SVG Circular Progress Ring -->
+                <svg class="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none" viewBox="0 0 140 140">
+                    <!-- Background Circle Track -->
+                    <circle
+                        cx="70"
+                        cy="70"
+                        r="58"
+                        stroke="#E2E8F0"
+                        stroke-width="6"
+                        fill="none"
+                    />
+                    <!-- Animated Progress Arc -->
+                    <circle
+                        cx="70"
+                        cy="70"
+                        r="58"
+                        :stroke="ringStrokeColor"
+                        stroke-width="6"
+                        stroke-linecap="round"
+                        fill="none"
+                        stroke-dasharray="364.4"
+                        :stroke-dashoffset="strokeDashoffset"
+                        class="transition-all duration-75 ease-linear"
+                    />
+                </svg>
+
+                <!-- Center Breathing Seed & Countdown Disk -->
+                <div
+                    class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white shadow-lg border-2 flex flex-col items-center justify-center transition-all ease-out z-10"
+                    :class="{
+                        'scale-110 duration-[4000ms] border-emerald-400 shadow-emerald-100': phase === 'inhale',
+                        'scale-110 duration-200 border-amber-400 shadow-amber-100': phase === 'hold',
+                        'scale-90 duration-[6000ms] ease-in-out border-sky-400 shadow-sky-100': phase === 'exhale'
+                    }"
+                >
+                    <!-- Motion Direction Arrow / Symbol -->
+                    <div class="h-3 flex items-center justify-center mb-0.5">
+                        <template x-if="phase === 'inhale'">
+                            <span class="text-xs font-bold text-emerald-600 flex items-center gap-0.5">
+                                <svg class="w-3 h-3 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                                <span>Weiten</span>
+                            </span>
+                        </template>
+                        <template x-if="phase === 'hold'">
+                            <span class="text-[11px] font-bold text-amber-600 tracking-wider">
+                                &#9670; Ruhe &#9670;
+                            </span>
+                        </template>
+                        <template x-if="phase === 'exhale'">
+                            <span class="text-xs font-bold text-sky-600 flex items-center gap-0.5">
+                                <svg class="w-3 h-3 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                                <span>Sinken</span>
+                            </span>
+                        </template>
+                    </div>
+
+                    <!-- Authentic Botanical Dandelion Seed -->
+                    <img
+                        src="/static/images/dandelion_seed_single.png"
+                        alt="Atem-Samen"
+                        style="width: {{ (seed_size * 0.75) | round | int }}px;"
+                        class="h-auto drop-shadow-sm transition-transform duration-500"
+                        :class="phase === 'inhale' ? 'scale-110 -translate-y-0.5' : phase === 'hold' ? 'scale-105' : 'scale-90 translate-y-0.5'"
+                    />
+
+                    <!-- Big Seconds Countdown Number -->
+                    <div class="mt-0.5 flex items-baseline gap-0.5">
+                        <span
+                            class="text-xl sm:text-2xl font-black tabular-nums transition-colors"
+                            :class="phase === 'inhale' ? 'text-emerald-700' : phase === 'hold' ? 'text-amber-700' : 'text-sky-700'"
+                            x-text="currentSecond"
+                        ></span>
+                        <span class="text-[10px] font-semibold text-slate-400" x-text="'/ ' + totalSeconds + 's'"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Phase Instruction Badge & Text -->
+            <div class="mt-3 w-full">
+                <div
+                    class="inline-block px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wider mb-1 transition-all"
+                    :class="phaseBadgeClass"
+                    x-text="phaseLabel"
+                ></div>
+                <p class="text-xs sm:text-sm font-medium text-slate-700 h-5" x-text="phaseInstruction"></p>
+            </div>
+
+            <!-- Therapeutic Footer Note -->
+            <div class="mt-4 pt-3 border-t border-slate-100 w-full flex items-center justify-between text-[10px] text-slate-400">
+                <span>4s Einatmen</span>
+                <span>•</span>
+                <span>4s Halten</span>
+                <span>•</span>
+                <span>6s Ausatmen</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    {# =========================================================================
+       MODE 5: SANFTER HAUCH BEI MAUSBEWEGUNG (Seed Whisper Trail)
+       Desktop-only: Ephemeral tiny PNG seeds drifting upward upon mouse movement
+       ========================================================================= #}
+    {% if 'whisper_trail' in active_modes %}
+    <div
+        x-data="{
+            particles: [],
+            lastSpawn: 0,
+            handleMove(e) {
+                const now = Date.now();
+                if (now - this.lastSpawn < 300) return; // Throttle to max 3 seeds/sec
+                this.lastSpawn = now;
+
+                const id = now + Math.random();
+                this.particles.push({
+                    id: id,
+                    x: e.clientX,
+                    y: e.clientY,
+                    rotation: (Math.random() - 0.5) * 30
+                });
+
+                setTimeout(() => {
+                    this.particles = this.particles.filter(p => p.id !== id);
+                }, 1200);
+            }
+        }"
+        x-init="window.addEventListener('mousemove', (e) => handleMove(e), { passive: true });"
+        class="fixed inset-0 pointer-events-none z-20 overflow-hidden hidden lg:block"
+    >
+        <template x-for="p in particles" :key="p.id">
+            <div
+                class="absolute pointer-events-none will-change-transform"
+                :style="`
+                    left: ${p.x - 10}px;
+                    top: ${p.y - 35}px;
+                    transform: rotate(${p.rotation}deg);
+                    animation: pngWhisperFloat 1.2s ease-out forwards;
+                    width: {{ (seed_size * 0.70) | round | int }}px;
+                    opacity: {{ seed_opacity }};
+                `"
+            >
+                <style>
+                    @keyframes pngWhisperFloat {
+                        0% { opacity: 0.85; transform: translate3d(0, 0, 0) scale(0.85); }
+                        100% { opacity: 0; transform: translate3d(10px, -35px, 0) scale(1.1); }
+                    }
+                </style>
+                <img src="/static/images/dandelion_seed_single.png" alt="Samen Hauch" class="w-full h-auto drop-shadow-sm" />
+            </div>
+        </template>
+    </div>
+    {% endif %}
+
+</div>
+{% endif %}

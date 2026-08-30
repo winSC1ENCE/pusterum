@@ -139,6 +139,9 @@ package "Domain Layer" {
         + str name
         + str preset_key
         + str shape_type
+        + str dandelion_mode
+        + int dandelion_seed_size
+        + int dandelion_seed_opacity
         + str primary_color
         + str secondary_color
         + str accent_color
@@ -198,6 +201,9 @@ package "Domain Layer" {
     interface IThemeRepository {
         + get_active_theme(): ThemeConfig
         + save_theme(theme: ThemeConfig): ThemeConfig
+        + apply_preset(preset_key): ThemeConfig
+        + apply_shape(shape_type): ThemeConfig
+        + apply_dandelion_modes(modes, size, opacity): ThemeConfig
     }
 
     interface IEmailService {
@@ -280,8 +286,11 @@ package "Application Layer" {
 
     class ThemeService {
         - IThemeRepository _repository
-        + get_active_theme(): ThemeConfig
-        + apply_preset(key): ThemeConfig
+        + get_active_theme(): ThemeConfigDTO
+        + apply_preset(key): ThemeConfigDTO
+        + apply_shape(shape_type): ThemeConfigDTO
+        + apply_dandelion_modes(modes, size, opacity): ThemeConfigDTO
+        + update_theme(dto): ThemeConfigDTO
         + generate_css_variables(theme): str
     }
 
@@ -310,6 +319,9 @@ package "Presentation Layer" {
         + process_login(request, auth_service, data): Redirect
         + dashboard(request, profile_service, contact_service): Template
         + design_studio(request, theme_service): Template
+        + apply_preset(request, theme_service, data): Redirect
+        + apply_shape(request, theme_service, data): Redirect
+        + apply_dandelion_mode(request, theme_service, data): Redirect
         + save_content_block(request, content_service, key, data): Template
         + get_content_history(request, content_service, key): Template
         + restore_content_version(request, content_service, key, version): Template

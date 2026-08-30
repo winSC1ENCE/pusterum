@@ -79,6 +79,29 @@ async def test_admin_flow(app_client: AsyncTestClient[Litestar]) -> None:
     assert res_login.status_code == 200
     assert "Praxis Dashboard" in res_login.text
 
+    # Access Design Studio
+    res_design = await app_client.get("/admin/design")
+    assert res_design.status_code == 200
+    assert "Corporate Design Studio" in res_design.text
+    assert "3. Pusteblumen- &amp; Samen-Aesthetik" in res_design.text
+
+    # Apply multi-select dandelion modes
+    res_dandelion = await app_client.post(
+        "/admin/design/dandelion",
+        data={
+            "dandelion_modes": "breathing_flow,breath_widget",
+            "dandelion_seed_size": "52",
+            "dandelion_seed_opacity": "85",
+        },
+        headers={"hx-request": "true"},
+    )
+    assert res_dandelion.status_code == 204
+
+    # Verify public landing page renders properly with active modes
+    res_landing = await app_client.get("/")
+    assert res_landing.status_code == 200
+    assert "dandelion-ambient-engine" in res_landing.text
+
     # Logout
     res_logout = await app_client.get("/admin/logout", follow_redirects=True)
     assert res_logout.status_code == 200

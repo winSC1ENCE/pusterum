@@ -13,6 +13,7 @@ from atem.domain.models.theme import (
     PRESET_SHAPES,
     PRESET_THEMES,
     ColorPresetKey,
+    DandelionEffectMode,
     ShapeType,
     ThemeConfig,
 )
@@ -43,6 +44,32 @@ class ThemeService:
         logger.info("Applied organic shape preset", shape_type=shape_type)
         return self._to_dto(updated)
 
+    async def set_dandelion_mode(self, mode: DandelionEffectMode) -> ThemeConfigDTO:
+        """Switch to one of the 5 ambient dandelion effect modes (or disabled)."""
+        updated = await self._repository.apply_dandelion_mode(mode)
+        logger.info("Applied dandelion effect mode", mode=mode)
+        return self._to_dto(updated)
+
+    async def update_dandelion_settings(
+        self,
+        mode: DandelionEffectMode,
+        seed_size: int,
+        seed_opacity: int,
+    ) -> ThemeConfigDTO:
+        """Update dandelion ambient mode, seed size, and opacity settings."""
+        active = await self._repository.get_active_theme()
+        active.dandelion_mode = mode
+        active.dandelion_seed_size = max(20, min(120, seed_size))
+        active.dandelion_seed_opacity = max(10, min(100, seed_opacity))
+        saved = await self._repository.save_theme(active)
+        logger.info(
+            "Updated dandelion settings",
+            mode=mode,
+            size=seed_size,
+            opacity=seed_opacity,
+        )
+        return self._to_dto(saved)
+
     async def update_theme(self, dto: UpdateThemeRequestDTO) -> ThemeConfigDTO:
         """Update full custom theme configuration."""
         name = (
@@ -50,6 +77,13 @@ class ThemeService:
             if dto.preset_key == ColorPresetKey.CUSTOM
             else dto.preset_key.value
         )
+        dandelion_modes: list[DandelionEffectMode]
+        if dto.dandelion_modes and dto.dandelion_modes != [DandelionEffectMode.DISABLED]:
+            dandelion_modes = list(dto.dandelion_modes)
+        elif dto.dandelion_mode != DandelionEffectMode.DISABLED:
+            dandelion_modes = [dto.dandelion_mode]
+        else:
+            dandelion_modes = [DandelionEffectMode.DISABLED]
         entity = ThemeConfig(
             preset_key=dto.preset_key,
             name=name,
@@ -68,6 +102,9 @@ class ThemeService:
             active_shape=dto.active_shape,
             motif_enabled=dto.motif_enabled,
             motif_animation_speed=dto.motif_animation_speed,
+            dandelion_modes=dandelion_modes,
+            dandelion_seed_size=dto.dandelion_seed_size,
+            dandelion_seed_opacity=dto.dandelion_seed_opacity,
         )
         saved = await self._repository.save_theme(entity)
         logger.info("Saved custom theme configuration", preset_key=dto.preset_key)
@@ -109,6 +146,7 @@ class ThemeService:
     def generate_css_variables(self, theme: ThemeConfigDTO) -> str:
         """Generate inline CSS custom variables and shape classes for Jinja2 templates."""
         shape_def = PRESET_SHAPES.get(theme.active_shape, PRESET_SHAPES[ShapeType.DANDELION_SEED])
+        opacity_dec = theme.dandelion_seed_opacity / 100.0
 
         return f"""
         :root {{
@@ -125,8 +163,32 @@ class ThemeService:
             --theme-shape-radius: {shape_def.css_border_radius};
             --font-heading: '{theme.heading_font}', serif;
             --font-body: '{theme.body_font}', sans-serif;
+            --dandelion-seed-size: {theme.dandelion_seed_size}px;
+            --dandelion-seed-opacity: {opacity_dec:.2f};
         }}
         """
+
+    async def apply_dandelion_modes(
+        self,
+        modes: list[DandelionEffectMode],
+        seed_size: int | None = None,
+        seed_opacity: int | None = None,
+    ) -> ThemeConfigDTO:
+        """Apply multi-select ambient dandelion modes and optional slider settings."""
+        active = await self._repository.get_active_theme()
+        active.dandelion_modes = modes if modes else [DandelionEffectMode.DISABLED]
+        if seed_size is not None:
+            active.dandelion_seed_size = max(20, min(120, seed_size))
+        if seed_opacity is not None:
+            active.dandelion_seed_opacity = max(10, min(100, seed_opacity))
+        saved = await self._repository.save_theme(active)
+        logger.info(
+            "Applied dandelion effect modes",
+            modes=[m.value for m in active.dandelion_modes],
+            size=active.dandelion_seed_size,
+            opacity=active.dandelion_seed_opacity,
+        )
+        return self._to_dto(saved)
 
     @staticmethod
     def _to_dto(entity: ThemeConfig) -> ThemeConfigDTO:
@@ -149,4 +211,8 @@ class ThemeService:
             active_shape=entity.active_shape,
             motif_enabled=entity.motif_enabled,
             motif_animation_speed=entity.motif_animation_speed,
+            dandelion_mode=entity.dandelion_mode,
+            dandelion_modes=entity.dandelion_modes,
+            dandelion_seed_size=entity.dandelion_seed_size,
+            dandelion_seed_opacity=entity.dandelion_seed_opacity,
         )

@@ -1,9 +1,10 @@
-<header class="sticky top-0 z-50 bg-theme-main/90 backdrop-blur-md border-b border-theme transition-colors duration-300" x-data="{ mobileOpen: false }">
+<header class="sticky top-0 z-50 bg-theme-main/95 backdrop-blur-md border-b border-theme transition-colors duration-300" x-data="{ mobileOpen: false }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-20">
+        <div class="flex justify-between items-center h-20 gap-3 sm:gap-4">
+
             <!-- Brand / Logo -->
-            <a href="/" class="flex items-center gap-3 group">
-                <div class="w-12 h-12 rounded-full bg-theme-secondary/50 flex items-center justify-center p-2 border border-theme text-theme-primary group-hover:scale-105 transition-all duration-300 flex-shrink-0" style="width: 48px; height: 48px;">
+            <a href="/" class="flex items-center gap-2.5 sm:gap-3 group min-w-0 flex-shrink-0">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-theme-secondary/50 flex items-center justify-center p-2 border border-theme text-theme-primary group-hover:scale-105 transition-all duration-300 flex-shrink-0">
                     <!-- Crisp, Scalable Dandelion Vector Icon -->
                     <svg class="w-full h-full text-theme-primary" viewBox="0 0 100 100" fill="none" width="32" height="32">
                         <!-- Center Receptacle & Core -->
@@ -68,41 +69,42 @@
                         </g>
                     </svg>
                 </div>
-                <div>
-                    <span class="font-heading text-xl sm:text-2xl font-bold tracking-tight text-theme-primary block leading-tight">
+                <div class="flex flex-col min-w-0">
+                    <span class="font-heading text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-theme-primary leading-tight whitespace-nowrap">
                         Atemtherapie Hā Ola
                     </span>
-                    <span class="text-xs uppercase tracking-wider text-theme-text-muted block">
+                    <span class="text-[10px] sm:text-xs uppercase tracking-wider text-theme-text-muted whitespace-nowrap truncate">
                         Komplementärtherapie OdA KT &bull; Gemeinschaftspraxis
                     </span>
                 </div>
             </a>
 
-            <!-- Desktop Navigation -->
-            <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-theme-text-main">
-                <a href="/#start" class="hover:text-theme-primary transition-colors py-1">Start</a>
-                <a href="/#ueber-mich" class="hover:text-theme-primary transition-colors py-1">Über mich &amp; Hā Ola</a>
-                <a href="/#kompetenzen" class="hover:text-theme-primary transition-colors py-1">Kompetenzen</a>
-                <a href="/#angebote" class="hover:text-theme-primary transition-colors py-1">Angebote &amp; Kosten</a>
-                <a href="/#praxis" class="hover:text-theme-primary transition-colors py-1">Praxis</a>
-                <a href="/#kontakt" class="hover:text-theme-primary transition-colors py-1">Kontakt</a>
+            <!-- Desktop Navigation (lg:flex for >= 1024px screens) -->
+            <nav class="hidden lg:flex items-center gap-3.5 xl:gap-6 text-xs xl:text-sm font-medium text-theme-text-main flex-shrink-0">
+                <a href="/#start" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Start</a>
+                <a href="/#ueber-mich" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Über mich</a>
+                <a href="/#kompetenzen" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Kompetenzen</a>
+                <a href="/#angebote" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Angebote &amp; Tarife</a>
+                <a href="/#praxis" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Praxis</a>
+                <a href="/#kontakt" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Kontakt</a>
 
-                <a href="/#kontakt" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary transition-all duration-300 shadow-sm hover:shadow text-sm font-medium">
+                <a href="/#kontakt" class="inline-flex items-center gap-1.5 px-3.5 xl:px-5 py-2 xl:py-2.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary transition-all duration-300 shadow-sm hover:shadow text-xs xl:text-sm font-medium whitespace-nowrap flex-shrink-0">
                     <span>Termin anfragen</span>
-                    <svg class="w-4 h-4" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3.5 h-3.5 xl:w-4 xl:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                     </svg>
                 </a>
             </nav>
 
-            <!-- Mobile Menu Toggle Button -->
-            <div class="flex items-center md:hidden">
+            <!-- Mobile & Tablet Menu Toggle Button (< 1024px screens) -->
+            <div class="flex items-center lg:hidden flex-shrink-0">
                 <button
                     @click="mobileOpen = !mobileOpen"
                     type="button"
-                    class="p-2 rounded-lg text-theme-text-main hover:bg-theme-secondary/30 transition-colors focus:outline-none"
+                    class="p-2 rounded-xl text-theme-text-main hover:bg-theme-secondary/30 transition-colors focus:outline-none flex items-center gap-1.5 border border-theme/40"
                     aria-label="Menü öffnen"
                 >
+                    <span class="text-xs font-semibold text-theme-text-muted hidden sm:inline" x-text="mobileOpen ? 'Schliessen' : 'Menü'">Menü</span>
                     <svg x-show="!mobileOpen" class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
@@ -124,16 +126,16 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 translate-y-0"
         x-transition:leave-end="opacity-0 -translate-y-2"
-        class="md:hidden border-b border-theme bg-theme-main px-4 pt-3 pb-6 space-y-3 shadow-lg"
+        class="lg:hidden border-b border-theme bg-theme-main px-4 pt-3 pb-6 space-y-2 shadow-xl"
     >
-        <a @click="mobileOpen = false" href="/#start" class="block px-3 py-2 rounded-lg text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main">Start</a>
-        <a @click="mobileOpen = false" href="/#ueber-mich" class="block px-3 py-2 rounded-lg text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main">Über mich &amp; Hā Ola</a>
-        <a @click="mobileOpen = false" href="/#kompetenzen" class="block px-3 py-2 rounded-lg text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main">Kompetenzen</a>
-        <a @click="mobileOpen = false" href="/#angebote" class="block px-3 py-2 rounded-lg text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main">Angebote &amp; Kosten</a>
-        <a @click="mobileOpen = false" href="/#praxis" class="block px-3 py-2 rounded-lg text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main">Praxis</a>
-        <a @click="mobileOpen = false" href="/#kontakt" class="block px-3 py-2 rounded-lg text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main">Kontakt</a>
-        <div class="pt-2">
-            <a @click="mobileOpen = false" href="/#kontakt" class="block text-center w-full px-5 py-3 rounded-full bg-theme-primary text-white hover-bg-theme-primary font-medium shadow">
+        <a @click="mobileOpen = false" href="/#start" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Start</a>
+        <a @click="mobileOpen = false" href="/#ueber-mich" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Über mich &amp; Hā Ola</a>
+        <a @click="mobileOpen = false" href="/#kompetenzen" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Kompetenzen</a>
+        <a @click="mobileOpen = false" href="/#angebote" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Angebote &amp; Tarife</a>
+        <a @click="mobileOpen = false" href="/#praxis" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Praxis</a>
+        <a @click="mobileOpen = false" href="/#kontakt" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Kontakt &amp; Standort</a>
+        <div class="pt-3">
+            <a @click="mobileOpen = false" href="/#kontakt" class="block text-center w-full px-5 py-3.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary font-medium shadow-md transition-all">
                 Termin anfragen
             </a>
         </div>

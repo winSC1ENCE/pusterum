@@ -219,10 +219,13 @@ __marimo__/
 
 # Development DB
 dev.db
+*.sqlite3
+*.db
 
 # Temp Folder
+.tmp/
 .tmp
-src/atem/presentation/static/images/test_upload_*.png
+src/atem/presentation/static/images/test_upload*.png
 
 # Dynamic User Media Storage (Persistent Docker Volume)
 storage/uploads/*

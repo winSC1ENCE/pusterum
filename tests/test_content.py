@@ -166,7 +166,7 @@ async def test_content_admin_endpoints_and_auth_guard(
     assert len(images) > 0
     assert any("filename" in img and "url" in img for img in images)
 
-    # 7. Test POST /admin/images/upload (with valid PNG)
+    # 7. Test POST /admin/images/upload (with valid PNG into persistent /media/)
     sample_png = (
         b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00"
         b"\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4"
@@ -179,7 +179,12 @@ async def test_content_admin_endpoints_and_auth_guard(
     assert upload_resp.status_code in {200, 201}
     upload_data = upload_resp.json()
     assert "url" in upload_data
-    assert upload_data["url"].startswith("/static/images/test_upload")
+    assert upload_data["url"].startswith("/media/test_upload")
+
+    # 8. Test GET /media/... to verify serving from persistent media router
+    media_fetch_resp = await app_client.get(upload_data["url"])
+    assert media_fetch_resp.status_code == 200
+    assert media_fetch_resp.content == sample_png
 
 
 @pytest.mark.asyncio

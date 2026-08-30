@@ -15,6 +15,7 @@ services:
       - ALLOWED_HOSTS=["localhost", "127.0.0.1", "0.0.0.0"]
     volumes:
       - ./src:/app/src
+      - ./storage/uploads:/app/storage/uploads
     depends_on:
       db:
         condition: service_healthy

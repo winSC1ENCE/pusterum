@@ -204,13 +204,22 @@ def create_app() -> Litestar:
     """Build and configure the Litestar Application."""
     settings = get_settings()
 
-    # Static Files Router
+    # Static Files Router (UI Theme, CSS, JS, Botanical Stock Assets)
     static_dir = BASE_DIR / "static"
     static_dir.mkdir(parents=True, exist_ok=True)
     static_router = create_static_files_router(
         path="/static",
         directories=[static_dir],
         name="static",
+    )
+
+    # Media Files Router (Persistent User Uploads, .gitignored, Docker Volume)
+    media_dir = settings.media_storage_path
+    media_dir.mkdir(parents=True, exist_ok=True)
+    media_router = create_static_files_router(
+        path="/media",
+        directories=[media_dir],
+        name="media",
     )
 
     # Template Engine
@@ -244,6 +253,7 @@ def create_app() -> Litestar:
             PublicController,
             AdminController,
             static_router,
+            media_router,
         ],
         dependencies={
             "settings": Provide(get_settings, sync_to_thread=False),

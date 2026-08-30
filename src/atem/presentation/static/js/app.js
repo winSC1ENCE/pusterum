@@ -200,6 +200,7 @@ document.addEventListener("alpine:init", () => {
             this.closeModal();
         },
     }));
+
     // 3. Design Studio Live Sliders & Autosave Component
     Alpine.data("designStudio", (initialSize = 48, initialOpacity = 80) => ({
         seedSize: initialSize,

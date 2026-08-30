@@ -223,4 +223,7 @@ dev.db
 # Temp Folder
 .tmp
 src/atem/presentation/static/images/test_upload_*.png
-storage/uploads/test_upload.png
+
+# Dynamic User Media Storage (Persistent Docker Volume)
+storage/uploads/*
+!storage/uploads/.gitkeep

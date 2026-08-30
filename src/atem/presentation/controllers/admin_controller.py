@@ -30,6 +30,7 @@ from atem.domain.models.theme import (
     DandelionEffectMode,
     ShapeType,
 )
+from atem.infrastructure.config.settings import get_settings
 
 logger = structlog.get_logger(__name__)
 
@@ -548,12 +549,34 @@ class AdminController(Controller):
         self,
         request: Request[Any, Any, Any],
     ) -> list[dict[str, Any]]:
-        """List all available image files in static/images directory."""
+        """List all available image files from persistent media directory and static assets."""
         if not request.session.get("user"):
             raise NotAuthorizedException("Anmeldung erforderlich.")
 
+        settings = get_settings()
+        media_dir = settings.media_storage_path
+        media_dir.mkdir(parents=True, exist_ok=True)
         STATIC_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
-        images = []
+
+        images: list[dict[str, Any]] = []
+
+        # 1. User Uploads from persistent storage/uploads (Priority)
+        for file in sorted(
+            media_dir.iterdir(),
+            key=lambda p: p.stat().st_mtime if p.exists() else 0,
+            reverse=True,
+        ):
+            if file.is_file() and file.suffix.lower() in ALLOWED_IMAGE_EXTENSIONS:
+                images.append(
+                    {
+                        "filename": file.name,
+                        "url": f"/media/{file.name}",
+                        "size_kb": round(file.stat().st_size / 1024, 1),
+                        "source": "uploads",
+                    }
+                )
+
+        # 2. Stock Theme Assets from static/images
         for file in sorted(
             STATIC_IMAGES_DIR.iterdir(),
             key=lambda p: p.stat().st_mtime if p.exists() else 0,
@@ -565,6 +588,7 @@ class AdminController(Controller):
                         "filename": file.name,
                         "url": f"/static/images/{file.name}",
                         "size_kb": round(file.stat().st_size / 1024, 1),
+                        "source": "theme",
                     }
                 )
         return images
@@ -575,11 +599,13 @@ class AdminController(Controller):
         request: Request[Any, Any, Any],
         data: Annotated[UploadFile, Body(media_type=RequestEncodingType.MULTI_PART)],
     ) -> dict[str, Any]:
-        """Upload an image directly into the static/images directory."""
+        """Upload an image directly into the persistent media directory (storage/uploads)."""
         if not request.session.get("user"):
             raise NotAuthorizedException("Anmeldung erforderlich.")
 
-        STATIC_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+        settings = get_settings()
+        media_dir = settings.media_storage_path
+        media_dir.mkdir(parents=True, exist_ok=True)
 
         filename = data.filename or "uploaded_image.png"
         ext = Path(filename).suffix.lower()
@@ -596,18 +622,18 @@ class AdminController(Controller):
         base_name = Path(filename).stem
         safe_base = re.sub(r"[^a-zA-Z0-9_-]", "_", base_name).strip("_") or "image"
         final_filename = f"{safe_base}{ext}"
-        target_path = STATIC_IMAGES_DIR / final_filename
+        target_path = media_dir / final_filename
 
         # If file exists, append timestamp to prevent overwriting existing files
         if target_path.exists():
             final_filename = f"{safe_base}_{int(time.time())}{ext}"
-            target_path = STATIC_IMAGES_DIR / final_filename
+            target_path = media_dir / final_filename
 
         target_path.write_bytes(content)
-        logger.info("Uploaded image to static directory", filename=final_filename)
+        logger.info("Uploaded image to persistent media directory", filename=final_filename)
 
         return {
             "filename": final_filename,
-            "url": f"/static/images/{final_filename}",
+            "url": f"/media/{final_filename}",
             "size_kb": round(len(content) / 1024, 1),
         }

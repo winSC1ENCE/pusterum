@@ -1,6 +1,7 @@
 """Application Settings and Configuration."""
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
@@ -49,6 +50,14 @@ class Settings(BaseSettings):
     ADMIN_USERNAME: str = "admin"
     ADMIN_EMAIL: str = "admin@atem-praxis.ch"
     ADMIN_INITIAL_PASSWORD: str = "admin-secure-init-pass-change-me"
+
+    # Dynamic User Media Storage (Persistent Docker Volume)
+    MEDIA_DIR: str = "storage/uploads"
+
+    @property
+    def media_storage_path(self) -> Path:
+        """Return resolved Path to persistent media uploads directory."""
+        return Path(self.MEDIA_DIR).resolve()
 
     @property
     def is_dev(self) -> bool:

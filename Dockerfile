@@ -50,6 +50,9 @@ COPY --from=builder --chown=atem:atem /app/.venv /app/.venv
 COPY --chown=atem:atem src /app/src
 COPY --chown=atem:atem pyproject.toml /app/
 
+# Create persistent storage directories with non-root user permissions
+RUN mkdir -p /app/storage/uploads && chown -R atem:atem /app/storage
+
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \

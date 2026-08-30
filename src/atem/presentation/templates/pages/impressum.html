@@ -48,6 +48,14 @@
                 {{ editable('impressum.disclaimer_title', 'Haftungsausschluss', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
                 {{ editable('impressum.disclaimer_text', 'Die Inhalte dieser Webseite wurden mit grösstmöglicher Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte übernimmt die Praxisinhaberin keine Gewähr. Die bereitgestellten Informationen stellen keine medizinische Diagnose dar und ersetzen nicht die Konsultation einer Ärztin oder eines Arztes.', tag='p', type='textarea', rows=4) }}
             </div>
+
+            <div>
+                {{ editable('impressum.webdesign_title', 'Konzeption & Webdesign', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                <div class="space-y-1">
+                    {{ editable('impressum.webdesign_by', 'Webdesign bynico.', tag='p', class='font-medium text-theme-text-main') }}
+                    {{ editable('impressum.webdesign_notice', '«bynico.» ist eine eingetragene Marke von Nicolas Mischler.', tag='p', class='text-xs text-theme-text-muted') }}
+                </div>
+            </div>
         </div>
     </div>
 </div>

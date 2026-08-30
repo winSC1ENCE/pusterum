@@ -536,6 +536,36 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
             " interdisziplinäre Physiotherapie-Gemeinschaftspraxis."
         ),
     },
+    {
+        "key": "impressum.webdesign_title",
+        "section": "impressum",
+        "type": "text",
+        "content": "Konzeption & Webdesign",
+    },
+    {
+        "key": "impressum.webdesign_by",
+        "section": "impressum",
+        "type": "text",
+        "content": "Webdesign bynico.",
+    },
+    {
+        "key": "impressum.webdesign_notice",
+        "section": "impressum",
+        "type": "text",
+        "content": "«bynico.» ist eine eingetragene Marke von Nicolas Mischler.",
+    },
+    {
+        "key": "footer.webdesign",
+        "section": "footer",
+        "type": "text",
+        "content": "Webdesign bynico.",
+    },
+    {
+        "key": "footer.trademark_notice",
+        "section": "footer",
+        "type": "text",
+        "content": "«bynico.» ist eine eingetragene Marke von Nicolas Mischler.",
+    },
 ]
 
 
@@ -569,12 +599,17 @@ class SqlAlchemyContentRepository(IContentRepository):
         )
 
     async def _ensure_seed_data(self) -> None:
-        """Seed initial default content blocks if table is empty."""
-        stmt = select(ContentBlockModel).limit(1)
-        res = await self._session.execute(stmt)
-        if res.scalar_one_or_none() is None:
+        """Seed initial default content blocks and ensure any missing defaults are added."""
+        existing_stmt = select(ContentBlockModel.key)
+        existing_res = await self._session.execute(existing_stmt)
+        existing_keys = set(existing_res.scalars().all())
+
+        missing_blocks = [
+            item for item in DEFAULT_CONTENT_BLOCKS if item["key"] not in existing_keys
+        ]
+        if missing_blocks:
             now = datetime.now(UTC)
-            for item in DEFAULT_CONTENT_BLOCKS:
+            for item in missing_blocks:
                 block_model = ContentBlockModel(
                     key=item["key"],
                     section=item["section"],

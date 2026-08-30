@@ -227,6 +227,12 @@ async def test_universal_content_blocks_seeded(
         "contact.phone_label",
         "impressum.title",
         "impressum.responsible_title",
+        "impressum.webdesign_title",
+        "impressum.webdesign_by",
+        "impressum.webdesign_notice",
+        "footer.tagline",
+        "footer.webdesign",
+        "footer.trademark_notice",
         "datenschutz.title",
         "datenschutz.sec1_title",
     ]
@@ -242,10 +248,31 @@ async def test_impressum_and_datenschutz_public_routes(
     imp_resp = await app_client.get("/impressum")
     assert imp_resp.status_code == 200
     assert "Impressum" in imp_resp.text
+    assert "Webdesign bynico." in imp_resp.text
+    assert "Nicolas Mischler" in imp_resp.text
 
     ds_resp = await app_client.get("/datenschutz")
     assert ds_resp.status_code == 200
     assert "Datenschutzerklärung" in ds_resp.text
+
+    # Test that landing page footer contains webdesign & trademark credits
+    landing_resp = await app_client.get("/")
+    assert landing_resp.status_code == 200
+    assert "Webdesign bynico." in landing_resp.text
+    assert "Nicolas Mischler" in landing_resp.text
+
+    # Test editing impressum webdesign block
+    await app_client.post(
+        "/admin/login",
+        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        follow_redirects=True,
+    )
+    edit_resp = await app_client.post(
+        "/admin/content/impressum.webdesign_by/save",
+        data={"content": "Design & Code bynico."},
+    )
+    assert edit_resp.status_code == 200
+    assert "Design &amp; Code bynico." in edit_resp.text
 
 
 @pytest.mark.asyncio

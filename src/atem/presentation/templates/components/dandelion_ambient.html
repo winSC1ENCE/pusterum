@@ -147,14 +147,19 @@
             },
             getRotation() {
                 const p = this.progress;
-                if (p <= 0.02) return 26; // Seamless angle matching the flying seeds in hero artwork
-                return 26 + Math.sin(p * Math.PI * 4) * 18;
+                if (p <= 0.02) return 26; // Startwinkel synchron zum Samen auf der Blüte
+                const localP = (p - 0.02) / 0.98;
+                // Sanfter Übergang von Startwinkel in die dynamische Flugbahn
+                const blend = Math.min(localP * 6, 1);
+                // Organische Neigung passend zur Flugrichtung (-32° Linksdrift bis +52° Rechtsdrift) mit feinem Schwebe-Hauch
+                const aeroAngle = 10 - (Math.sin(localP * Math.PI * 4) * 42) + (Math.sin(localP * Math.PI * 8) * 7);
+                return Math.round((26 * (1 - blend)) + (aeroAngle * blend));
             }
         }"
         class="fixed inset-0 pointer-events-none z-20 overflow-hidden hidden lg:block"
     >
         <div
-            class="absolute transition-[top,left,transform] duration-150 ease-out will-change-transform"
+            class="absolute transition-[top,left,transform] duration-300 ease-out will-change-transform"
             :style="`
                 top: ${getTop()}vh;
                 left: ${getLeft()}vw;

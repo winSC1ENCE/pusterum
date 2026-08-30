@@ -10,20 +10,22 @@ document.addEventListener("alpine:init", () => {
         type: type,
         isEditing: false,
         startEdit() {
-            if (this.type === "image") {
-                const imgEl = this.$el.querySelector("img");
-                const currentSrc = imgEl ? imgEl.getAttribute("src") : "";
-                const imgClass = this.$el.getAttribute("data-img-class") || (imgEl ? imgEl.className : "");
-                const imgAlt = this.$el.getAttribute("data-img-alt") || (imgEl ? imgEl.getAttribute("alt") : "");
-                const tag = this.$el.getAttribute("data-tag") || "p";
-                const cssClass = this.$el.getAttribute("data-css-class") || "";
-                const rows = this.$el.getAttribute("data-rows") || "3";
+            const rootEl = this.$root || (this.$el ? this.$el.closest(".editable-block-container") : null) || this.$el;
+            const domId = (rootEl && rootEl.id) ? rootEl.id : ("content-block-" + String(this.key).replace(/\./g, "-"));
+            const imgEl = rootEl ? rootEl.querySelector("img") : null;
+            const currentSrc = imgEl ? (imgEl.getAttribute("src") || imgEl.src || "") : "";
+            const imgClass = (rootEl ? rootEl.getAttribute("data-img-class") : "") || (imgEl ? imgEl.className : "");
+            const imgAlt = (rootEl ? rootEl.getAttribute("data-img-alt") : "") || (imgEl ? imgEl.getAttribute("alt") : "");
+            const tag = (rootEl ? rootEl.getAttribute("data-tag") : "") || "p";
+            const cssClass = (rootEl ? rootEl.getAttribute("data-css-class") : "") || "";
+            const rows = (rootEl ? rootEl.getAttribute("data-rows") : "") || "3";
 
+            if (this.type === "image") {
                 window.dispatchEvent(new CustomEvent("open-image-picker", {
                     detail: {
                         blockKey: this.key,
                         currentUrl: currentSrc,
-                        domId: this.$el.id,
+                        domId: domId,
                         imgClass: imgClass,
                         imgAlt: imgAlt,
                         tag: tag,
@@ -35,10 +37,12 @@ document.addEventListener("alpine:init", () => {
             }
             this.isEditing = true;
             this.$nextTick(() => {
-                if (this.$refs.inputField) {
-                    this.$refs.inputField.focus();
-                    if (this.$refs.inputField.select && typeof this.$refs.inputField.select === "function") {
-                        this.$refs.inputField.select();
+                const targetRoot = this.$root || (this.$el ? this.$el.closest(".editable-block-container") : null) || this.$el;
+                const inputField = targetRoot ? targetRoot.querySelector("input[name='content'], textarea[name='content']") : null;
+                if (inputField) {
+                    inputField.focus();
+                    if (inputField.select && typeof inputField.select === "function") {
+                        inputField.select();
                     }
                 }
             });
@@ -73,7 +77,7 @@ document.addEventListener("alpine:init", () => {
         openModal(detail) {
             this.blockKey = detail.blockKey || "";
             this.selectedUrl = detail.currentUrl || "";
-            this.domId = detail.domId || "";
+            this.domId = detail.domId || ("content-block-" + String(detail.blockKey).replace(/\./g, "-"));
             this.imgClass = detail.imgClass || "";
             this.imgAlt = detail.imgAlt || "";
             this.tag = detail.tag || "p";
@@ -152,20 +156,21 @@ document.addEventListener("alpine:init", () => {
         },
 
         async applyAndSave() {
-            if (!this.selectedUrl || !this.blockKey || !this.domId) {
+            if (!this.selectedUrl || !this.blockKey) {
                 this.closeModal();
                 return;
             }
 
             const chosenUrl = this.selectedUrl;
-            const targetEl = document.getElementById(this.domId);
+            const domId = this.domId || ("content-block-" + String(this.blockKey).replace(/\./g, "-"));
+            const targetEl = document.getElementById(domId);
             const imgClass = this.imgClass || (targetEl ? targetEl.getAttribute("data-img-class") : "") || "";
             const imgAlt = this.imgAlt || (targetEl ? targetEl.getAttribute("data-img-alt") : "") || "";
             const tag = this.tag || (targetEl ? targetEl.getAttribute("data-tag") : "") || "p";
             const cssClass = this.cssClass || (targetEl ? targetEl.getAttribute("data-css-class") : "") || "";
             const rows = this.rows || (targetEl ? targetEl.getAttribute("data-rows") : "") || "3";
 
-            // 1. Immediately update image preview in DOM
+            // 1. Immediately update image preview in live DOM
             if (targetEl) {
                 const imgEl = targetEl.querySelector("img");
                 if (imgEl) {
@@ -189,12 +194,22 @@ document.addEventListener("alpine:init", () => {
                 });
                 if (res.ok) {
                     const html = await res.text();
-                    if (targetEl && html) {
-                        targetEl.outerHTML = html;
+                    const currentTargetEl = document.getElementById(domId);
+                    if (currentTargetEl && html) {
+                        currentTargetEl.outerHTML = html;
+                        const newEl = document.getElementById(domId);
+                        if (newEl && window.Alpine && typeof Alpine.initTree === "function") {
+                            Alpine.initTree(newEl);
+                        }
                     }
+                } else {
+                    const errData = await res.json().catch(() => ({}));
+                    console.error("Save error:", errData);
+                    alert("Fehler beim Speichern: " + (errData.detail || "Serverfehler"));
                 }
             } catch (err) {
                 console.error("Save error:", err);
+                alert("Netzwerkfehler beim Speichern des Bildes.");
             }
 
             this.closeModal();

@@ -15,7 +15,8 @@
     <div
         id="{{ dom_id }}"
         x-data="inlineEditor('{{ key }}', '{{ type }}')"
-        class="editable-block-container relative group/edit {% if type != 'image' %}inline-block w-full{% endif %}"
+        class="editable-block-container relative group/edit {% if type == 'image' %}w-full h-full flex items-center justify-center{% else %}inline-block w-full{% endif %}"
+        data-dom-id="{{ dom_id }}"
         data-tag="{{ tag }}"
         data-css-class="{{ class }}"
         data-img-alt="{{ img_alt }}"
@@ -24,7 +25,7 @@
         @keydown.window.escape="cancelEdit()"
     >
         <!-- VIEW MODE (Default state for Admin) -->
-        <div x-show="!isEditing" @dblclick="startEdit()" class="relative group-hover/edit:outline-dashed group-hover/edit:outline-1 group-hover/edit:outline-slate-400/80 rounded-lg transition-all" title="Doppelklick oder Stift-Symbol zum Bearbeiten">
+        <div x-show="!isEditing" @dblclick="startEdit()" class="relative {% if type == 'image' %}w-full h-full flex items-center justify-center{% endif %} group-hover/edit:outline-dashed group-hover/edit:outline-1 group-hover/edit:outline-slate-400/80 rounded-lg transition-all" title="Doppelklick oder Stift-Symbol zum Bearbeiten">
             {% if type == 'image' %}
                 <img src="{{ val }}" alt="{{ img_alt }}" class="{{ img_class }}" />
             {% else %}

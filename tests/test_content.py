@@ -186,6 +186,24 @@ async def test_content_admin_endpoints_and_auth_guard(
     assert media_fetch_resp.status_code == 200
     assert media_fetch_resp.content == sample_png
 
+    # 9. Test saving practice.interior_image with uploaded URL (multipart and form data)
+    save_img_resp = await app_client.post(
+        "/admin/content/practice.interior_image/save",
+        data={
+            "content": upload_data["url"],
+            "img_alt": "Neuer Praxisraum",
+            "img_class": "w-full h-full object-cover",
+        },
+    )
+    assert save_img_resp.status_code == 200
+    assert upload_data["url"] in save_img_resp.text
+    assert "v2" in save_img_resp.text
+
+    # 10. Verify that GET / (landing page) immediately reflects the updated practice image
+    landing_resp = await app_client.get("/")
+    assert landing_resp.status_code == 200
+    assert upload_data["url"] in landing_resp.text
+
 
 @pytest.mark.asyncio
 async def test_universal_content_blocks_seeded(
@@ -228,3 +246,66 @@ async def test_impressum_and_datenschutz_public_routes(
     ds_resp = await app_client.get("/datenschutz")
     assert ds_resp.status_code == 200
     assert "Datenschutzerklärung" in ds_resp.text
+
+
+@pytest.mark.asyncio
+async def test_image_upload_save_and_immediate_live_render(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    """Verify that uploaded images for practice, portrait, and hero are rendered live."""
+    # 1. Login as admin
+    await app_client.post(
+        "/admin/login",
+        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        follow_redirects=True,
+    )
+
+    sample_png = (
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00"
+        b"\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4"
+        b"\x00\x00\x00\x00IEND\xaeB`\x82"
+    )
+
+    # 2. Upload new practice room image
+    upload_resp = await app_client.post(
+        "/admin/images/upload",
+        files={"data": ("praxis_neuer_raum.png", sample_png, "image/png")},
+    )
+    assert upload_resp.status_code in {200, 201}
+    uploaded_url = upload_resp.json()["url"]
+
+    # 3. Save as practice.interior_image
+    save_resp = await app_client.post(
+        "/admin/content/practice.interior_image/save",
+        data={
+            "content": uploaded_url,
+            "img_alt": "Neuer Praxisraum Foto",
+            "img_class": "w-full h-full aspect-square object-cover shape-organic shadow-inner",
+        },
+    )
+    assert save_resp.status_code == 200
+    assert uploaded_url in save_resp.text
+    assert "content-block-practice-interior_image" in save_resp.text
+
+    # 4. Verify landing page renders the new practice image immediately
+    landing_resp = await app_client.get("/")
+    assert landing_resp.status_code == 200
+    assert uploaded_url in landing_resp.text
+
+    # 5. Upload and save about.portrait
+    upload_portrait = await app_client.post(
+        "/admin/images/upload",
+        files={"data": ("portrait_neu.png", sample_png, "image/png")},
+    )
+    portrait_url = upload_portrait.json()["url"]
+    save_portrait_resp = await app_client.post(
+        "/admin/content/about.portrait/save",
+        data={"content": portrait_url, "img_alt": "Neues Porträt"},
+    )
+    assert save_portrait_resp.status_code == 200
+    assert portrait_url in save_portrait_resp.text
+
+    # 6. Verify landing page has both updated images
+    landing_resp2 = await app_client.get("/")
+    assert portrait_url in landing_resp2.text
+    assert uploaded_url in landing_resp2.text

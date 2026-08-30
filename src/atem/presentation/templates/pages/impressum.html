@@ -1,6 +1,7 @@
 {% extends "layouts/base.html" %}
+{% from "components/editable_block.html" import editable with context %}
 
-{% block title %}Impressum | Atemtherapie Haʻa Ola{% endblock %}
+{% block title %}Impressum | Atemtherapie Hā Ola{% endblock %}
 
 {% block content %}
 <div class="py-28 bg-theme-main min-h-[70vh] transition-colors duration-300">
@@ -9,42 +10,44 @@
             <a href="/" class="hover:text-theme-primary transition-colors">Startseite</a> &bull; <span>Impressum</span>
         </nav>
 
-        <h1 class="font-heading text-3xl sm:text-4xl text-theme-text-main font-bold mb-8">Impressum</h1>
+        <h1 class="font-heading text-3xl sm:text-4xl text-theme-text-main font-bold mb-8">
+            {{ editable('impressum.title', 'Impressum', tag='span') }}
+        </h1>
 
         <div class="space-y-6 text-sm text-theme-text-muted leading-relaxed">
-            <h2 class="font-heading text-xl text-theme-text-main font-bold">Verantwortliche Stelle</h2>
-            {% if profile.practice %}
-            <p>
-                <strong class="text-theme-text-main">{{ profile.practice.name }}</strong><br>
-                {{ profile.full_name }}<br>
-                {{ profile.practice.street }}<br>
-                {{ profile.practice.zip_code }} {{ profile.practice.city }}<br>
-                {{ profile.practice.country }}
-            </p>
-            <p>
-                <strong class="text-theme-text-main">Kontakt:</strong><br>
-                Telefon: {{ profile.practice.phone }}<br>
-                E-Mail: <a href="mailto:{{ profile.practice.email }}" class="text-theme-primary hover:underline">{{ profile.practice.email }}</a>
-            </p>
-            {% else %}
-            <p>
-                <strong class="text-theme-text-main">Praxis für Atemtherapie OdA KT</strong><br>
-                Bahnhofstrasse 12, 3001 Bern<br>
-                E-Mail: kontakt@atem-raum.ch
-            </p>
-            {% endif %}
+            <div>
+                {{ editable('impressum.responsible_title', 'Verantwortliche Stelle', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {% if profile.practice %}
+                <p>
+                    <strong class="text-theme-text-main">{{ profile.practice.name }}</strong><br>
+                    {{ profile.full_name }}<br>
+                    {{ profile.practice.street }}<br>
+                    {{ profile.practice.zip_code }} {{ profile.practice.city }}<br>
+                    {{ profile.practice.country }}
+                </p>
+                <p class="mt-2">
+                    <strong class="text-theme-text-main">Kontakt:</strong><br>
+                    Telefon: {{ profile.practice.phone }}<br>
+                    E-Mail: <a href="mailto:{{ profile.practice.email }}" class="text-theme-primary hover:underline">{{ profile.practice.email }}</a>
+                </p>
+                {% else %}
+                <p>
+                    <strong class="text-theme-text-main">Atemtherapie Hā Ola</strong><br>
+                    Kramgasse 42, 3011 Bern<br>
+                    E-Mail: kontakt@ha-ola-atem.ch
+                </p>
+                {% endif %}
+            </div>
 
-            <h2 class="font-heading text-xl text-theme-text-main font-bold pt-4">Berufsbezeichnung &amp; Anerkennung</h2>
-            <p>
-                Dipl. Komplementärtherapeutin OdA KT (Methode Atemtherapie)<br>
-                Mitglied: Berufsverband für Atemtherapie Schweiz<br>
-                Krankenkassen-Anerkennung: EMR, ASCA, EGK, Visana (Zusatzversicherung).
-            </p>
+            <div>
+                {{ editable('impressum.recognition_title', 'Berufsbezeichnung & Anerkennung', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {{ editable('impressum.recognition_text', 'Dipl. Komplementärtherapeutin OdA KT (Methode Atemtherapie)\nMitglied: Berufsverband für Atemtherapie Schweiz\nKrankenkassen-Anerkennung: EMR, ASCA, EGK, Visana (Zusatzversicherung).', tag='p', type='textarea', rows=3) }}
+            </div>
 
-            <h2 class="font-heading text-xl text-theme-text-main font-bold pt-4">Haftungsausschluss</h2>
-            <p>
-                Die Inhalte dieser Webseite wurden mit grösstmöglicher Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte übernimmt die Praxisinhaberin keine Gewähr. Die bereitgestellten Informationen stellen keine medizinische Diagnose dar und ersetzen nicht die Konsultation einer Ärztin oder eines Arztes.
-            </p>
+            <div>
+                {{ editable('impressum.disclaimer_title', 'Haftungsausschluss', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {{ editable('impressum.disclaimer_text', 'Die Inhalte dieser Webseite wurden mit grösstmöglicher Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte übernimmt die Praxisinhaberin keine Gewähr. Die bereitgestellten Informationen stellen keine medizinische Diagnose dar und ersetzen nicht die Konsultation einer Ärztin oder eines Arztes.', tag='p', type='textarea', rows=4) }}
+            </div>
         </div>
     </div>
 </div>

@@ -20,6 +20,7 @@ os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-chars-long-12345"
 
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
+from atem.application.services.content_service import ContentService
 from atem.application.services.profile_service import ProfileService
 from atem.application.services.theme_service import ThemeService
 from atem.domain.interfaces.email_service import IEmailService
@@ -27,6 +28,9 @@ from atem.domain.interfaces.password_hasher import IPasswordHasher
 from atem.infrastructure.database.base import Base
 from atem.infrastructure.database.repositories.sqlalchemy_contact_repository import (
     SqlAlchemyContactRepository,
+)
+from atem.infrastructure.database.repositories.sqlalchemy_content_repository import (
+    SqlAlchemyContentRepository,
 )
 from atem.infrastructure.database.repositories.sqlalchemy_profile_repository import (
     SqlAlchemyProfileRepository,
@@ -78,6 +82,13 @@ def profile_service(db_session: AsyncSession) -> ProfileService:
     """Profile service fixture."""
     repo = SqlAlchemyProfileRepository(db_session)
     return ProfileService(repo)
+
+
+@pytest.fixture
+def content_service(db_session: AsyncSession) -> ContentService:
+    """Content service fixture."""
+    repo = SqlAlchemyContentRepository(db_session)
+    return ContentService(repo)
 
 
 @pytest.fixture

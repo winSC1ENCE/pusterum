@@ -30,22 +30,23 @@ class SqlAlchemyProfileRepository(IProfileRepository):
         if not model:
             # Default placeholder profile for initialization
             return TherapistProfile(
-                full_name="Atemtherapie Haʻa Ola",
+                full_name="Atemtherapie Hā Ola",
                 title="Dipl. Komplementärtherapeutin OdA KT",
                 diploma="Methode Atemtherapie",
-                tagline="Atemtherapie Haʻa Ola – Der heilsame Atem des Lebens.",
+                tagline="Atemtherapie Hā Ola – Der heilsame Atem des Lebens.",
                 bio=(
-                    "Willkommen bei Atemtherapie Haʻa Ola. Der Name verbindet die "
-                    "hawaiianischen Begriffe «Haʻa» (Atem) und «Ola» (Leben, Gesundheit, Heilung). "
-                    "In unserer Gemeinschaftspraxis in den Räumlichkeiten der Physiotherapie "
-                    "begleite ich Sie mit achtsamer Atem- und Körperarbeit auf Ihrem Weg zu "
-                    "nachhaltiger Genesung, Entlastung und innerer Balance."
+                    "Willkommen bei Atemtherapie Hā Ola. Der Name verbindet die "
+                    "hawaiianischen Begriffe «Hā» (Atem, Lebenshauch) und «Ola» "
+                    "(Leben, Gesundheit, Heilung). In unserer Gemeinschaftspraxis "
+                    "in den Räumlichkeiten der Physiotherapie begleite ich Sie mit "
+                    "achtsamer Atem- und Körperarbeit auf Ihrem Weg zu nachhaltiger "
+                    "Genesung, Entlastung und innerer Balance."
                 ),
                 quote=(
-                    "Haʻa Ola – Wenn der Atem frei fliesst, "
+                    "Hā Ola – Wenn der Atem frei fliesst, "
                     "entfaltet sich das Leben in seiner ganzen Kraft."
                 ),
-                profile_image_url="/static/images/therapist_portrait.png",
+                profile_image_url="/static/images/ste_aquarel.png",
                 booking_external_url=None,
             )
 
@@ -214,14 +215,14 @@ class SqlAlchemyProfileRepository(IProfileRepository):
         model = result.scalar_one_or_none()
         if not model:
             return PracticeInfo(
-                name="Atemtherapie Haʻa Ola (in Gemeinschaftspraxis Physiotherapie)",
+                name="Atemtherapie Hā Ola (in Gemeinschaftspraxis Physiotherapie)",
                 street="Praxisgasse 10",
                 zip_code="3000",
                 city="Bern",
                 canton="BE",
                 country="Schweiz",
                 phone="+41 31 123 45 67",
-                email="kontakt@haa-ola.ch",
+                email="kontakt@ha-ola.ch",
                 directions_info=(
                     "In den Praxisräumen der Physiotherapie-Gemeinschaftspraxis. "
                     "Zentral gelegen und bestens mit ÖV und Auto erreichbar."

@@ -99,14 +99,60 @@ classDiagram
             +UserRole role
             +bool is_active
         }
-    }
 
-    BaseEntity <|-- TherapistProfile
-    BaseEntity <|-- Competency
-    BaseEntity <|-- ServiceOffering
-    BaseEntity <|-- PracticeInfo
-    BaseEntity <|-- ContactMessage
-    BaseEntity <|-- User
+        class ContentBlockType {
+            <<enumeration>>
+            TEXT
+            TEXTAREA
+            RICH_TEXT
+            IMAGE_URL
+            PHONE
+            EMAIL
+        }
+
+        class ContentBlock {
+            +str key
+            +ContentBlockType block_type
+            +str section
+            +int current_version_number
+            +str current_content
+            +datetime updated_at
+        }
+
+        class ContentBlockVersion {
+            +UUID id
+            +str block_key
+            +int version_number
+            +str content
+            +UUID? author_id
+            +str author_name
+            +str? change_summary
+            +datetime created_at
+        }
+
+        class ThemeConfig {
+            +str name
+            +str preset_key
+            +str shape_type
+            +str primary_color
+            +str secondary_color
+            +str accent_color
+            +str bg_color
+            +str surface_color
+            +str text_main_color
+            +str font_heading
+            +str font_body
+        }
+
+        BaseEntity <|-- TherapistProfile
+        BaseEntity <|-- Competency
+        BaseEntity <|-- ServiceOffering
+        BaseEntity <|-- PracticeInfo
+        BaseEntity <|-- ContactMessage
+        BaseEntity <|-- User
+        BaseEntity <|-- ThemeConfig
+        ContentBlock *-- ContentBlockVersion : versions
+    }
 
     TherapistProfile *-- Competency : contains
     TherapistProfile *-- ServiceOffering : contains

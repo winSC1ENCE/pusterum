@@ -1,0 +1,167 @@
+{# =============================================================================
+   IN-CONTEXT INLINE EDITING MACRO (ADR-0002)
+   Supports text, textarea, rich text, and image selection with flat monochrome icons,
+   Alt+S save, Esc cancel, immutable version badges, and modal audit trail.
+   ============================================================================= #}
+
+{% macro editable(key, default_value, tag='p', class='', type='text', img_alt='', img_class='', rows=3, force_admin=none) %}
+    {% set block = content_blocks.get(key) if content_blocks else none %}
+    {% set val = block.current_content if block else default_value %}
+    {% set version = block.current_version_number if block else 1 %}
+    {% set dom_id = "content-block-" ~ (key | replace('.', '-')) %}
+    {% set show_admin = force_admin if force_admin is not none else is_admin %}
+
+    {% if show_admin %}
+    <div
+        id="{{ dom_id }}"
+        x-data="inlineEditor('{{ key }}', '{{ type }}')"
+        class="editable-block-container relative group/edit {% if type != 'image' %}inline-block w-full{% endif %}"
+        data-tag="{{ tag }}"
+        data-css-class="{{ class }}"
+        data-img-alt="{{ img_alt }}"
+        data-img-class="{{ img_class }}"
+        data-rows="{{ rows }}"
+        @keydown.window.escape="cancelEdit()"
+    >
+        <!-- VIEW MODE (Default state for Admin) -->
+        <div x-show="!isEditing" @dblclick="startEdit()" class="relative group-hover/edit:outline-dashed group-hover/edit:outline-1 group-hover/edit:outline-slate-400/80 rounded-lg transition-all" title="Doppelklick oder Stift-Symbol zum Bearbeiten">
+            {% if type == 'image' %}
+                <img src="{{ val }}" alt="{{ img_alt }}" class="{{ img_class }}" />
+            {% else %}
+                <{{ tag }} class="{{ class }}">
+                    {{ val | safe if type == 'rich' else val }}
+                </{{ tag }}>
+            {% endif %}
+
+            <!-- Admin Action Overlay Bar (Flat Monochrome Vector SVGs) -->
+            <span class="inline-flex items-center gap-1 opacity-0 group-hover/edit:opacity-100 transition-opacity absolute -top-3 -right-2 z-30 bg-white/95 border border-slate-300 shadow-md px-2 py-0.5 rounded-full text-xs font-sans">
+                <!-- Version Badge (Click opens Audit Trail Modal) -->
+                <button
+                    type="button"
+                    hx-get="/admin/content/{{ key }}/history"
+                    hx-target="#version-history-modal-content"
+                    @click="$dispatch('open-history-modal')"
+                    class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-bold text-[10px] hover:bg-slate-200 transition-colors"
+                    title="Versionsverlauf & Wiederherstellung ansehen"
+                    aria-label="Versionsverlauf ansehen"
+                >
+                    v{{ version }}
+                </button>
+
+                <!-- Edit Button (Flat Monochrome Pencil Vector Icon) -->
+                <button
+                    type="button"
+                    @click="startEdit()"
+                    class="text-slate-700 hover:text-black p-1 rounded hover:bg-slate-100 transition-colors focus:outline-none"
+                    title="Abschnitt bearbeiten (oder Doppelklick)"
+                    aria-label="Abschnitt bearbeiten"
+                >
+                    <svg class="w-3.5 h-3.5" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    </svg>
+                </button>
+            </span>
+        </div>
+
+        <!-- INLINE EDIT MODE (Triggered on Pencil or startEdit) -->
+        <div x-show="isEditing" x-cloak class="relative my-2 z-20">
+            <form
+                hx-post="/admin/content/{{ key }}/save"
+                hx-target="#{{ dom_id }}"
+                hx-swap="outerHTML"
+                @keydown.alt.s.prevent="submitForm($el)"
+                class="bg-white p-3 rounded-2xl border-2 border-slate-800 shadow-xl font-sans"
+            >
+                <input type="hidden" name="tag" value="{{ tag }}">
+                <input type="hidden" name="css_class" value="{{ class }}">
+                <input type="hidden" name="img_alt" value="{{ img_alt }}">
+                <input type="hidden" name="img_class" value="{{ img_class }}">
+                <input type="hidden" name="rows" value="{{ rows }}">
+
+                {% if type == 'image' %}
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-800">Bild-Pfad oder URL:</label>
+                    <input
+                        type="text"
+                        name="content"
+                        x-ref="inputField"
+                        value="{{ val }}"
+                        class="w-full p-2 text-xs rounded-lg border border-slate-300 text-slate-900 bg-white focus:ring-1 focus:ring-slate-800 focus:outline-none"
+                    />
+                    <div class="flex items-center gap-3 pt-1">
+                        <img :src="$refs.inputField ? $refs.inputField.value : '{{ val }}'" class="w-14 h-14 object-cover rounded-lg border border-slate-300 bg-slate-50" alt="Vorschau" />
+                        <span class="text-[11px] text-slate-500">Live-Vorschau</span>
+                    </div>
+                </div>
+                {% elif type == 'textarea' or type == 'rich' %}
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Inhalt bearbeiten:</label>
+                    <textarea
+                        name="content"
+                        x-ref="inputField"
+                        rows="{{ rows }}"
+                        class="w-full p-2.5 text-sm rounded-xl border border-slate-300 text-slate-900 bg-white focus:ring-1 focus:ring-slate-800 focus:outline-none"
+                    >{{ val }}</textarea>
+                </div>
+                {% else %}
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Text bearbeiten:</label>
+                    <input
+                        type="text"
+                        name="content"
+                        x-ref="inputField"
+                        value="{{ val }}"
+                        class="w-full p-2 text-sm rounded-lg border border-slate-300 text-slate-900 bg-white focus:ring-1 focus:ring-slate-800 focus:outline-none"
+                    />
+                </div>
+                {% endif %}
+
+                <!-- Action Buttons (Flat Monochrome Vector SVGs + Shortcuts) -->
+                <div class="flex items-center justify-between pt-2.5 mt-2 border-t border-slate-100 text-xs">
+                    <div class="flex items-center gap-2 text-[10px] text-slate-500">
+                        <span><kbd class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-[10px]">Alt</kbd>+<kbd class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-[10px]">S</kbd> Speichern</span>
+                        <span>&bull;</span>
+                        <span><kbd class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-[10px]">Esc</kbd> Abbrechen</span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <!-- Cancel Button (Flat Monochrome X Icon) -->
+                        <button
+                            type="button"
+                            @click="cancelEdit()"
+                            class="px-2.5 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-medium transition-colors flex items-center gap-1"
+                            title="Abbrechen (Esc)"
+                        >
+                            <svg class="w-3 h-3" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            <span>Abbrechen</span>
+                        </button>
+
+                        <!-- Save Button (Flat Monochrome Diskette Save Icon) -->
+                        <button
+                            type="submit"
+                            class="px-3 py-1 rounded-lg bg-slate-900 text-white hover:bg-black font-semibold transition-colors flex items-center gap-1.5 shadow-sm"
+                            title="Speichern (Alt + S)"
+                        >
+                            <svg class="w-3.5 h-3.5" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                            </svg>
+                            <span>Speichern</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% else %}
+        <!-- PUBLIC RENDERING (No editing overhead or controls) -->
+        {% if type == 'image' %}
+            <img src="{{ val }}" alt="{{ img_alt }}" class="{{ img_class }}" />
+        {% else %}
+            <{{ tag }} class="{{ class }}">
+                {{ val | safe if type == 'rich' else val }}
+            </{{ tag }}>
+        {% endif %}
+    {% endif %}
+{% endmacro %}

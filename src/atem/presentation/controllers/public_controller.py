@@ -11,6 +11,7 @@ from pydantic import ValidationError
 
 from atem.application.dto.contact import CreateContactMessageDTO
 from atem.application.services.contact_service import ContactService
+from atem.application.services.content_service import ContentService
 from atem.application.services.profile_service import ProfileService
 from atem.application.services.theme_service import ThemeService
 from atem.domain.exceptions import ValidationException
@@ -26,13 +27,17 @@ class PublicController(Controller):
     @get("/")
     async def index(
         self,
+        request: Request[Any, Any, Any],
         profile_service: ProfileService,
         theme_service: ThemeService,
+        content_service: ContentService,
     ) -> Template:
-        """Render single-page breath therapy website."""
+        """Render single-page breath therapy website with in-context inline editing for admins."""
         profile = await profile_service.get_public_profile()
         theme = await theme_service.get_active_theme()
         theme_css = theme_service.generate_css_variables(theme)
+        content_blocks = await content_service.get_content_map()
+        is_admin = bool(request.session.get("user"))
 
         return Template(
             template_name="pages/index.html",
@@ -40,6 +45,8 @@ class PublicController(Controller):
                 "profile": profile,
                 "theme": theme,
                 "theme_css": theme_css,
+                "content_blocks": content_blocks,
+                "is_admin": is_admin,
             },
         )
 
@@ -91,13 +98,17 @@ class PublicController(Controller):
     @get("/impressum")
     async def impressum(
         self,
+        request: Request[Any, Any, Any],
         profile_service: ProfileService,
         theme_service: ThemeService,
+        content_service: ContentService,
     ) -> Template:
         """Render Impressum (Legal Notice)."""
         profile = await profile_service.get_public_profile()
         theme = await theme_service.get_active_theme()
         theme_css = theme_service.generate_css_variables(theme)
+        content_blocks = await content_service.get_content_map()
+        is_admin = bool(request.session.get("user"))
 
         return Template(
             template_name="pages/impressum.html",
@@ -105,19 +116,25 @@ class PublicController(Controller):
                 "profile": profile,
                 "theme": theme,
                 "theme_css": theme_css,
+                "content_blocks": content_blocks,
+                "is_admin": is_admin,
             },
         )
 
     @get("/datenschutz")
     async def datenschutz(
         self,
+        request: Request[Any, Any, Any],
         profile_service: ProfileService,
         theme_service: ThemeService,
+        content_service: ContentService,
     ) -> Template:
         """Render Privacy Policy."""
         profile = await profile_service.get_public_profile()
         theme = await theme_service.get_active_theme()
         theme_css = theme_service.generate_css_variables(theme)
+        content_blocks = await content_service.get_content_map()
+        is_admin = bool(request.session.get("user"))
 
         return Template(
             template_name="pages/datenschutz.html",
@@ -125,5 +142,7 @@ class PublicController(Controller):
                 "profile": profile,
                 "theme": theme,
                 "theme_css": theme_css,
+                "content_blocks": content_blocks,
+                "is_admin": is_admin,
             },
         )

@@ -1,6 +1,7 @@
 {% extends "layouts/base.html" %}
+{% from "components/editable_block.html" import editable with context %}
 
-{% block title %}Datenschutzerklärung | Atemtherapie Haʻa Ola{% endblock %}
+{% block title %}Datenschutzerklärung | Atemtherapie Hā Ola{% endblock %}
 
 {% block content %}
 <div class="py-28 bg-theme-main min-h-[70vh] transition-colors duration-300">
@@ -9,32 +10,34 @@
             <a href="/" class="hover:text-theme-primary transition-colors">Startseite</a> &bull; <span>Datenschutz</span>
         </nav>
 
-        <h1 class="font-heading text-3xl sm:text-4xl text-theme-text-main font-bold mb-8">Datenschutzerklärung</h1>
+        <h1 class="font-heading text-3xl sm:text-4xl text-theme-text-main font-bold mb-8">
+            {{ editable('datenschutz.title', 'Datenschutzerklärung', tag='span') }}
+        </h1>
 
         <div class="space-y-6 text-sm text-theme-text-muted leading-relaxed">
-            <p>
-                Der Schutz Ihrer persönlichen Daten ist mir ein wichtiges Anliegen. Diese Datenschutzerklärung informiert Sie über die Erhebung und Bearbeitung personenbezogener Daten beim Besuch dieser Website und bei der Kontaktaufnahme gemäss dem Schweizerischen Datenschutzgesetz (DSG).
-            </p>
+            <div>
+                {{ editable('datenschutz.intro', 'Der Schutz Ihrer persönlichen Daten ist mir ein wichtiges Anliegen. Diese Datenschutzerklärung informiert Sie über die Erhebung und Bearbeitung personenbezogener Daten beim Besuch dieser Website und bei der Kontaktaufnahme gemäss dem Schweizerischen Datenschutzgesetz (DSG).', tag='p', type='textarea', rows=3) }}
+            </div>
 
-            <h2 class="font-heading text-xl text-theme-text-main font-bold pt-4">1. Verantwortliche Person</h2>
-            <p>
-                Verantwortlich für die Datenbearbeitung auf dieser Webseite ist die Praxisinhaberin gemäss Angaben im <a href="/impressum" class="text-theme-primary hover:underline">Impressum</a>.
-            </p>
+            <div>
+                {{ editable('datenschutz.sec1_title', '1. Verantwortliche Person', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {{ editable('datenschutz.sec1_text', 'Verantwortlich für die Datenbearbeitung auf dieser Webseite ist die Praxisinhaberin gemäss Angaben im Impressum.', tag='p', type='textarea', rows=2) }}
+            </div>
 
-            <h2 class="font-heading text-xl text-theme-text-main font-bold pt-4">2. Erhebung von Daten bei Kontaktaufnahme</h2>
-            <p>
-                Wenn Sie das Kontaktformular ausfüllen oder eine E-Mail senden, werden die von Ihnen angegebenen Kontaktdaten (Name, E-Mail-Adresse, Telefonnummer, Nachricht) gespeichert, um Ihre Anfrage zu bearbeiten und allfällige Anschlussfragen zu klären. Diese Daten werden ohne Ihre ausdrückliche Zustimmung niemals an Dritte weitergegeben.
-            </p>
+            <div>
+                {{ editable('datenschutz.sec2_title', '2. Erhebung von Daten bei Kontaktaufnahme', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {{ editable('datenschutz.sec2_text', 'Wenn Sie das Kontaktformular ausfüllen oder eine E-Mail senden, werden die von Ihnen angegebenen Kontaktdaten (Name, E-Mail-Adresse, Telefonnummer, Nachricht) gespeichert, um Ihre Anfrage zu bearbeiten und allfällige Anschlussfragen zu klären. Diese Daten werden ohne Ihre ausdrückliche Zustimmung niemals an Dritte weitergegeben.', tag='p', type='textarea', rows=3) }}
+            </div>
 
-            <h2 class="font-heading text-xl text-theme-text-main font-bold pt-4">3. Server-Logfiles &amp; Sicherheit</h2>
-            <p>
-                Beim Aufruf dieser Website erhebt der Hosting-Provider (Standort Schweiz / Deutschland mit ISO 27001 Zertifizierung) automatisch technische Informationen (IP-Adresse, Datum, Uhrzeit, Browsertyp). Diese Daten dienen ausschließlich der Systemsicherheit und Fehleranalyse.
-            </p>
+            <div>
+                {{ editable('datenschutz.sec3_title', '3. Server-Logfiles & Sicherheit', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {{ editable('datenschutz.sec3_text', 'Beim Aufruf dieser Website erhebt der Hosting-Provider (Standort Schweiz / Deutschland mit ISO 27001 Zertifizierung) automatisch technische Informationen (IP-Adresse, Datum, Uhrzeit, Browsertyp). Diese Daten dienen ausschließlich der Systemsicherheit und Fehleranalyse.', tag='p', type='textarea', rows=3) }}
+            </div>
 
-            <h2 class="font-heading text-xl text-theme-text-main font-bold pt-4">4. Ihre Rechte</h2>
-            <p>
-                Sie haben jederzeit das Recht auf unentgeltliche Auskunft über Ihre gespeicherten personenbezogenen Daten, deren Herkunft und den Zweck der Datenbearbeitung sowie ein Recht auf Berichtigung, Sperrung oder Löschung dieser Daten.
-            </p>
+            <div>
+                {{ editable('datenschutz.sec4_title', '4. Ihre Rechte', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {{ editable('datenschutz.sec4_text', 'Sie haben jederzeit das Recht auf unentgeltliche Auskunft über Ihre gespeicherten personenbezogenen Daten, deren Herkunft und den Zweck der Datenbearbeitung sowie ein Recht auf Berichtigung, Sperrung oder Löschung dieser Daten.', tag='p', type='textarea', rows=3) }}
+            </div>
         </div>
     </div>
 </div>

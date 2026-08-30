@@ -1,0 +1,12 @@
+{% from "components/editable_block.html" import editable with context %}
+{{ editable(
+    key=block.key,
+    default_value=block.current_content,
+    tag=tag,
+    class=css_class,
+    type=block.block_type.value,
+    img_alt=img_alt,
+    img_class=img_class,
+    rows=rows,
+    force_admin=True
+) }}

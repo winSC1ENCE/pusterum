@@ -41,6 +41,15 @@ package "Domain Layer" {
         EDITOR
     }
 
+    enum ContentBlockType {
+        TEXT
+        TEXTAREA
+        RICH_TEXT
+        IMAGE_URL
+        PHONE
+        EMAIL
+    }
+
     class TherapistProfile {
         + str full_name
         + str title
@@ -106,51 +115,99 @@ package "Domain Layer" {
         + bool is_active
     }
 
-    ' Inheritance
+    class ContentBlock {
+        + str key
+        + ContentBlockType block_type
+        + str section
+        + int current_version_number
+        + str current_content
+        + datetime updated_at
+    }
+
+    class ContentBlockVersion {
+        + UUID id
+        + str block_key
+        + int version_number
+        + str content
+        + UUID? author_id
+        + str author_name
+        + str? change_summary
+        + datetime created_at
+    }
+
+    class ThemeConfig {
+        + str name
+        + str preset_key
+        + str shape_type
+        + str primary_color
+        + str secondary_color
+        + str accent_color
+        + str bg_color
+        + str surface_color
+        + str text_main_color
+        + str font_heading
+        + str font_body
+    }
+
     BaseEntity <|-- TherapistProfile
     BaseEntity <|-- Competency
     BaseEntity <|-- ServiceOffering
     BaseEntity <|-- PracticeInfo
     BaseEntity <|-- ContactMessage
     BaseEntity <|-- User
+    BaseEntity <|-- ThemeConfig
+    ContentBlock *-- ContentBlockVersion : versions
 
-    ' Domain Ports (ABCs)
+    ' Interfaces / Ports
     interface IProfileRepository {
-        + {abstract} get_profile() : TherapistProfile
-        + {abstract} save_profile(profile: TherapistProfile) : TherapistProfile
-        + {abstract} get_competencies(active_only: bool) : list[Competency]
-        + {abstract} get_services(active_only: bool) : list[ServiceOffering]
-        + {abstract} get_service_by_id(service_id: UUID) : ServiceOffering?
-        + {abstract} save_service(service: ServiceOffering) : ServiceOffering
-        + {abstract} delete_service(service_id: UUID) : bool
-        + {abstract} get_practice_info() : PracticeInfo?
-        + {abstract} save_practice_info(practice: PracticeInfo) : PracticeInfo
+        + get_profile(): TherapistProfile
+        + save_profile(profile: TherapistProfile): TherapistProfile
+        + get_competencies(active_only: bool): list[Competency]
+        + get_services(active_only: bool): list[ServiceOffering]
+        + get_service_by_id(service_id: UUID): ServiceOffering?
+        + save_service(service: ServiceOffering): ServiceOffering
+        + delete_service(service_id: UUID): bool
+        + get_practice_info(): PracticeInfo?
+        + save_practice_info(practice: PracticeInfo): PracticeInfo
     }
 
     interface IContactRepository {
-        + {abstract} create_message(message: ContactMessage) : ContactMessage
-        + {abstract} get_messages(status: MessageStatus?, limit: int, offset: int) : list[ContactMessage]
-        + {abstract} get_message_by_id(message_id: UUID) : ContactMessage?
-        + {abstract} update_message(message: ContactMessage) : ContactMessage
-        + {abstract} delete_message(message_id: UUID) : bool
+        + create_message(message: ContactMessage): ContactMessage
+        + get_messages(status, limit, offset): list[ContactMessage]
+        + get_message_by_id(message_id: UUID): ContactMessage?
+        + update_message(message: ContactMessage): ContactMessage
+        + delete_message(message_id: UUID): bool
     }
 
     interface IUserRepository {
-        + {abstract} get_by_username(username: str) : User?
-        + {abstract} get_by_email(email: str) : User?
-        + {abstract} get_by_id(user_id: UUID) : User?
-        + {abstract} create_user(user: User) : User
-        + {abstract} update_user(user: User) : User
+        + get_by_username(username: str): User?
+        + get_by_email(email: str): User?
+        + get_by_id(user_id: UUID): User?
+        + create_user(user: User): User
+        + update_user(user: User): User
+    }
+
+    interface IContentRepository {
+        + get_block(key: str): ContentBlock?
+        + get_all_blocks(): dict[str, ContentBlock]
+        + save_version(key, content, author_id, author_name, summary): ContentBlockVersion
+        + get_version_history(key: str): list[ContentBlockVersion]
+        + restore_version(key: str, version: int, author_id, author_name): ContentBlockVersion
+    }
+
+    interface IThemeRepository {
+        + get_active_theme(): ThemeConfig
+        + save_theme(theme: ThemeConfig): ThemeConfig
     }
 
     interface IEmailService {
-        + {abstract} send_contact_notification(message: ContactMessage) : bool
-        + {abstract} send_contact_confirmation(message: ContactMessage) : bool
+        + send_contact_notification(message: ContactMessage): bool
+        + send_contact_confirmation(message: ContactMessage): bool
     }
 
     interface IPasswordHasher {
-        + {abstract} hash_password(plain_password: str) : str
-        + {abstract} verify_password(plain_password: str, hashed_password: str) : bool
+        + hash_password(plain_password: str): str
+        + verify_password(plain_password: str, hashed_password: str): bool
     }
 }
 
@@ -158,61 +215,36 @@ package "Domain Layer" {
 ' INFRASTRUCTURE LAYER
 ' ==============================================================================
 package "Infrastructure Layer" {
-    class SqlAlchemyProfileRepository {
+    class SqlAlchemyProfileRepository implements IProfileRepository {
         - AsyncSession _session
-        + get_profile() : TherapistProfile
-        + save_profile(profile) : TherapistProfile
-        + get_competencies(active_only) : list[Competency]
-        + get_services(active_only) : list[ServiceOffering]
-        + get_service_by_id(service_id) : ServiceOffering?
-        + save_service(service) : ServiceOffering
-        + delete_service(service_id) : bool
-        + get_practice_info() : PracticeInfo?
-        + save_practice_info(practice) : PracticeInfo
     }
 
-    class SqlAlchemyContactRepository {
+    class SqlAlchemyContactRepository implements IContactRepository {
         - AsyncSession _session
-        + create_message(message) : ContactMessage
-        + get_messages(status, limit, offset) : list[ContactMessage]
-        + get_message_by_id(message_id) : ContactMessage?
-        + update_message(message) : ContactMessage
-        + delete_message(message_id) : bool
     }
 
-    class SqlAlchemyUserRepository {
+    class SqlAlchemyUserRepository implements IUserRepository {
         - AsyncSession _session
-        + get_by_username(username) : User?
-        + get_by_email(email) : User?
-        + get_by_id(user_id) : User?
-        + create_user(user) : User
-        + update_user(user) : User
     }
 
-    class SmtpEmailService {
+    class SqlAlchemyContentRepository implements IContentRepository {
+        - AsyncSession _session
+    }
+
+    class SqlAlchemyThemeRepository implements IThemeRepository {
+        - AsyncSession _session
+    }
+
+    class SmtpEmailService implements IEmailService {
         - Settings _settings
-        + send_contact_notification(message) : bool
-        + send_contact_confirmation(message) : bool
     }
 
-    class MockEmailService {
-        + list[ContactMessage] sent_messages
-        + send_contact_notification(message) : bool
-        + send_contact_confirmation(message) : bool
+    class MockEmailService implements IEmailService {
     }
 
-    class Argon2PasswordHasher {
+    class Argon2PasswordHasher implements IPasswordHasher {
         - PasswordHasher _ph
-        + hash_password(plain_password) : str
-        + verify_password(plain_password, hashed_password) : bool
     }
-
-    IProfileRepository <|.. SqlAlchemyProfileRepository
-    IContactRepository <|.. SqlAlchemyContactRepository
-    IUserRepository <|.. SqlAlchemyUserRepository
-    IEmailService <|.. SmtpEmailService
-    IEmailService <|.. MockEmailService
-    IPasswordHasher <|.. Argon2PasswordHasher
 }
 
 ' ==============================================================================
@@ -221,34 +253,45 @@ package "Infrastructure Layer" {
 package "Application Layer" {
     class ProfileService {
         - IProfileRepository _repository
-        + get_public_profile() : TherapistProfileDTO
-        + update_profile(dto: TherapistProfileDTO) : TherapistProfileDTO
-        + create_service(dto: ServiceOfferingDTO) : ServiceOfferingDTO
-        + update_service(service_id: UUID, dto: ServiceOfferingDTO) : ServiceOfferingDTO
-        + delete_service(service_id: UUID) : bool
-        + update_practice_info(dto: PracticeInfoDTO) : PracticeInfoDTO
+        + get_public_profile(): TherapistProfileDTO
+        + update_profile(dto): TherapistProfileDTO
     }
 
     class ContactService {
         - IContactRepository _repository
         - IEmailService _email_service
-        + submit_contact_form(dto: CreateContactMessageDTO, client_ip: str?) : ContactMessageResponseDTO
-        + list_messages(status: MessageStatus?, limit: int, offset: int) : list[ContactMessageResponseDTO]
-        + update_message_status(message_id: UUID, dto: UpdateContactMessageStatusDTO) : ContactMessageResponseDTO
+        + submit_contact_form(dto, client_ip): ContactMessageResponseDTO
+        + list_messages(status): list[ContactMessageResponseDTO]
     }
 
     class AuthService {
         - IUserRepository _user_repository
         - IPasswordHasher _password_hasher
-        + authenticate(dto: LoginRequestDTO) : UserResponseDTO
-        + ensure_initial_admin(username: str, email: str, initial_password: str) : void
+        + authenticate(dto): UserResponseDTO
     }
 
-    ProfileService --> IProfileRepository : uses
-    ContactService --> IContactRepository : uses
-    ContactService --> IEmailService : uses
-    AuthService --> IUserRepository : uses
-    AuthService --> IPasswordHasher : uses
+    class ContentService {
+        - IContentRepository _repository
+        + get_content_map(): dict[str, ContentBlockResponseDTO]
+        + save_block_content(key, content, author_id, author_name): ContentBlockResponseDTO
+        + get_block_history(key): list[ContentVersionItemDTO]
+        + restore_block_version(key, version, author_id, author_name): ContentBlockResponseDTO
+    }
+
+    class ThemeService {
+        - IThemeRepository _repository
+        + get_active_theme(): ThemeConfig
+        + apply_preset(key): ThemeConfig
+        + generate_css_variables(theme): str
+    }
+
+    ProfileService --> IProfileRepository
+    ContactService --> IContactRepository
+    ContactService --> IEmailService
+    AuthService --> IUserRepository
+    AuthService --> IPasswordHasher
+    ContentService --> IContentRepository
+    ThemeService --> IThemeRepository
 }
 
 ' ==============================================================================
@@ -256,29 +299,32 @@ package "Application Layer" {
 ' ==============================================================================
 package "Presentation Layer" {
     class PublicController {
-        + index(profile_service: ProfileService) : Template
-        + handle_contact_form(request, contact_service, data) : Template
-        + impressum(profile_service: ProfileService) : Template
-        + datenschutz(profile_service: ProfileService) : Template
+        + index(profile_service, theme_service, content_service): Template
+        + handle_contact_form(request, contact_service, data): Template
+        + impressum(profile_service, theme_service, content_service): Template
+        + datenschutz(profile_service, theme_service, content_service): Template
     }
 
     class AdminController {
-        + login_page(request) : Template | Redirect
-        + process_login(request, auth_service, data) : Template | Redirect
-        + logout(request) : Redirect
-        + dashboard(request, profile_service, contact_service) : Template | Redirect
+        + login_page(request, theme_service): Template
+        + process_login(request, auth_service, data): Redirect
+        + dashboard(request, profile_service, contact_service): Template
+        + design_studio(request, theme_service): Template
+        + save_content_block(request, content_service, key, data): Template
+        + get_content_history(request, content_service, key): Template
+        + restore_content_version(request, content_service, key, version): Template
+        + list_images(request): list[dict]
+        + upload_image(request, data): dict
     }
 
-    class HealthController {
-        + check_health() : dict
-        + check_readiness() : Response
-    }
-
-    PublicController ..> ProfileService : dependency injection
-    PublicController ..> ContactService : dependency injection
-    AdminController ..> AuthService : dependency injection
-    AdminController ..> ProfileService : dependency injection
-    AdminController ..> ContactService : dependency injection
+    PublicController ..> ProfileService
+    PublicController ..> ContactService
+    PublicController ..> ThemeService
+    PublicController ..> ContentService
+    AdminController ..> AuthService
+    AdminController ..> ProfileService
+    AdminController ..> ContactService
+    AdminController ..> ThemeService
+    AdminController ..> ContentService
 }
-
 @enduml

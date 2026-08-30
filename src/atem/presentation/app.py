@@ -17,9 +17,11 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
+from atem.application.services.content_service import ContentService
 from atem.application.services.profile_service import ProfileService
 from atem.application.services.theme_service import ThemeService
 from atem.domain.interfaces.contact_repository import IContactRepository
+from atem.domain.interfaces.content_repository import IContentRepository
 from atem.domain.interfaces.email_service import IEmailService
 from atem.domain.interfaces.password_hasher import IPasswordHasher
 from atem.domain.interfaces.profile_repository import IProfileRepository
@@ -29,6 +31,9 @@ from atem.infrastructure.config.settings import Settings, get_settings
 from atem.infrastructure.database.base import Base
 from atem.infrastructure.database.repositories.sqlalchemy_contact_repository import (
     SqlAlchemyContactRepository,
+)
+from atem.infrastructure.database.repositories.sqlalchemy_content_repository import (
+    SqlAlchemyContentRepository,
 )
 from atem.infrastructure.database.repositories.sqlalchemy_profile_repository import (
     SqlAlchemyProfileRepository,
@@ -99,9 +104,19 @@ async def provide_theme_repository(db_session: AsyncSession) -> IThemeRepository
     return SqlAlchemyThemeRepository(session=db_session)
 
 
+async def provide_content_repository(db_session: AsyncSession) -> IContentRepository:
+    """Provide content repository implementing IContentRepository ABC."""
+    return SqlAlchemyContentRepository(session=db_session)
+
+
 async def provide_theme_service(theme_repository: IThemeRepository) -> ThemeService:
     """Provide ThemeService."""
     return ThemeService(theme_repository=theme_repository)
+
+
+async def provide_content_service(content_repository: IContentRepository) -> ContentService:
+    """Provide ContentService."""
+    return ContentService(content_repository=content_repository)
 
 
 async def provide_profile_service(profile_repository: IProfileRepository) -> ProfileService:
@@ -229,6 +244,8 @@ def create_app() -> Litestar:
             "email_service": Provide(provide_email_service),
             "theme_repository": Provide(provide_theme_repository),
             "theme_service": Provide(provide_theme_service),
+            "content_repository": Provide(provide_content_repository),
+            "content_service": Provide(provide_content_service),
             "profile_repository": Provide(provide_profile_repository),
             "contact_repository": Provide(provide_contact_repository),
             "user_repository": Provide(provide_user_repository),

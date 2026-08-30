@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Atemtherapie Haʻa Ola – Praxis für Komplementärtherapie OdA KT{% endblock %}</title>
+    <title>{% block title %}Atemtherapie Hā Ola – Praxis für Komplementärtherapie OdA KT{% endblock %}</title>
 
     <!-- Meta Descriptions & SEO -->
-    <meta name="description" content="{% block meta_description %}Atemtherapie Haʻa Ola – Komplementärtherapie OdA KT in Gemeinschaftspraxis mit Physiotherapie. Sanfte Körper- und Atemarbeit zur Linderung von Stress, Atemnot, Schmerzen und Erschöpfung. EMR & ASCA anerkannt.{% endblock %}">
-    <meta name="keywords" content="Atemtherapie Haʻa Ola, Komplementärtherapie OdA KT, Atemtherapeutin, Gemeinschaftspraxis Physiotherapie, EMR anerkannt, ASCA, Stressbewältigung, Long Covid, Achtsamkeit, Schweiz">
-    <meta name="author" content="Atemtherapie Haʻa Ola">
+    <meta name="description" content="{% block meta_description %}Atemtherapie Hā Ola – Komplementärtherapie OdA KT in Gemeinschaftspraxis mit Physiotherapie. Sanfte Körper- und Atemarbeit zur Linderung von Stress, Atemnot, Schmerzen und Erschöpfung. EMR & ASCA anerkannt.{% endblock %}">
+    <meta name="keywords" content="Atemtherapie Hā Ola, Komplementärtherapie OdA KT, Atemtherapeutin, Gemeinschaftspraxis Physiotherapie, EMR anerkannt, ASCA, Stressbewältigung, Long Covid, Achtsamkeit, Schweiz">
+    <meta name="author" content="Atemtherapie Hā Ola">
 
     <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg">
     <link rel="icon" type="image/png" sizes="64x64" href="/static/images/favicon.png">
     <link rel="shortcut icon" href="/static/images/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
@@ -71,11 +72,30 @@
         {{ theme_css | safe }}
     </style>
 
-    <!-- HTMX & Alpine.js (Self-Hosted with Fallback) -->
+    <!-- HTMX, App Scripts & Alpine.js -->
     <script src="/static/js/htmx.min.js"></script>
+    <script defer src="/static/js/app.js"></script>
     <script defer src="/static/js/alpine.min.js"></script>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-theme-secondary selection:text-theme-primary overflow-x-hidden">
+
+    <!-- Admin Live Edit Top Bar (when logged in) -->
+    {% if is_admin %}
+    <div class="bg-slate-900 text-slate-200 border-b border-slate-800 text-xs py-2 px-4 sticky top-0 z-[60] flex flex-wrap items-center justify-between gap-2 shadow-md">
+        <div class="flex items-center gap-2">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-semibold text-white">Live-Editor aktiv:</span>
+            <span class="text-slate-300 hidden sm:inline">Klicken Sie auf ein Stift-Symbol oder doppelklicken Sie beliebige Texte/Titel/Bilder zum Bearbeiten.</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="/admin" class="hover:text-white text-slate-300 underline font-medium">Praxis-Dashboard</a>
+            <span class="text-slate-600">|</span>
+            <a href="/admin/design" class="hover:text-white text-slate-300 underline font-medium">Corporate Design</a>
+            <span class="text-slate-600">|</span>
+            <a href="/admin/logout" class="text-rose-300 hover:text-rose-200 font-medium">Abmelden</a>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Navigation Header -->
     {% include "components/navbar.html" %}
@@ -88,8 +108,12 @@
     <!-- Footer -->
     {% include "components/footer.html" %}
 
-    <!-- Custom Scripts -->
-    <script src="/static/js/app.js"></script>
+    <!-- Global Version History & Audit Trail Modal for Admin (ADR-0002) -->
+    {% if is_admin %}
+        {% include "components/version_modal.html" %}
+        {% include "components/image_picker_modal.html" %}
+    {% endif %}
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

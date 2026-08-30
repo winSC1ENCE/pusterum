@@ -222,3 +222,74 @@ sequenceDiagram
     Ctrl-->>Admin: 200 OK (Render admin/dashboard.html mit Statistiken & Anfragen)
     deactivate Ctrl
 ```
+
+---
+
+## 5. Live In-Context Inline-Editing & Versioning Workflow (ADR-0002)
+
+* **PlantUML-Spezifikation:** [`inline_edit_versioning_sequence.puml`](inline_edit_versioning_sequence.puml)
+* **Mermaid-Datei:** [`inline_edit_versioning_sequence.mmd`](inline_edit_versioning_sequence.mmd)
+
+Visualisiert den vollständigen Redaktionsprozess direkt im Live-Layout der Website inklusive Tastatursteuerung (<kbd>Alt</kbd> + <kbd>S</kbd>, <kbd>Esc</kbd>), flachen monochromen Icons, Append-Only Versionierung und sicherem Rollback.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as Praxisinhaberin (Admin)
+    participant UI as Browser (Alpine.js + HTMX)
+    participant Ctrl as AdminController (Litestar)
+    participant Svc as ContentService (Application Layer)
+    participant FS as Dateisystem (/static/images/)
+    participant Repo as SqlAlchemyContentRepository (Infrastructure)
+    participant DB as PostgreSQL (content_blocks & versions)
+
+    Note over Admin,UI: 1. Inline-Bearbeitung starten
+    Admin->>UI: Klick auf Stift-Icon (Monochrome SVG) oder Doppelklick
+    UI->>UI: Alpine.js aktiviert Edit-Modus (Text-Editor oder Bild-Manager)
+
+    Note over Admin,UI: 2. Bild-Manager: Upload & Galerie
+    opt Bildauswahl / Upload
+        Admin->>UI: Bild-Auswahl öffnen (z-[100] Modal)
+        UI->>Ctrl: GET /admin/images/list
+        Ctrl->>FS: static/images Verzeichnis auslesen
+        FS-->>Ctrl: [portrait.png, interior.png, ...]
+        Ctrl-->>UI: JSON Mediathek-Liste
+        UI-->>Admin: Zeigt Miniaturansichten der Mediathek
+        Admin->>UI: Lädt neues Bild via Drag & Drop hoch
+        UI->>Ctrl: POST /admin/images/upload (multipart/form-data)
+        Ctrl->>FS: Speichert Datei in static/images/<name>.jpg
+        Ctrl-->>UI: { url: "/static/images/<name>.jpg" }
+    end
+
+    Note over Admin,UI: 3. Speichern via Button oder Alt + S
+    Admin->>UI: Drückt 'Alt + S' oder Klick auf Speicher-Icon
+    UI->>Ctrl: POST /admin/content/{block_key}/save (HTML Form Data)
+    Ctrl->>Svc: save_block_version(key, new_content, user_id, user_name)
+    Svc->>Repo: create_next_version(key, new_content, user)
+    Repo->>DB: INSERT INTO content_block_versions (v_next, content, author, created_at)
+    Repo->>DB: UPDATE content_blocks SET current_version = v_next
+    DB-->>Repo: Version v2 bestätigt
+    Repo-->>Svc: ContentBlockVersion(v=2, ...)
+    Svc-->>Ctrl: Updated Block DTO
+    Ctrl-->>UI: Jinja2 Rendered HTML Fragment mit 'v2'-Badge
+    UI-->>Admin: Zeigt aktualisierten Block mit 'v2'-Badge
+
+    Note over Admin,UI: 4. Versions-Historie & Rollback
+    Admin->>UI: Klick auf 'v2'-Badge
+    UI->>Ctrl: GET /admin/content/{block_key}/history
+    Ctrl->>Svc: get_version_history(key)
+    Svc->>Repo: fetch_all_versions(key)
+    Repo-->>Svc: [Version 1, Version 2]
+    Svc-->>Ctrl: list[ContentBlockVersion]
+    Ctrl-->>UI: HTMX Modal-Fragment (Wer, Wann, Was + Restore Buttons)
+    UI-->>Admin: Öffnet Modal mit Historie
+
+    Admin->>UI: Klick auf 'Wiederherstellen (v1)'
+    UI->>Ctrl: POST /admin/content/{block_key}/restore/1
+    Ctrl->>Svc: restore_version(key, version=1, user)
+    Svc->>Repo: create_next_version(key, content_of_v1, user, summary="Rollback to v1")
+    Repo->>DB: INSERT INTO content_block_versions (v=3, content=v1_content, ...)
+    DB-->>Repo: Version v3 angelegt
+    Repo-->>Svc: ContentBlockVersion(v=3)
+    Ctrl-->>UI: Block aktualisiert mit 'v3'-Badge & Modal geschlossen
+```

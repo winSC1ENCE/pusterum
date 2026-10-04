@@ -4,23 +4,35 @@ Shared by the application lifespan (development/test) and the CLI (`python -m at
 which the production container entrypoint runs once before the web workers start.
 """
 
+from datetime import UTC, datetime, timedelta
+
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from atem.application.services.auth_service import AuthService
+from atem.application.services.contact_service import ContactLimits, ContactService
 from atem.application.services.content_service import ContentService
+from atem.domain.interfaces.contact_repository import IContactRepository
+from atem.domain.interfaces.email_service import IEmailService
+from atem.infrastructure.captcha.altcha_captcha import AltchaCaptcha
 from atem.infrastructure.config.settings import Settings, get_settings
+from atem.infrastructure.database.repositories.sqlalchemy_contact_repository import (
+    SqlAlchemyContactRepository,
+)
 from atem.infrastructure.database.repositories.sqlalchemy_content_repository import (
     SqlAlchemyContentRepository,
 )
 from atem.infrastructure.database.repositories.sqlalchemy_user_repository import (
     SqlAlchemyUserRepository,
 )
+from atem.infrastructure.email.mock_email_service import MockEmailService
 from atem.infrastructure.logging.logger import get_logger
 from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHasher
 from atem.infrastructure.security.fernet_secret_cipher import FernetSecretCipher
 from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
 
 logger = get_logger(__name__)
+
+LOGIN_ATTEMPT_RETENTION = timedelta(days=30)
 
 
 async def seed_content(session_factory: async_sessionmaker[AsyncSession]) -> int:
@@ -35,6 +47,43 @@ async def seed_content(session_factory: async_sessionmaker[AsyncSession]) -> int
 def build_secret_cipher(settings: Settings) -> FernetSecretCipher:
     """Cipher for secrets at rest (TOTP seeds), keyed from SECRET_KEY via HKDF."""
     return FernetSecretCipher(settings.derive_key(b"atem-secret-cipher"))
+
+
+def build_contact_service(
+    repository: IContactRepository, email_service: IEmailService, settings: Settings
+) -> ContactService:
+    """ContactService with self-hosted ALTCHA captcha and the configured abuse limits."""
+    captcha = AltchaCaptcha(
+        hmac_key=settings.derive_key(b"atem-altcha").hex(),
+        max_number=settings.ALTCHA_MAX_NUMBER,
+        expires_after=timedelta(minutes=settings.ALTCHA_EXPIRES_MINUTES),
+    )
+    return ContactService(
+        repository,
+        email_service,
+        captcha,
+        email_hash_key=settings.derive_key(b"atem-email-hash"),
+        limits=ContactLimits(
+            per_ip_hour=settings.CONTACT_MAX_PER_IP_HOUR,
+            per_ip_day=settings.CONTACT_MAX_PER_IP_DAY,
+        ),
+    )
+
+
+async def purge_expired_data(
+    session_factory: async_sessionmaker[AsyncSession], settings: Settings
+) -> int:
+    """Data retention: delete old contact messages, captcha and login-attempt records."""
+    async with session_factory() as session:
+        service = build_contact_service(
+            SqlAlchemyContactRepository(session), MockEmailService(), settings
+        )
+        deleted = await service.purge_expired(timedelta(days=settings.MESSAGE_RETENTION_DAYS))
+        await SqlAlchemyUserRepository(session).delete_login_attempts_older_than(
+            datetime.now(UTC) - LOGIN_ATTEMPT_RETENTION
+        )
+        await session.commit()
+    return deleted
 
 
 def build_auth_service(session: AsyncSession) -> AuthService:

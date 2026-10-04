@@ -1,10 +1,11 @@
+import asyncio
+import contextlib
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
 from litestar import Litestar, Request
-from litestar.config.allowed_hosts import AllowedHostsConfig
 from litestar.config.csrf import CSRFConfig
 from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.datastructures import State
@@ -55,7 +56,13 @@ from atem.infrastructure.logging.logger import get_logger, setup_logging
 from atem.infrastructure.media.pillow_image_sanitizer import PillowImageSanitizer
 from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHasher
 from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
-from atem.presentation.bootstrap import build_secret_cipher, ensure_dev_admin, seed_content
+from atem.presentation.bootstrap import (
+    build_contact_service,
+    build_secret_cipher,
+    ensure_dev_admin,
+    purge_expired_data,
+    seed_content,
+)
 from atem.presentation.controllers.admin_auth_controller import AdminAuthController
 from atem.presentation.controllers.admin_controller import AdminController
 from atem.presentation.controllers.admin_security_controller import AdminSecurityController
@@ -63,6 +70,7 @@ from atem.presentation.controllers.health_controller import HealthController
 from atem.presentation.controllers.public_controller import PublicController
 from atem.presentation.errors import EXCEPTION_HANDLERS
 from atem.presentation.security.admin_auth import unauthorized_handler
+from atem.presentation.security.host_validation import HostValidationMiddleware
 from atem.presentation.security.proxy_headers import ProxyHeadersMiddleware
 
 logger = get_logger(__name__)
@@ -139,12 +147,10 @@ async def provide_profile_service(profile_repository: IProfileRepository) -> Pro
 async def provide_contact_service(
     contact_repository: IContactRepository,
     email_service: IEmailService,
+    settings: Settings,
 ) -> ContactService:
-    """Provide ContactService."""
-    return ContactService(
-        contact_repository=contact_repository,
-        email_service=email_service,
-    )
+    """Provide ContactService with ALTCHA captcha and configured abuse limits."""
+    return build_contact_service(contact_repository, email_service, settings)
 
 
 async def provide_media_service(settings: Settings) -> MediaService:
@@ -173,6 +179,23 @@ async def provide_auth_service(
 # ------------------------------------------------------------------------------
 # LIFESPAN HOOKS
 # ------------------------------------------------------------------------------
+RETENTION_INTERVAL_SECONDS = 24 * 60 * 60
+RETENTION_FIRST_RUN_DELAY_SECONDS = 60
+
+
+async def _retention_loop(
+    session_factory: async_sessionmaker[AsyncSession], settings: Settings
+) -> None:
+    """Daily data-retention job (idempotent – safe to run in every worker)."""
+    await asyncio.sleep(RETENTION_FIRST_RUN_DELAY_SECONDS)
+    while True:
+        try:
+            await purge_expired_data(session_factory, settings)
+        except Exception:
+            logger.exception("retention_job_failed")
+        await asyncio.sleep(RETENTION_INTERVAL_SECONDS)
+
+
 @asynccontextmanager
 async def lifespan(app: Litestar) -> AsyncGenerator[None, None]:
     """Application lifespan managing DB connection and initialization."""
@@ -196,7 +219,18 @@ async def lifespan(app: Litestar) -> AsyncGenerator[None, None]:
         await seed_content(session_factory)
         await ensure_dev_admin(session_factory, settings)
 
+    retention_task = (
+        None
+        if settings.ENVIRONMENT == "test"
+        else asyncio.create_task(_retention_loop(session_factory, settings))
+    )
+
     yield
+
+    if retention_task is not None:
+        retention_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await retention_task
 
     logger.info("Shutting down Atemtherapie Application")
     await engine.dispose()
@@ -314,12 +348,12 @@ def create_app() -> Litestar:
         },
         template_config=template_config,
         middleware=[
+            DefineMiddleware(HostValidationMiddleware, allowed_hosts=settings.ALLOWED_HOSTS),
             DefineMiddleware(ProxyHeadersMiddleware, trusted_proxies=settings.TRUSTED_PROXIES),
             rate_limit_config.middleware,
             session_config.middleware,
         ],
         csrf_config=csrf_config,
-        allowed_hosts=AllowedHostsConfig(allowed_hosts=settings.ALLOWED_HOSTS),
         exception_handlers={**EXCEPTION_HANDLERS, NotAuthorizedException: unauthorized_handler},
         lifespan=[lifespan],
         openapi_config=openapi_config,

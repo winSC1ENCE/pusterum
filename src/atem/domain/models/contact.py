@@ -27,3 +27,7 @@ class ContactMessage(BaseEntity):
     status: MessageStatus = MessageStatus.NEW
     notes: str | None = None
     ip_address: str | None = None
+    # Peppered SHA-256 of the lower-cased sender e-mail: limits confirmation mails per
+    # address without needing to query the plain address.
+    email_hash: str | None = None
+    confirmation_sent: bool = False

@@ -3,28 +3,29 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from atem.domain.models.contact import MessageStatus
+
+# Single-line fields must not contain control characters (header injection, log forging).
+SINGLE_LINE = r"^[^\r\n\t\x00-\x1f\x7f]*$"
 
 
 class CreateContactMessageDTO(BaseModel):
     """Incoming contact message submission payload."""
 
-    sender_name: str = Field(..., min_length=2, max_length=120, description="Name des Absenders")
-    sender_email: EmailStr = Field(..., description="E-Mail-Adresse für Rückantwort")
-    sender_phone: str | None = Field(
-        default=None,
-        max_length=50,
-        description="Telefonnummer optional",
-    )
-    subject: str = Field(default="Kontaktanfrage via Website", max_length=200)
-    message: str = Field(..., min_length=10, max_length=5000, description="Nachrichtentext")
-    honeypot: str | None = Field(default=None, description="Anti-Spam Honeypot (must be empty)")
+    sender_name: str = Field(..., min_length=2, max_length=120, pattern=SINGLE_LINE)
+    sender_email: EmailStr = Field(..., max_length=150)
+    sender_phone: str | None = Field(default=None, max_length=50, pattern=r"^[0-9+()/.\- ]*$")
+    subject: str = Field(default="Kontaktanfrage via Website", max_length=200, pattern=SINGLE_LINE)
+    message: str = Field(..., min_length=10, max_length=5000)
+    honeypot: str | None = Field(default=None, max_length=200)
 
 
 class ContactMessageResponseDTO(BaseModel):
     """Outgoing contact message response DTO."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: UUID
     sender_name: str
@@ -35,10 +36,4 @@ class ContactMessageResponseDTO(BaseModel):
     status: MessageStatus
     notes: str | None
     created_at: datetime
-
-
-class UpdateContactMessageStatusDTO(BaseModel):
-    """Update status or internal notes for a contact inquiry."""
-
-    status: MessageStatus
-    notes: str | None = None
+    confirmation_sent: bool = False

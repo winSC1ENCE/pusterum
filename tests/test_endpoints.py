@@ -4,6 +4,8 @@ import pytest
 from litestar import Litestar
 from litestar.testing import AsyncTestClient
 
+from tests.conftest import contact_form_payload
+
 
 @pytest.mark.asyncio
 async def test_health_endpoints(app_client: AsyncTestClient[Litestar]) -> None:
@@ -52,9 +54,11 @@ async def test_htmx_contact_form_submission(app_client: AsyncTestClient[Litestar
         "message": "Guten Tag, ich möchte einen Kennenlerntermin vereinbaren.",
         "website_url": "",
     }
-    res = await app_client.post("/contact", data=payload)
+    res = await app_client.post("/contact", data=await contact_form_payload(app_client, **payload))
     assert res.status_code == 200
     assert "Vielen Dank für Ihre Nachricht" in res.text
+    assert 'id="contact-form-container"' in res.text
+    assert "<section" not in res.text  # only the card partial is swapped (BUG-01)
 
     # Validation failure submission (missing message)
     invalid_payload = {
@@ -62,8 +66,12 @@ async def test_htmx_contact_form_submission(app_client: AsyncTestClient[Litestar
         "sender_email": "invalid-email",
         "message": "",
     }
-    res_err = await app_client.post("/contact", data=invalid_payload)
+    res_err = await app_client.post(
+        "/contact", data=await contact_form_payload(app_client, **invalid_payload)
+    )
     assert res_err.status_code == 200
+    assert "Bitte überprüfen Sie Ihre Eingaben" in res_err.text
+    assert "<section" not in res_err.text
     assert "Bitte überprüfen Sie Ihre Eingaben" in res_err.text
 
 

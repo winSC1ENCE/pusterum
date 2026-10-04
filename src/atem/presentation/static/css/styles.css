@@ -172,3 +172,12 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 .animate-breath {
     animation: breathe 6s ease-in-out infinite;
 }
+
+/* Honeypot field of the contact form – invisible for humans, filled by naive bots */
+.hp-field {
+    position: absolute !important;
+    left: -10000px !important;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}

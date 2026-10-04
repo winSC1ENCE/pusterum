@@ -21,6 +21,7 @@ from atem.domain.models.user import LOCKOUT_BASE, LOCKOUT_MAX, MAX_FAILED_LOGINS
 from atem.infrastructure.config.settings import get_settings
 from atem.infrastructure.security.fernet_secret_cipher import FernetSecretCipher
 from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
+from atem.presentation.security.host_validation import HostValidationMiddleware
 from atem.presentation.security.proxy_headers import parse_networks, resolve_client_ip
 
 ADMIN_PASSWORD = "admin-secure-init-pass-change-me"  # dev/test admin seeded in conftest env
@@ -287,6 +288,28 @@ async def test_post_without_csrf_token_is_rejected(app_client: AsyncTestClient[L
 async def test_unknown_host_is_rejected(app_client: AsyncTestClient[Litestar]) -> None:
     response = await app_client.get("/", headers={"host": "evil.example"})
     assert response.status_code == 400
+    with_port = await app_client.get("/health", headers={"host": "localhost:8000"})
+    assert with_port.status_code == 200  # container health check sends a port
+
+
+@pytest.mark.parametrize(
+    ("host", "allowed"),
+    [
+        ("www.pusterum.be", True),
+        ("WWW.PUSTERUM.BE:443", True),
+        ("cdn.pusterum.be", True),
+        ("pusterum.be.evil.com", False),
+        ("evilpusterum.be", False),
+        ("[::1]:8000", True),
+        ("", False),
+    ],
+)
+def test_host_validation_rules(host: str, allowed: bool) -> None:
+    middleware = HostValidationMiddleware(
+        app=None,  # type: ignore[arg-type]
+        allowed_hosts=["www.pusterum.be", "*.pusterum.be", "::1"],
+    )
+    assert middleware.is_allowed(host) is allowed
 
 
 async def test_login_input_validation_does_not_crash(app_client: AsyncTestClient[Litestar]) -> None:

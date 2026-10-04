@@ -1,20 +1,16 @@
-<div id="contact-container" class="bg-white p-8 sm:p-12 rounded-3xl border border-sage-200 shadow-xl max-w-2xl mx-auto text-center space-y-6 animate-fade-in">
-    <div class="w-16 h-16 rounded-full bg-sage-100 text-sage-600 flex items-center justify-center mx-auto">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+{# Success state of the contact form card (replaces #contact-form-container via HTMX). #}
+<div id="contact-form-container" class="bg-theme-main border border-theme p-8 sm:p-10 rounded-3xl shadow-sm text-center space-y-6" role="status">
+    <div class="w-16 h-16 rounded-full bg-theme-secondary/50 text-theme-primary flex items-center justify-center mx-auto">
+        <svg class="w-8 h-8" width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
         </svg>
     </div>
-
     <div class="space-y-2">
-        <h3 class="font-serif text-2xl sm:text-3xl text-slate-900 font-medium">Vielen Dank für Ihre Nachricht!</h3>
-        <p class="text-slate-600 text-sm max-w-md mx-auto leading-relaxed">
-            Ihre Anfrage ist erfolgreich bei mir eingegangen. Eine Bestätigung wurde an <strong>{{ contact.sender_email }}</strong> gesendet. Ich werde mich so bald wie möglich persönlich bei Ihnen melden.
+        <h3 class="font-heading text-2xl sm:text-3xl font-bold text-theme-text-main">Vielen Dank für Ihre Nachricht!</h3>
+        <p class="text-theme-text-muted text-sm max-w-md mx-auto leading-relaxed">
+            Ihre Anfrage ist bei mir eingegangen.{% if contact.confirmation_sent %} Eine kurze Empfangsbestätigung ist an Ihre E-Mail-Adresse unterwegs.{% endif %}
+            Ich melde mich so bald wie möglich persönlich bei Ihnen.
         </p>
     </div>
-
-    <div class="pt-4">
-        <a href="#hero" class="inline-flex items-center text-sm font-medium text-sage-700 hover:text-sage-800">
-            ← Zurück zur Startseite
-        </a>
-    </div>
+    <a href="#start" class="inline-flex items-center text-sm font-medium text-theme-primary hover:underline">← Zurück zum Seitenanfang</a>
 </div>

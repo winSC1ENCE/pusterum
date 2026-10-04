@@ -97,3 +97,10 @@ class SqlAlchemyUserRepository(IUserRepository):
             )
         )
         return int(count or 0)
+
+    async def delete_login_attempts_older_than(self, cutoff: datetime) -> int:
+        """Delete login attempt records created before ``cutoff``."""
+        result = await self._session.execute(
+            delete(LoginAttemptModel).where(LoginAttemptModel.created_at < cutoff)
+        )
+        return int(getattr(result, "rowcount", 0) or 0)

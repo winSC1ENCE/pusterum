@@ -20,6 +20,8 @@ from atem.application.services.content_service import ContentService
 from atem.application.services.media_service import MediaService
 from atem.application.services.profile_service import ProfileService
 from atem.application.services.theme_service import ThemeService
+from atem.domain.exceptions import ValidationException
+from atem.domain.models.contact import MessageStatus
 from atem.domain.models.theme import (
     PRESET_THEMES,
     ColorPresetKey,
@@ -87,6 +89,29 @@ class AdminController(Controller):
                 "theme_css": theme_css,
             },
         )
+
+    @post("/messages/{message_id:uuid}/status")
+    async def update_message_status(
+        self,
+        contact_service: ContactService,
+        message_id: UUID,
+        data: Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)],
+    ) -> Template:
+        """Change the processing status of an inquiry (HTMX, returns the table row)."""
+        try:
+            status = MessageStatus(data.get("status", ""))
+        except ValueError as exc:
+            raise ValidationException("Ungültiger Status.") from exc
+        message = await contact_service.update_message_status(message_id, status)
+        return Template(template_name="admin/message_row.html", context={"msg": message})
+
+    @post("/messages/{message_id:uuid}/delete")
+    async def delete_message(
+        self, contact_service: ContactService, message_id: UUID
+    ) -> Response[bytes]:
+        """Permanently delete an inquiry (HTMX removes the row)."""
+        await contact_service.delete_message(message_id)
+        return Response(content=b"", status_code=200)
 
     @get("/design")
     async def design_studio(

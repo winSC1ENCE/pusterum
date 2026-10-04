@@ -3,7 +3,7 @@
 import pytest
 
 from atem.application.dto.auth import LoginRequestDTO
-from atem.application.dto.contact import CreateContactMessageDTO, UpdateContactMessageStatusDTO
+from atem.application.dto.contact import CreateContactMessageDTO
 from atem.application.dto.profile import PracticeInfoDTO, ServiceOfferingDTO, TherapistProfileDTO
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
@@ -14,6 +14,7 @@ from atem.domain.exceptions import (
     ValidationException,
 )
 from atem.domain.models.contact import MessageStatus
+from tests.conftest import solve_altcha
 
 
 @pytest.mark.asyncio
@@ -85,7 +86,11 @@ async def test_contact_service_flow(contact_service: ContactService) -> None:
         subject="Terminanfrage",
         message="Guten Tag, ich hätte gerne nächste Woche einen Termin.",
     )
-    response = await contact_service.submit_contact_form(dto, client_ip="127.0.0.1")
+    response = await contact_service.submit_contact_form(
+        dto,
+        client_ip="127.0.0.1",
+        captcha_payload=solve_altcha(contact_service.create_captcha_challenge()),
+    )
     assert response.sender_name == "Maria Muster"
     assert response.status == MessageStatus.NEW
 
@@ -97,17 +102,14 @@ async def test_contact_service_flow(contact_service: ContactService) -> None:
         honeypot="http://spam-link.com",
     )
     with pytest.raises(ValidationException):
-        await contact_service.submit_contact_form(spam_dto)
+        await contact_service.submit_contact_form(spam_dto, client_ip=None, captcha_payload="")
 
     # List messages
     messages = await contact_service.list_messages()
     assert len(messages) >= 1
 
     # Update status
-    updated = await contact_service.update_message_status(
-        response.id,
-        UpdateContactMessageStatusDTO(status=MessageStatus.READ, notes="Gelesen"),
-    )
+    updated = await contact_service.update_message_status(response.id, MessageStatus.READ)
     assert updated.status == MessageStatus.READ
 
 

@@ -28,6 +28,7 @@ dependencies = [
     "segno>=1.6.1",
     "markupsafe>=2.1",
     "pillow>=11.0",
+    "altcha>=0.1.9",
 ]
 
 [dependency-groups]

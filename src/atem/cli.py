@@ -5,6 +5,7 @@ Usage (inside the container or locally with `uv run`)::
     python -m atem.cli create-admin --username stephanie --email kontakt@pusterum.be
     python -m atem.cli reset-2fa --username stephanie
     python -m atem.cli seed-content
+    python -m atem.cli purge-messages
 """
 
 import argparse
@@ -16,7 +17,7 @@ import sys
 from atem.domain.exceptions import EntityNotFoundException, ValidationException
 from atem.infrastructure.config.settings import get_settings
 from atem.infrastructure.database.session import create_engine, create_session_factory
-from atem.presentation.bootstrap import build_auth_service, seed_content
+from atem.presentation.bootstrap import build_auth_service, purge_expired_data, seed_content
 
 PASSWORD_ENV_VAR = "ATEM_ADMIN_PASSWORD"  # nosec B105 - env var name, not a secret
 
@@ -56,6 +57,17 @@ async def _reset_2fa(username: str) -> None:
         await engine.dispose()
 
 
+async def _purge() -> None:
+    settings = get_settings()
+    engine = create_engine()
+    try:
+        deleted = await purge_expired_data(create_session_factory(engine), settings)
+        days = settings.MESSAGE_RETENTION_DAYS
+        print(f"{deleted} Kontaktnachrichten älter als {days} Tage gelöscht.")
+    finally:
+        await engine.dispose()
+
+
 async def _seed_content() -> None:
     engine = create_engine()
     try:
@@ -78,6 +90,7 @@ def build_parser() -> argparse.ArgumentParser:
     reset.add_argument("--username", required=True)
 
     sub.add_parser("seed-content", help="Fehlende Standard-Inhalte ergänzen (idempotent)")
+    sub.add_parser("purge-messages", help="Aufbewahrungsfrist durchsetzen (alte Daten löschen)")
     return parser
 
 
@@ -90,6 +103,8 @@ def main(argv: list[str] | None = None) -> int:
             asyncio.run(_create_admin(args.username, args.email))
         elif args.command == "reset-2fa":
             asyncio.run(_reset_2fa(args.username))
+        elif args.command == "purge-messages":
+            asyncio.run(_purge())
         elif args.command == "seed-content":
             asyncio.run(_seed_content())
     except (ValidationException, EntityNotFoundException) as exc:

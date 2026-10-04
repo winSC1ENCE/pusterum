@@ -64,6 +64,13 @@ class Settings(BaseSettings):
     # Two-factor authentication for the admin. None = mandatory in production/staging only.
     ADMIN_REQUIRE_2FA: bool | None = None
     SESSION_MAX_AGE_HOURS: int = 12
+    # Contact form abuse protection
+    CONTACT_MAX_PER_IP_HOUR: int = 3
+    CONTACT_MAX_PER_IP_DAY: int = 10
+    CONTACT_FORM_MIN_SECONDS: int = 3
+    ALTCHA_MAX_NUMBER: int = 100_000  # proof-of-work difficulty (≈ 0.1–0.5 s on a phone)
+    ALTCHA_EXPIRES_MINUTES: int = 20
+    MESSAGE_RETENTION_DAYS: int = 365  # contact messages are deleted automatically afterwards
     # Requests per minute and client IP on login / 2FA / contact (in-memory, per worker)
     RATE_LIMIT_SENSITIVE_PER_MINUTE: int = 10
 

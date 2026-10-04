@@ -77,6 +77,7 @@
     <script src="/static/js/htmx.min.js"></script>
     <script defer src="/static/js/app.js"></script>
     <script defer src="/static/js/alpine.min.js"></script>
+    {% block head_extra %}{% endblock %}
 </head>
 <body hx-headers='{"x-csrftoken": "{{ csrf_token() }}"}' class="min-h-screen flex flex-col antialiased selection:bg-theme-secondary selection:text-theme-primary overflow-x-hidden">
 

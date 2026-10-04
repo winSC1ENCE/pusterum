@@ -47,3 +47,7 @@ class IUserRepository(ABC):
     @abstractmethod
     async def count_failed_attempts(self, ip_address: str, since: datetime) -> int:
         """Count failed login attempts from an IP address since the given time."""
+
+    @abstractmethod
+    async def delete_login_attempts_older_than(self, cutoff: datetime) -> int:
+        """Delete login attempt records created before ``cutoff`` (retention)."""

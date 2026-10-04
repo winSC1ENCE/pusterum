@@ -59,131 +59,13 @@
 
                 <div class="p-5 rounded-2xl bg-theme-muted border border-theme text-xs text-theme-text-muted leading-relaxed">
                     <strong class="text-theme-text-main block mb-1">Vertraulichkeit &amp; Datenschutz:</strong>
-                    {{ editable('contact.privacy_note', 'Ihre Angaben werden streng vertraulich behandelt und ausschließlich zur Beantwortung Ihrer Anfrage genutzt.', tag='p', class='text-xs text-theme-text-muted') }}
+                    {{ editable('contact.privacy_note', 'Ihre Angaben werden vertraulich behandelt und ausschliesslich zur Beantwortung Ihrer Anfrage genutzt. Details finden Sie in der Datenschutzerklärung.', tag='p', class='text-xs text-theme-text-muted') }}
                 </div>
             </div>
 
             <!-- Right Interactive Form (HTMX powered) -->
             <div class="lg:col-span-7">
-                <div id="contact-form-container" class="bg-theme-main border border-theme p-8 sm:p-10 rounded-3xl shadow-sm">
-
-                    {% if error %}
-                    <div class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3">
-                        <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                        </svg>
-                        <span>{{ error }}</span>
-                    </div>
-                    {% endif %}
-
-                    <form
-                        hx-post="/contact"
-                        hx-target="#contact-form-container"
-                        hx-swap="outerHTML"
-                        class="space-y-6"
-                    >
-                        <!-- Honeypot Anti-Spam Field (Hidden from humans) -->
-                        <div style="display:none !important;" aria-hidden="true">
-                            <label for="website_url">Bitte dieses Feld leer lassen:</label>
-                            <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off">
-                        </div>
-
-                        <!-- Name & Email Grid -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div>
-                                <label for="sender_name" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
-                                    Ihr Name <span class="text-theme-primary">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    id="sender_name"
-                                    name="sender_name"
-                                    value="{{ form_data.sender_name if form_data else '' }}"
-                                    required
-                                    class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none"
-                                    placeholder="Vor- und Nachname"
-                                />
-                            </div>
-
-                            <div>
-                                <label for="sender_email" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
-                                    Ihre E-Mail-Adresse <span class="text-theme-primary">*</span>
-                                </label>
-                                <input
-                                    type="email"
-                                    id="sender_email"
-                                    name="sender_email"
-                                    value="{{ form_data.sender_email if form_data else '' }}"
-                                    required
-                                    class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none"
-                                    placeholder="ihre.mail@beispiel.ch"
-                                />
-                            </div>
-                        </div>
-
-                        <!-- Phone & Subject Grid -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div>
-                                <label for="sender_phone" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
-                                    Telefonnummer (optional)
-                                </label>
-                                <input
-                                    type="tel"
-                                    id="sender_phone"
-                                    name="sender_phone"
-                                    value="{{ form_data.sender_phone if form_data else '' }}"
-                                    class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none"
-                                    placeholder="+41 79 123 45 67"
-                                />
-                            </div>
-
-                            <div>
-                                <label for="subject" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
-                                    Betreff / Anliegen
-                                </label>
-                                <select
-                                    id="subject"
-                                    name="subject"
-                                    class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none"
-                                >
-                                    <option value="Terminanfrage Erstgespräch">Terminanfrage Erstgespräch</option>
-                                    <option value="Frage zu Ablauf &amp; Kosten">Frage zu Ablauf &amp; Kosten</option>
-                                    <option value="Allgemeine Frage zur Atem- und Körpertherapie">Allgemeine Frage zur Atem- und Körpertherapie</option>
-                                    <option value="Sonstiges">Sonstiges</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Message Field -->
-                        <div>
-                            <label for="message" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
-                                Ihre Nachricht <span class="text-theme-primary">*</span>
-                            </label>
-                            <textarea
-                                id="message"
-                                name="message"
-                                rows="5"
-                                required
-                                class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none resize-y"
-                                placeholder="Beschreiben Sie kurz Ihr Anliegen oder mögliche Terminvorschläge..."
-                            >{{ form_data.message if form_data else '' }}</textarea>
-                        </div>
-
-                        <!-- Submit Button with HTMX loading indicator -->
-                        <div class="pt-2">
-                            <button
-                                type="submit"
-                                class="w-full py-4 rounded-full bg-theme-primary text-white hover-bg-theme-primary font-medium text-base shadow-sm hover:shadow transition-all duration-300 flex items-center justify-center gap-2 group"
-                            >
-                                <span>Nachricht absenden</span>
-                                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                                </svg>
-                            </button>
-                        </div>
-
-                    </form>
-                </div>
+                {% include "components/contact_form_card.html" %}
             </div>
 
         </div>

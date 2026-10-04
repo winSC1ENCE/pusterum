@@ -1,10 +1,15 @@
 """Pytest Configuration and Test Fixtures."""
 
+import base64
 import io
+import json
 import os
+import re
 from collections.abc import AsyncGenerator
+from typing import Any
 
 import pytest
+from altcha.v1 import solve_challenge
 from litestar import Litestar
 from litestar.testing import AsyncTestClient
 from PIL import Image
@@ -21,6 +26,8 @@ os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-chars-long-12345"
 os.environ["ADMIN_INITIAL_PASSWORD"] = "admin-secure-init-pass-change-me"
 os.environ["ALLOWED_HOSTS"] = '["testserver.local", "localhost"]'
+os.environ["CONTACT_FORM_MIN_SECONDS"] = "0"
+os.environ["ALTCHA_MAX_NUMBER"] = "2000"  # cheap proof-of-work in tests
 
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
@@ -50,7 +57,7 @@ from atem.infrastructure.email.mock_email_service import MockEmailService
 from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHasher
 from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
 from atem.presentation.app import create_app
-from atem.presentation.bootstrap import build_secret_cipher
+from atem.presentation.bootstrap import build_contact_service, build_secret_cipher
 
 
 def make_image_bytes(image_format: str = "PNG", size: tuple[int, int] = (8, 8)) -> bytes:
@@ -114,9 +121,38 @@ async def content_service(db_session: AsyncSession) -> ContentService:
 
 @pytest.fixture
 def contact_service(db_session: AsyncSession, email_service: IEmailService) -> ContactService:
-    """Contact service fixture."""
-    repo = SqlAlchemyContactRepository(db_session)
-    return ContactService(repo, email_service)
+    """Contact service fixture with the real ALTCHA captcha."""
+    return build_contact_service(
+        SqlAlchemyContactRepository(db_session), email_service, get_settings()
+    )
+
+
+async def contact_form_payload(client: AsyncTestClient[Litestar], **fields: str) -> dict[str, str]:
+    """Build a contact submission like a browser: timing token from the page + solved captcha."""
+    page = await client.get("/")
+    match = re.search(r'name="form_token" value="([^"]+)"', page.text)
+    assert match, "form token missing"
+    challenge = (await client.get("/altcha/challenge")).json()
+    return {"form_token": match.group(1), "altcha": solve_altcha(challenge), **fields}
+
+
+def solve_altcha(challenge: dict[str, Any]) -> str:
+    """Solve an ALTCHA challenge like the browser widget and return the form payload."""
+    solution = solve_challenge(
+        challenge["challenge"],
+        challenge["salt"],
+        challenge["algorithm"],
+        challenge["maxNumber"],
+    )
+    assert solution is not None
+    payload = {
+        "algorithm": challenge["algorithm"],
+        "challenge": challenge["challenge"],
+        "number": solution.number,
+        "salt": challenge["salt"],
+        "signature": challenge["signature"],
+    }
+    return base64.b64encode(json.dumps(payload).encode()).decode()
 
 
 @pytest.fixture

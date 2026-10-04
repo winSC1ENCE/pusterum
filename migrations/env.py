@@ -1,7 +1,9 @@
 """Alembic Environment Configuration for Async Migrations."""
 
 import asyncio
+import sys
 from logging.config import fileConfig
+from pathlib import Path
 
 from alembic import context
 from sqlalchemy import pool, text
@@ -25,6 +27,9 @@ from atem.infrastructure.database.models.profile import (  # noqa: F401
 )
 from atem.infrastructure.database.models.theme import ThemeConfigModel  # noqa: F401
 from atem.infrastructure.database.models.user import UserModel  # noqa: F401
+
+# Data migrations import shared helpers from migrations/_helpers.py
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 config = context.config
 

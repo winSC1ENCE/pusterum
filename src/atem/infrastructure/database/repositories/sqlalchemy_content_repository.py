@@ -543,8 +543,8 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "section": "contact",
         "type": "textarea",
         "content": (
-            "Ihre Angaben werden streng vertraulich behandelt und ausschließlich zur"
-            " Beantwortung Ihrer Anfrage genutzt."
+            "Ihre Angaben werden vertraulich behandelt und ausschliesslich zur Beantwortung Ihrer "
+            "Anfrage genutzt. Details finden Sie in der Datenschutzerklärung."
         ),
     },
     {
@@ -630,51 +630,92 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "key": "datenschutz.sec2_title",
         "section": "datenschutz",
         "type": "text",
-        "content": "2. Erhebung von Daten bei Kontaktaufnahme",
+        "content": "2. Kontaktformular und E-Mail",
     },
     {
         "key": "datenschutz.sec2_text",
         "section": "datenschutz",
         "type": "textarea",
         "content": (
-            "Wenn Sie das Kontaktformular ausfüllen oder eine E-Mail senden, werden die von Ihnen"
-            " angegebenen Kontaktdaten (Name, E-Mail-Adresse, Telefonnummer, Nachricht)"
-            " gespeichert, um Ihre Anfrage zu bearbeiten und allfällige Anschlussfragen zu"
-            " klären. Diese Daten werden ohne Ihre ausdrückliche Zustimmung niemals an Dritte"
-            " weitergegeben."
+            "Wenn Sie das Kontaktformular nutzen oder mir eine E-Mail senden, bearbeite ich Ihre "
+            "Angaben (Name, E-Mail-Adresse, optional Telefonnummer, Betreff und Nachricht) "
+            "ausschliesslich, um Ihre Anfrage zu beantworten. Zum Schutz vor Missbrauch wird "
+            "zusätzlich die IP-Adresse gespeichert. Sie erhalten eine kurze automatische "
+            "Empfangsbestätigung per E-Mail. Kontaktanfragen werden nach spätestens 12 Monaten "
+            "automatisch gelöscht. Ihre Daten werden nicht an Dritte weitergegeben – ausgenommen "
+            "die technischen Dienstleister für Hosting und E-Mail-Versand, die sie ausschliesslich "
+            "in meinem Auftrag bearbeiten."
         ),
     },
     {
         "key": "datenschutz.sec3_title",
         "section": "datenschutz",
         "type": "text",
-        "content": "3. Server-Logfiles & Sicherheit",
+        "content": "3. Hosting und Server-Logfiles",
     },
     {
         "key": "datenschutz.sec3_text",
         "section": "datenschutz",
         "type": "textarea",
         "content": (
-            "Beim Aufruf dieser Website erhebt der Hosting-Provider (Standort Schweiz /"
-            " Deutschland mit ISO 27001 Zertifizierung) automatisch technische Informationen"
-            " (IP-Adresse, Datum, Uhrzeit, Browsertyp). Diese Daten dienen ausschließlich der"
-            " Systemsicherheit und Fehleranalyse."
+            "Diese Website wird bei einer Hosting-Anbieterin in Rechenzentren in Deutschland bzw. "
+            "Finnland (EU) betrieben; für die EU besteht gemäss DSG ein angemessenes "
+            "Datenschutzniveau. Beim Aufruf der Website werden technisch notwendige Angaben "
+            "(IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browsertyp) in Server-Logfiles "
+            "erfasst. Sie dienen ausschliesslich der Sicherheit und Fehleranalyse und werden "
+            "regelmässig gelöscht."
         ),
     },
     {
         "key": "datenschutz.sec4_title",
         "section": "datenschutz",
         "type": "text",
-        "content": "4. Ihre Rechte",
+        "content": "4. Schutz vor Spam und Missbrauch",
     },
     {
         "key": "datenschutz.sec4_text",
         "section": "datenschutz",
         "type": "textarea",
         "content": (
-            "Sie haben jederzeit das Recht auf unentgeltliche Auskunft über Ihre gespeicherten"
-            " personenbezogenen Daten, deren Herkunft und den Zweck der Datenbearbeitung sowie"
-            " ein Recht auf Berichtigung, Sperrung oder Löschung dieser Daten."
+            "Das Kontaktformular ist mit ALTCHA geschützt – einer Sicherheitsprüfung, die "
+            "vollständig auf diesem Server läuft. Ihr Browser löst dabei eine kleine "
+            "Rechenaufgabe; es werden keine Cookies gesetzt und keine Daten an Dritte übermittelt."
+        ),
+    },
+    {
+        "key": "datenschutz.sec5_title",
+        "section": "datenschutz",
+        "type": "text",
+        "content": "5. Cookies und Schriftarten",
+    },
+    {
+        "key": "datenschutz.sec5_text",
+        "section": "datenschutz",
+        "type": "textarea",
+        "content": (
+            "Diese Website verwendet keine Analyse- oder Tracking-Dienste und keine Werbe-Cookies. "
+            "Gesetzt werden ausschliesslich technisch notwendige Cookies: ein Sicherheits-Cookie "
+            "zum Schutz der Formulare vor Missbrauch (CSRF-Schutz) sowie – nur für die "
+            "Praxisinhaberin – ein Anmelde-Cookie für den Verwaltungsbereich. Alle Schriftarten "
+            "werden direkt von diesem Server geladen; es besteht keine Verbindung zu Google oder "
+            "anderen Drittanbietern."
+        ),
+    },
+    {
+        "key": "datenschutz.sec6_title",
+        "section": "datenschutz",
+        "type": "text",
+        "content": "6. Ihre Rechte",
+    },
+    {
+        "key": "datenschutz.sec6_text",
+        "section": "datenschutz",
+        "type": "textarea",
+        "content": (
+            "Sie haben jederzeit das Recht auf unentgeltliche Auskunft über Ihre bei mir "
+            "gespeicherten Personendaten sowie auf deren Berichtigung oder Löschung. Wenden Sie "
+            "sich dazu an die im Impressum genannte E-Mail-Adresse. Zudem können Sie sich beim "
+            "Eidgenössischen Datenschutz- und Öffentlichkeitsbeauftragten (EDÖB) beschweren."
         ),
     },
     {

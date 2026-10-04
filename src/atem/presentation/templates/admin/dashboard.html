@@ -86,35 +86,13 @@
                             <th class="py-3.5 px-6 font-bold">Name</th>
                             <th class="py-3.5 px-6 font-bold">E-Mail / Tel</th>
                             <th class="py-3.5 px-6 font-bold">Betreff &amp; Nachricht</th>
-                            <th class="py-3.5 px-6 font-bold">Status</th>
+                            <th class="py-3.5 px-6 font-bold">Status / Aktion</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-theme">
                         {% if messages %}
                             {% for msg in messages %}
-                            <tr class="hover:bg-theme-muted/40 transition-colors">
-                                <td class="py-4 px-6 text-xs text-theme-text-muted whitespace-nowrap">{{ msg.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                                <td class="py-4 px-6 font-bold text-theme-text-main">{{ msg.sender_name }}</td>
-                                <td class="py-4 px-6 text-xs">
-                                    <a href="mailto:{{ msg.sender_email }}" class="text-theme-primary font-semibold hover:underline block">{{ msg.sender_email }}</a>
-                                    {% if msg.sender_phone %}
-                                    <span class="text-theme-text-muted block">{{ msg.sender_phone }}</span>
-                                    {% endif %}
-                                </td>
-                                <td class="py-4 px-6 max-w-md">
-                                    <span class="font-bold text-theme-text-main block text-xs">{{ msg.subject }}</span>
-                                    <p class="text-xs text-theme-text-muted mt-1 line-clamp-2">{{ msg.message }}</p>
-                                </td>
-                                <td class="py-4 px-6 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
-                                        {% if msg.status.value == 'NEW' %}bg-amber-100 text-amber-800
-                                        {% elif msg.status.value == 'READ' %}bg-blue-100 text-blue-800
-                                        {% elif msg.status.value == 'REPLIED' %}bg-emerald-100 text-emerald-800
-                                        {% else %}bg-slate-100 text-slate-800{% endif %}">
-                                        {{ msg.status.value }}
-                                    </span>
-                                </td>
-                            </tr>
+                            {% include "admin/message_row.html" %}
                             {% endfor %}
                         {% else %}
                             <tr>

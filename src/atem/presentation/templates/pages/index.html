@@ -1,5 +1,11 @@
 {% extends "layouts/base.html" %}
 
+{% block head_extra %}
+    <!-- ALTCHA widget 1.5.1 (MIT, self-hosted, external CSS/worker build for CSP) -->
+    <link rel="stylesheet" href="/static/vendor/altcha/altcha.css">
+    <script type="module" src="/static/vendor/altcha/altcha.js"></script>
+{% endblock %}
+
 {% block content %}
     <!-- Hero Section with Pusteblume Artwork -->
     {% include "components/hero.html" %}

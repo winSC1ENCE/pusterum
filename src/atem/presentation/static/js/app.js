@@ -253,6 +253,17 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.removeItem("atem_scroll_y");
     }
 
+    // «Termin anfragen» on an offering preselects its subject in the contact form
+    // (delegated, so it keeps working after HTMX swaps the form card)
+    document.addEventListener("click", (e) => {
+        const trigger = e.target instanceof Element ? e.target.closest("[data-contact-subject]") : null;
+        const select = document.getElementById("subject");
+        if (!trigger || !select) return;
+        const wanted = trigger.getAttribute("data-contact-subject");
+        const option = Array.from(select.options).find((o) => o.value === wanted);
+        if (option) select.value = option.value;
+    });
+
     // Smooth scroll for anchor navigation
     document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener("click", function (e) {

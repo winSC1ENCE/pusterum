@@ -9,7 +9,11 @@ from litestar.params import Body
 from litestar.response import Response, Template
 from pydantic import ValidationError
 
-from atem.application.dto.contact import CreateContactMessageDTO
+from atem.application.dto.contact import (
+    FALLBACK_CONTACT_SUBJECT,
+    GENERAL_CONTACT_SUBJECTS,
+    CreateContactMessageDTO,
+)
 from atem.application.services.contact_service import ContactService
 from atem.application.services.content_service import ContentService
 from atem.application.services.offering_service import OfferingService
@@ -34,6 +38,13 @@ FORM_ECHO_FIELDS = frozenset({"sender_name", "sender_email", "sender_phone", "su
 def form_token_key(settings: Settings) -> bytes:
     """Key for the signed form timing token."""
     return settings.derive_key(b"atem-contact-form-token")
+
+
+def allowed_subject(subject: str, booking_subjects: list[str]) -> str:
+    """Only subjects offered by the form are accepted; anything else becomes «Sonstiges»."""
+    if subject in booking_subjects or subject in GENERAL_CONTACT_SUBJECTS:
+        return subject
+    return FALLBACK_CONTACT_SUBJECT
 
 
 class PublicController(Controller):
@@ -61,6 +72,8 @@ class PublicController(Controller):
             template_name="pages/index.html",
             context={
                 "services": services,
+                "booking_subjects": [service.booking_subject for service in services],
+                "general_subjects": GENERAL_CONTACT_SUBJECTS,
                 "theme": theme,
                 "theme_css": theme_css,
                 "content_blocks": content_blocks,
@@ -95,11 +108,13 @@ class PublicController(Controller):
         self,
         request: Request[Any, Any, Any],
         contact_service: ContactService,
+        offering_service: OfferingService,
         settings: Settings,
         data: Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)],
     ) -> Template:
         """Handle the HTMX contact form; answers with the form card partial only."""
         error: str | None = None
+        booking_subjects = await offering_service.booking_subjects()
         if not verify_form_token(
             form_token_key(settings),
             data.get("form_token", ""),
@@ -112,7 +127,7 @@ class PublicController(Controller):
                     sender_name=data.get("sender_name", ""),
                     sender_email=data.get("sender_email", ""),
                     sender_phone=data.get("sender_phone") or None,
-                    subject=data.get("subject", "Kontaktanfrage via Website"),
+                    subject=allowed_subject(data.get("subject", ""), booking_subjects),
                     message=data.get("message", ""),
                     honeypot=data.get("website_url") or None,
                 )
@@ -134,6 +149,8 @@ class PublicController(Controller):
             template_name="components/contact_form_card.html",
             context={
                 "error": error,
+                "booking_subjects": booking_subjects,
+                "general_subjects": GENERAL_CONTACT_SUBJECTS,
                 "form_data": {k: v[:5000] for k, v in data.items() if k in FORM_ECHO_FIELDS},
                 "form_token": issue_form_token(form_token_key(settings)),
             },

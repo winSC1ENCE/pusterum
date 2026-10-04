@@ -45,6 +45,11 @@
         <a href="/admin" class="px-4 py-2 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted">Zum Dashboard</a>
     </div>
 
+    <p class="text-sm text-theme-text-muted">
+        Jedes auf der Webseite angezeigte Angebot erscheint im Kontaktformular automatisch als Betreff
+        «Terminanfrage: Titel». «Termin anfragen» auf der Angebotskarte wählt diesen Betreff vor.
+    </p>
+
     {% if error %}<div class="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm" role="alert">{{ error }}</div>{% endif %}
     {% if saved %}<div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm" role="status">Gespeichert.</div>{% endif %}
 

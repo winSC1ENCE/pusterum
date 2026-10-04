@@ -82,10 +82,18 @@
                     name="subject"
                     class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none"
                 >
-                    <option value="Terminanfrage Erstgespräch">Terminanfrage Erstgespräch</option>
-                    <option value="Frage zu Ablauf &amp; Kosten">Frage zu Ablauf &amp; Kosten</option>
-                    <option value="Allgemeine Frage zur Atem- und Körpertherapie">Allgemeine Frage zur Atem- und Körpertherapie</option>
-                    <option value="Sonstiges">Sonstiges</option>
+                    {% set selected_subject = form_data.subject if form_data else '' %}
+                    {% macro subject_option(subject, selected) %}<option value="{{ subject }}"{% if subject == selected %} selected{% endif %}>{{ subject }}</option>{% endmacro %}
+                    {% if booking_subjects %}
+                    <optgroup label="Angebote">
+                        {% for subject in booking_subjects %}{{ subject_option(subject, selected_subject) }}{% endfor %}
+                    </optgroup>
+                    <optgroup label="Allgemein">
+                        {% for subject in general_subjects %}{{ subject_option(subject, selected_subject) }}{% endfor %}
+                    </optgroup>
+                    {% else %}
+                    {% for subject in general_subjects %}{{ subject_option(subject, selected_subject) }}{% endfor %}
+                    {% endif %}
                 </select>
             </div>
         </div>

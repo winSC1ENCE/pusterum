@@ -10,6 +10,15 @@ from atem.domain.models.contact import MessageStatus
 # Single-line fields must not contain control characters (header injection, log forging).
 SINGLE_LINE = r"^[^\r\n\t\x00-\x1f\x7f]*$"
 
+# Subjects offered in the contact form besides one «Terminanfrage: <Angebot>» per active offering.
+GENERAL_CONTACT_SUBJECTS = (
+    "Terminanfrage Erstgespräch",
+    "Frage zu Ablauf & Kosten",
+    "Allgemeine Frage zur Atem- und Körpertherapie",
+    "Sonstiges",
+)
+FALLBACK_CONTACT_SUBJECT = "Sonstiges"
+
 
 class CreateContactMessageDTO(BaseModel):
     """Incoming contact message submission payload."""

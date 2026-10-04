@@ -5,6 +5,8 @@ import re
 from litestar import Litestar
 from litestar.testing import AsyncTestClient
 
+from tests.conftest import contact_form_payload
+
 ADMIN = {"username": "admin", "password": "admin-secure-init-pass-change-me"}
 SERVICE_FORM = {
     "title": "Einzelsitzung Atem- & Körpertherapie",
@@ -100,3 +102,50 @@ async def test_custom_theme_keeps_all_selected_dandelion_modes(
     )
     design = await app_client.get("/admin/design")
     assert "&#34;breathing_flow&#34;, &#34;whisper_trail&#34;" in design.text
+
+
+async def test_offerings_become_contact_subjects(app_client: AsyncTestClient[Litestar]) -> None:
+    subject = "Terminanfrage: Einzelsitzung Atem- &amp; Körpertherapie"
+    assert "Terminanfrage:" not in (await app_client.get("/")).text
+
+    await _login(app_client)
+    await app_client.post("/admin/services", data=SERVICE_FORM)
+    page = (await app_client.get("/")).text
+    assert f'data-contact-subject="{subject}"' in page
+    assert f'<option value="{subject}">' in page
+    assert '<optgroup label="Allgemein">' in page
+
+    fields = {
+        "sender_name": "Erika Muster",
+        "sender_email": "erika@muster.ch",
+        "message": "Guten Tag, ich möchte einen Termin vereinbaren.",
+    }
+    booked = await app_client.post(
+        "/contact",
+        data=await contact_form_payload(
+            app_client, subject="Terminanfrage: Einzelsitzung Atem- & Körpertherapie", **fields
+        ),
+    )
+    assert "Vielen Dank" in booked.text
+    forged = await app_client.post(
+        "/contact",
+        data=await contact_form_payload(app_client, subject="Gewinnspiel!!!", **fields),
+    )
+    assert "Vielen Dank" in forged.text
+
+    dashboard = (await app_client.get("/admin")).text
+    assert "Terminanfrage: Einzelsitzung Atem- &amp; Körpertherapie" in dashboard
+    assert "Gewinnspiel" not in dashboard  # unknown subjects are stored as «Sonstiges»
+
+    # A failed submission keeps the chosen subject selected
+    retry = await app_client.post(
+        "/contact",
+        data=await contact_form_payload(
+            app_client,
+            subject="Terminanfrage: Einzelsitzung Atem- & Körpertherapie",
+            sender_name="Erika",
+            sender_email="kaputt",
+            message="",
+        ),
+    )
+    assert f'<option value="{subject}" selected>' in retry.text

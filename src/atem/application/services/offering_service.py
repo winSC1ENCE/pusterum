@@ -37,6 +37,10 @@ class OfferingService:
         offerings = await self._repository.list_offerings(active_only=not include_inactive)
         return [ServiceOfferingDTO.model_validate(o) for o in offerings]
 
+    async def booking_subjects(self) -> list[str]:
+        """One contact form subject per offering shown on the website."""
+        return [service.booking_subject for service in await self.list_services()]
+
     async def create_service(self, form: ServiceFormDTO) -> ServiceOfferingDTO:
         """Create a new offering (never claims insurance recognition)."""
         offering = ServiceOffering(**form.model_dump(), slug=await self._unique_slug(form.title))

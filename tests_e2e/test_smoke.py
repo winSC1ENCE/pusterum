@@ -111,3 +111,18 @@ def test_two_factor_setup_page_renders_qr_code(page: Page, server_url: str) -> N
     page.get_by_role("button", name="Einrichtung starten").click()
     expect(page.locator("[aria-label='QR-Code für die Authenticator-App'] svg")).to_be_visible()
     assert_clean(page)
+
+
+def test_offering_button_preselects_contact_subject(page: Page, server_url: str) -> None:
+    _login(page, server_url)
+    page.goto(server_url + "/admin/services")
+    page.fill("#new-title", "Atemtherapie E2E")
+    page.fill("#new-description", "Begleitung mit Atem, Berührung und Bewegung.")
+    page.fill("#new-price", "80")
+    page.get_by_role("button", name="Angebot hinzufügen").click()
+    expect(page.get_by_text("Gespeichert.")).to_be_visible()
+
+    page.goto(server_url + "/")
+    page.locator('[data-contact-subject="Terminanfrage: Atemtherapie E2E"]').click()
+    expect(page.locator("#subject")).to_have_value("Terminanfrage: Atemtherapie E2E")
+    assert_clean(page)

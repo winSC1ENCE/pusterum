@@ -51,7 +51,9 @@ FROM ${PYTHON_IMAGE} AS runner
 
 RUN groupadd -r atem && useradd -r -g atem -d /app -s /sbin/nologin atem
 
-RUN apt-get update && apt-get install -y --no-install-recommends libpq5 \
+# Security updates on top of the pinned base image (CI scans the result with Trivy)
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

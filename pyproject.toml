@@ -21,7 +21,6 @@ dependencies = [
     "cryptography>=43.0.0",
     "python-multipart>=0.0.20",
     "granian>=1.7.0",
-    "uvicorn[standard]>=0.34.0",
     "httpx>=0.28.1",
     "aiosmtplib>=3.0.2",
     "pyotp>=2.9.0",
@@ -45,6 +44,7 @@ dev = [
     "pre-commit>=4.0.1",
     "aiosqlite>=0.20.0",
     "pytest-playwright>=0.5",
+    "pip-audit>=2.7",
 ]
 
 [build-system]
@@ -144,7 +144,7 @@ argon2-cffi = ["argon2"]
 python-multipart = ["multipart"]
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["asyncpg", "uvicorn", "granian", "python-multipart", "cryptography", "email-validator", "alembic", "httpx"]
+DEP002 = ["asyncpg", "granian", "python-multipart", "cryptography", "email-validator", "alembic", "httpx"]
 DEP003 = ["atem"]
 
 # ==============================================================================

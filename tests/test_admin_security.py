@@ -23,6 +23,7 @@ from atem.infrastructure.security.fernet_secret_cipher import FernetSecretCipher
 from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
 from atem.presentation.security.host_validation import HostValidationMiddleware
 from atem.presentation.security.proxy_headers import parse_networks, resolve_client_ip
+from tests.conftest import TEST_DATABASE_URL
 
 ADMIN_PASSWORD = "admin-secure-init-pass-change-me"  # dev/test admin seeded in conftest env
 IP = "203.0.113.7"
@@ -244,6 +245,9 @@ async def test_change_password_policy_and_revocation(auth_service: AuthService) 
     assert await auth_service.get_session_user(result.user.id, result.user.session_version) is None
 
 
+@pytest.mark.skipif(
+    not TEST_DATABASE_URL.startswith("sqlite"), reason="SQLite-specific naive datetimes"
+)
 async def test_locked_until_from_naive_database_value(auth_service: AuthService) -> None:
     """SQLite returns naive datetimes – the lock check must still work."""
     await _seed_admin(auth_service)

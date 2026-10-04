@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.pool import NullPool
 
 # Set test environment
 os.environ["ENVIRONMENT"] = "test"
@@ -85,13 +86,24 @@ def email_service() -> IEmailService:
     return MockEmailService()
 
 
+# Fast in-memory SQLite by default; CI also runs the suite against PostgreSQL by setting
+# TEST_DATABASE_URL (e.g. postgresql+asyncpg://…/atem_test).
+TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+
+
 @pytest.fixture
 async def async_engine() -> AsyncGenerator[AsyncEngine, None]:
-    """In-memory SQLite async engine for fast tests."""
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
+    """Async engine with a fresh schema per test."""
+    # The Litestar test client runs the app in its own event loop – pooled asyncpg
+    # connections cannot be shared across loops, hence NullPool for PostgreSQL.
+    pool = {} if TEST_DATABASE_URL.startswith("sqlite") else {"poolclass": NullPool}
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False, **pool)
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     yield engine
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
 
 

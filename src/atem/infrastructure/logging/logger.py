@@ -55,5 +55,5 @@ def setup_logging(is_dev: bool = True) -> None:
     root_logger.setLevel(logging.DEBUG if is_dev else logging.INFO)
 
     # Suppress verbose loggers
-    for noisy in ["uvicorn.access", "sqlalchemy.engine", "httpcore", "httpx"]:
+    for noisy in ["sqlalchemy.engine", "httpcore", "httpx"]:
         logging.getLogger(noisy).setLevel(logging.WARNING)

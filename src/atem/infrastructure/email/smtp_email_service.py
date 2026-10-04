@@ -1,7 +1,9 @@
 """SMTP Email Service implementation using aiosmtplib (implicit TLS or STARTTLS)."""
 
+from datetime import datetime
 from email.message import EmailMessage
 from email.utils import formataddr
+from zoneinfo import ZoneInfo
 
 import aiosmtplib
 import structlog
@@ -22,6 +24,18 @@ CONFIRMATION_BODY = (
     "Stephanie\n"
     "PUSTERUM – Praxis für Atem- und Körpertherapie\n"
 )
+
+LOCKOUT_SUBJECT = "PUSTERUM: Anmeldung vorübergehend gesperrt"
+LOCKOUT_BODY = (
+    "Guten Tag\n\n"
+    "Für Ihr Administrationskonto auf www.pusterum.be gab es mehrere fehlgeschlagene\n"
+    "Anmeldeversuche (zuletzt von der IP-Adresse {ip}).\n\n"
+    "Anmeldungen von unbekannten Geräten sind deshalb bis {until} Uhr gesperrt.\n"
+    "Geräte, auf denen Sie sich bereits angemeldet haben, funktionieren weiterhin.\n\n"
+    "Waren Sie das nicht, ist keine Aktion nötig: Ohne Ihr Passwort und Ihren\n"
+    "Zwei-Faktor-Code ist keine Anmeldung möglich.\n"
+)
+LOCAL_TIMEZONE = ZoneInfo("Europe/Zurich")
 
 
 class SmtpEmailService(IEmailService):
@@ -68,6 +82,24 @@ class SmtpEmailService(IEmailService):
             logger.warning("email_build_rejected", kind="confirmation")
             return False
         return await self._send(msg, "confirmation")
+
+    async def send_lockout_notice(
+        self, recipient: str, ip_address: str, locked_until: datetime
+    ) -> bool:
+        """Security notice to the account owner (fixed text, no secrets)."""
+        if not self._settings.MAIL_ENABLED:
+            return True
+        try:
+            msg = EmailMessage()
+            msg["From"] = formataddr(("PUSTERUM Website", self._settings.MAIL_FROM))
+            msg["To"] = recipient
+            msg["Subject"] = LOCKOUT_SUBJECT
+            until = locked_until.astimezone(LOCAL_TIMEZONE).strftime("%d.%m.%Y %H:%M")
+            msg.set_content(LOCKOUT_BODY.format(ip=ip_address, until=until))
+        except ValueError:
+            logger.warning("email_build_rejected", kind="lockout_notice")
+            return False
+        return await self._send(msg, "lockout_notice")
 
     async def _send(self, msg: EmailMessage, kind: str) -> bool:
         settings = self._settings

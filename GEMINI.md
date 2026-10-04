@@ -10,7 +10,7 @@ Das Projekt folgt strikt den Prinzipien der **Clean Architecture / Ports & Adapt
 
 ```
 src/atem/
-├── cli.py                   # Betriebs-CLI: create-admin, reset-2fa, seed-content, purge-messages
+├── cli.py                   # Betriebs-CLI: create-admin, reset-2fa, unlock, seed-content, purge-messages
 ├── domain/                  # Reine Geschäftslogik & Entitäten (Framework-agnostisch)
 │   ├── exceptions.py        # Domänen-spezifische Ausnahmen
 │   ├── models/              # Entitäten mit Verhalten (User, Offering, ContentBlock, Theme, ContactMessage)
@@ -150,7 +150,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 # Ersten Admin anlegen; beim ersten Login wird 2FA eingerichtet
 docker compose -f docker-compose.prod.yml exec app python -m atem.cli create-admin \
-  --username stephanie --email kontakt@pusterum.be
+  --username <benutzername> --email kontakt@pusterum.be
 ```
 
 Backups, Restore-Test, Rollback und Notfälle: [`docs/ops/runbook.md`](docs/ops/runbook.md).

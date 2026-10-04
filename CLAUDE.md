@@ -27,7 +27,7 @@ Clean Architecture unter `src/atem/` (Abhängigkeiten zeigen nur nach innen):
   Seeds), E-Mail, Security (Argon2, Fernet, TOTP), Captcha, Media (Pillow).
 - `presentation/` – `app.py` (Factory `create_app`), `bootstrap.py`, Controller (Admin als Paket
   `controllers/admin/`), `security/` (Guard, Header, Host, Proxy, Form-Token), `errors.py`, Templates, Static.
-- `cli.py` – `python -m atem.cli {create-admin|reset-2fa|seed-content|purge-messages}`.
+- `cli.py` – `python -m atem.cli {create-admin|reset-2fa|unlock|seed-content|purge-messages}`.
 
 ## Befehle
 
@@ -92,6 +92,9 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
 - Jeder POST braucht CSRF: HTMX/`fetch` senden `x-csrftoken` automatisch (`hx-headers` am `<body>`,
   `csrfHeaders()` in `app.js`), klassische Formulare ein `<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">`.
 - Logout ist ein POST. Sessions werden über `User.session_version` widerrufen.
+- Kontosperre gilt nur für unbekannte Geräte; vertraute Geräte (`presentation/security/device_cookie.py`,
+  `User.trusts_device`) haben ein eigenes Limit pro Gerät – Dritte können Admins nicht aussperren.
+  Notfall: `python -m atem.cli unlock --username …`.
 - 2FA (TOTP + Recovery-Codes) ist in production/staging Pflicht (`ADMIN_REQUIRE_2FA`).
   Notfall: `python -m atem.cli reset-2fa --username …`.
 - Uploads nur über `MediaService` (Pillow-Re-Encoding, kein SVG); Theme-Werte nur Hex/Font-Allowlist.

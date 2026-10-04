@@ -77,11 +77,16 @@ sequenceDiagram
     participant AS as AuthService
     participant UR as UserRepository
 
-    A->>AC: POST /admin/login (Benutzer, Passwort, CSRF)
-    AC->>AS: authenticate(dto, ip)
+    A->>AC: POST /admin/login (Benutzer, Passwort, CSRF, Cookie atem_device?)
+    AC->>AS: authenticate(dto, ip, device_claim)
     AS->>UR: count_failed_attempts(ip, 15 min) – IP-Limit
     AS->>UR: get_by_username()
-    Note over AS: unbekannt → Dummy-Hash (keine Enumeration)<br/>gesperrt → generischer Fehler
+    Note over AS: unbekannt → Dummy-Hash (keine Enumeration)
+    alt vertrautes Gerät (signiertes Cookie dieses Benutzers)
+        AS->>UR: count_failed_device_attempts(device, 15 min) – Limit pro Gerät
+    else unbekanntes Gerät
+        Note over AS: Kontosperre (exp. Back-off) → generischer Fehler<br/>Beginn einer Sperre → Mail an Kontoinhaberin
+    end
     AS->>AS: Argon2id verify
     alt 2FA aktiv
         AS-->>AC: requires_totp
@@ -91,7 +96,7 @@ sequenceDiagram
         Note over AS: TOTP mit Replay-Schutz (letzter Zeitschritt)<br/>Recovery-Code einmalig (Argon2-Hash)
     end
     AS->>UR: Zähler zurücksetzen, Login protokollieren
-    AC-->>A: Neue Session {id, sv=session_version} (Secure, HttpOnly, SameSite=Strict, 12 h)
+    AC-->>A: Neue Session {id, sv=session_version} (Secure, HttpOnly, SameSite=Strict, 12 h)<br/>+ Cookie atem_device (180 Tage, Path=/admin)
     Note over A,AC: Jede Admin-Anfrage: Guard prüft Benutzer + session_version in der DB.<br/>Logout / Passwort- / 2FA-Änderung erhöht session_version → alle Cookies ungültig.
 ```
 

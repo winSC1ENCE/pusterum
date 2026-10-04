@@ -62,7 +62,7 @@ flowchart TB
 | :--- | :--- |
 | Bootstrap | Alembic-Baseline besitzt das Schema; Entrypoint migriert (Advisory-Lock) und seedet; erster Admin per CLI. `ENVIRONMENT` default `production`; Start verweigert bei Dev-Secret, `DEBUG`, Platzhaltern, Mail ohne TLS. |
 | Sessions | Verschlüsseltes Cookie (Schlüssel per HKDF), `Secure`/`HttpOnly`/`SameSite=Strict`, 12 h; serverseitiger Widerruf über `User.session_version`; Logout per POST. |
-| Admin-Login | Argon2id, Dummy-Hash gegen Enumeration, Sperre mit exponentiellem Back-off, DB-basiertes IP-Limit, TOTP-2FA (Pflicht in Produktion) mit Replay-Schutz und 10 Recovery-Codes; TOTP-Secret Fernet-verschlüsselt. |
+| Admin-Login | Argon2id, Dummy-Hash gegen Enumeration, Sperre mit exponentiellem Back-off **nur für unbekannte Geräte** (OWASP «Device Cookies»: Browser mit vorheriger vollständiger Anmeldung erhalten ein signiertes Cookie und ein eigenes Limit pro Gerät – Dritte können die Besitzerin nicht aussperren; Mail an die Kontoinhaberin bei Sperre; CLI `unlock`), DB-basiertes IP-Limit, TOTP-2FA (Pflicht in Produktion) mit Replay-Schutz und 10 Recovery-Codes; TOTP-Secret Fernet-verschlüsselt. |
 | Autorisierung | Controller-Guard `require_admin`; Regressionstest entdeckt alle `/admin`-Routen automatisch. |
 | CSRF | Litestar `CSRFConfig`; HTMX/`fetch` per Header, Formulare per Hidden-Feld. |
 | Eingaben | Theme: Hex-Regex + Font-Allowlist + Re-Validierung beim Rendern; Content: nur existierende Keys, Bildpfad-Muster, Längenlimit, Tag-/Klassen-Allowlist, `\|tojson`; Uploads: Pillow-Verifikation + Re-Encoding, kein SVG, Zufallsnamen. |
@@ -80,6 +80,7 @@ flowchart TB
 
 * Alpine-CSP-Build: keine Inline-Ausdrücke mit Template-Literals/Globals – Logik gehört in Komponenten.
 * 2FA erfordert eine Authenticator-App; Notfallweg über Recovery-Codes bzw. `atem.cli reset-2fa`.
+* Ein neues Gerät ist während einer laufenden Sperre ebenfalls gesperrt (Ausweg: bekanntes Gerät oder `atem.cli unlock`).
 * CSS muss gebaut werden (`scripts/build-css.sh`), im Docker-Build automatisch.
 
 ## Links

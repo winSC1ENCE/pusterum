@@ -58,3 +58,5 @@ class LoginAttemptModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
 
     ip_address: Mapped[str] = mapped_column(String(45), index=True, nullable=False)
     success: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    # Trusted-device id (device cookie) – per-device failure limit instead of account lockout
+    device_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)

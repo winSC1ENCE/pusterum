@@ -174,13 +174,16 @@ def theme_service(db_session: AsyncSession) -> ThemeService:
 
 
 @pytest.fixture
-def auth_service(db_session: AsyncSession, password_hasher: IPasswordHasher) -> AuthService:
-    """Auth service fixture (real Fernet cipher + TOTP provider)."""
+def auth_service(
+    db_session: AsyncSession, password_hasher: IPasswordHasher, email_service: IEmailService
+) -> AuthService:
+    """Auth service fixture (real Fernet cipher + TOTP provider, mock mail)."""
     return AuthService(
         SqlAlchemyUserRepository(db_session),
         password_hasher,
         build_secret_cipher(get_settings()),
         PyotpTotpProvider(),
+        email_service,
     )
 
 

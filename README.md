@@ -130,7 +130,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 # Migrationen + Standard-Inhalte laufen automatisch im Container-Entrypoint.
 # Einmalig: ersten Admin anlegen (Passwort wird interaktiv abgefragt)
 docker compose -f docker-compose.prod.yml exec app python -m atem.cli create-admin \
-  --username stephanie --email kontakt@pusterum.be
+  --username <benutzername> --email kontakt@pusterum.be
 ```
 
 Produktions-Secrets: `cp config/env.production.example .env`, `cp config/db.env.production.example db.env`,

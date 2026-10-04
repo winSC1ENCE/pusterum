@@ -168,6 +168,7 @@ async def provide_media_service(settings: Settings) -> MediaService:
 async def provide_auth_service(
     user_repository: IUserRepository,
     password_hasher: IPasswordHasher,
+    email_service: IEmailService,
     settings: Settings,
 ) -> AuthService:
     """Provide AuthService (TOTP seeds encrypted with a key derived from SECRET_KEY)."""
@@ -176,6 +177,7 @@ async def provide_auth_service(
         password_hasher=password_hasher,
         secret_cipher=build_secret_cipher(settings),
         totp_provider=PyotpTotpProvider(),
+        email_service=email_service,
     )
 
 

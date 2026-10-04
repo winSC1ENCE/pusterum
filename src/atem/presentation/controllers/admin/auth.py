@@ -17,6 +17,7 @@ from atem.presentation.security.admin_auth import (
     store_authenticated_session,
     store_pending_second_factor,
 )
+from atem.presentation.security.device_cookie import device_claim, device_cookie
 
 LOGIN_ERROR_INVALID_INPUT = "Bitte Benutzername und Passwort eingeben."
 
@@ -64,7 +65,7 @@ class AdminAuthController(Controller):
         username = data.get("username", "")
         try:
             dto = LoginRequestDTO(username=username, password=data.get("password", ""))
-            result = await auth_service.authenticate(dto, client_ip(request))
+            result = await auth_service.authenticate(dto, client_ip(request), device_claim(request))
         except ValidationError:
             error = LOGIN_ERROR_INVALID_INPUT
         except (AuthenticationException, RateLimitedException) as exc:
@@ -74,7 +75,7 @@ class AdminAuthController(Controller):
                 store_pending_second_factor(request, result.user)
                 return Redirect(path="/admin/login/verify")
             store_authenticated_session(request, result.user)
-            return Redirect(path="/admin")
+            return Redirect(path="/admin", cookies=[device_cookie(result.user.id)])
         return await self._render(
             "admin/login.html", theme_service, error=error, username=username[:100]
         )
@@ -102,13 +103,14 @@ class AdminAuthController(Controller):
             return Redirect(path="/admin/login")
         try:
             user = await auth_service.verify_second_factor(
-                user_id, data.get("code", "")[:32], client_ip(request)
+                user_id, data.get("code", "")[:32], client_ip(request), device_claim(request)
             )
         except AuthenticationException as exc:
-            # Wrong codes count towards the account lockout (5 attempts, exponential back-off).
+            # Wrong codes count towards the lockout (account for unknown, per device for trusted).
             return await self._render("admin/login_verify.html", theme_service, error=exc.message)
         store_authenticated_session(request, user)
-        return Redirect(path="/admin")
+        # This browser is now a trusted device: exempt from lockouts caused by others.
+        return Redirect(path="/admin", cookies=[device_cookie(user.id)])
 
     @post("/logout")
     async def logout(self, request: Request[Any, Any, Any], auth_service: AuthService) -> Redirect:

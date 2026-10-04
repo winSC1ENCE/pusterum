@@ -65,9 +65,12 @@ def test_create_admin_reset_2fa_and_purge(
 
     assert main(["reset-2fa", "--username", "stephanie"]) == 0
     assert main(["reset-2fa", "--username", "ghost"]) == 1
+    assert main(["unlock", "--username", "stephanie"]) == 0
+    assert main(["unlock", "--username", "ghost"]) == 1
     assert main(["purge-messages"]) == 0
     output = capsys.readouterr()
     assert "Admin «stephanie» angelegt" in output.out
+    assert "Sperre für «stephanie» aufgehoben" in output.out
     assert "existiert bereits" in output.err
 
 

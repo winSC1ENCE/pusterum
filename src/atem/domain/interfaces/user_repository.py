@@ -41,12 +41,18 @@ class IUserRepository(ABC):
 
     # --- Login attempts (IP based rate limiting, works across workers) -----------
     @abstractmethod
-    async def record_login_attempt(self, ip_address: str, *, success: bool) -> None:
+    async def record_login_attempt(
+        self, ip_address: str, *, success: bool, device_id: str | None = None
+    ) -> None:
         """Store a login attempt for rate limiting and auditing."""
 
     @abstractmethod
     async def count_failed_attempts(self, ip_address: str, since: datetime) -> int:
         """Count failed login attempts from an IP address since the given time."""
+
+    @abstractmethod
+    async def count_failed_device_attempts(self, device_id: str, since: datetime) -> int:
+        """Count failed login attempts from a trusted device since the given time."""
 
     @abstractmethod
     async def delete_login_attempts_older_than(self, cutoff: datetime) -> int:

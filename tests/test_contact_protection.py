@@ -1,7 +1,7 @@
 """Tests for the contact form protection layers, mails, retention and admin message handling."""
 
 import time
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from email.message import EmailMessage
 from typing import Any
 
@@ -171,6 +171,22 @@ async def test_notification_mail_sets_reply_to(
     sent, _ = smtp_capture[0]
     assert "maria@muster.ch" in sent["Reply-To"]
     assert sent["To"] == "kontakt@pusterum.be"
+
+
+async def test_lockout_notice_mail(
+    smtp_capture: list[tuple[EmailMessage, dict[str, Any]]],
+) -> None:
+    service = SmtpEmailService(_smtp_settings())
+    until = datetime(2026, 10, 4, 12, 30, tzinfo=UTC)
+    assert await service.send_lockout_notice("kontakt@pusterum.be", "203.0.113.66", until)
+    sent, _ = smtp_capture[0]
+    assert sent["To"] == "kontakt@pusterum.be"
+    body = sent.get_content()
+    assert "203.0.113.66" in body
+    assert "04.10.2026 14:30" in body  # Swiss local time (CEST)
+    assert await service.send_lockout_notice("a\nBcc: x@y.ch", "1.2.3.4", until) is False
+    disabled = SmtpEmailService(_smtp_settings(MAIL_ENABLED=False, SMTP_STARTTLS=False))
+    assert await disabled.send_lockout_notice("a@b.ch", "1.2.3.4", until) is True
 
 
 async def test_mail_build_and_delivery_failures_are_contained(

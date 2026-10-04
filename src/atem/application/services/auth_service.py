@@ -3,7 +3,10 @@
 Implements the complete admin login security model:
 
 * password check with constant-time behaviour for unknown users (dummy hash),
-* per-account lockout with exponential back-off (domain: ``User.register_failed_login``),
+* per-account lockout with exponential back-off (domain: ``User.register_failed_login``) that
+  only applies to unknown devices – trusted devices (device cookie of a previous full login)
+  have their own failure limit, so third parties cannot lock the owner out,
+* e-mail notice to the account owner when a lockout starts,
 * per-IP rate limiting stored in the database (works across all web workers),
 * TOTP second factor with replay protection and one-time recovery codes,
 * session revocation via ``User.session_version`` (logout, password change, 2FA changes).
@@ -28,11 +31,18 @@ from atem.domain.exceptions import (
     RateLimitedException,
     ValidationException,
 )
+from atem.domain.interfaces.email_service import IEmailService
 from atem.domain.interfaces.password_hasher import IPasswordHasher
 from atem.domain.interfaces.secret_cipher import ISecretCipher
 from atem.domain.interfaces.totp_provider import ITotpProvider
 from atem.domain.interfaces.user_repository import IUserRepository
-from atem.domain.models.user import User, UserRole
+from atem.domain.models.user import (
+    DEVICE_FAILURE_WINDOW,
+    MAX_FAILED_DEVICE_LOGINS,
+    DeviceClaim,
+    User,
+    UserRole,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -75,16 +85,24 @@ class AuthService:
         password_hasher: IPasswordHasher,
         secret_cipher: ISecretCipher,
         totp_provider: ITotpProvider,
+        email_service: IEmailService | None = None,
     ) -> None:
         self._user_repository = user_repository
+        self._email = email_service
         self._password_hasher = password_hasher
         self._cipher = secret_cipher
         self._totp = totp_provider
         self._dummy_hash: str | None = None
 
     # ------------------------------------------------------------------ login ---
-    async def authenticate(self, dto: LoginRequestDTO, ip_address: str) -> LoginResultDTO:
-        """Verify username + password (first factor)."""
+    async def authenticate(
+        self, dto: LoginRequestDTO, ip_address: str, device: DeviceClaim | None = None
+    ) -> LoginResultDTO:
+        """Verify username + password (first factor).
+
+        ``device`` is the authentic device cookie of the browser (if any). For the owner's
+        trusted devices the account lockout is replaced by a per-device failure limit.
+        """
         now = _now()
         failures = await self._user_repository.count_failed_attempts(
             ip_address, now - IP_FAILURE_WINDOW
@@ -99,37 +117,35 @@ class AuthService:
             self._password_hasher.verify_password(dto.password, self._get_dummy_hash())
             await self._fail(ip_address, None, now)
 
-        user.locked_until = _as_aware(user.locked_until)
-        if user.is_locked(now):
-            await self._fail(ip_address, None, now)
+        device_id = await self._check_lockout(user, device, ip_address, now)
         if not self._password_hasher.verify_password(dto.password, user.password_hash):
-            await self._fail(ip_address, user, now)
+            await self._fail(ip_address, user, now, device_id)
 
         if user.totp_enabled:
             # Counters are only reset once the second factor is completed as well.
             return LoginResultDTO(user=UserResponseDTO.model_validate(user), requires_totp=True)
 
-        await self._succeed(ip_address, user, now)
+        await self._succeed(ip_address, user, now, device_id)
         return LoginResultDTO(user=UserResponseDTO.model_validate(user), requires_totp=False)
 
     async def verify_second_factor(
-        self, user_id: UUID, code: str, ip_address: str
+        self, user_id: UUID, code: str, ip_address: str, device: DeviceClaim | None = None
     ) -> UserResponseDTO:
         """Verify a TOTP code or a one-time recovery code (second factor)."""
         now = _now()
         user = await self._require_user(user_id)
-        user.locked_until = _as_aware(user.locked_until)
-        if user.is_locked(now) or not user.totp_enabled or not user.totp_secret_encrypted:
-            await self._fail(ip_address, user, now)
+        device_id = await self._check_lockout(user, device, ip_address, now)
+        if not user.totp_enabled or not user.totp_secret_encrypted:
+            await self._fail(ip_address, user, now, device_id)
 
         secret = self._cipher.decrypt(user.totp_secret_encrypted or "")
         step = self._totp.verify(secret, code, user.totp_last_used_step)
         if step is not None:
             user.totp_last_used_step = step
         elif not await self._consume_recovery_code(user, code, now):
-            await self._fail(ip_address, user, now)
+            await self._fail(ip_address, user, now, device_id)
 
-        await self._succeed(ip_address, user, now)
+        await self._succeed(ip_address, user, now, device_id)
         return UserResponseDTO.model_validate(user)
 
     async def get_session_user(self, user_id: UUID, session_version: int) -> UserResponseDTO | None:
@@ -237,6 +253,16 @@ class AuthService:
         await self._user_repository.update_user(user)
         logger.info("admin_action", action="totp_reset_by_operator", user_id=str(user.id))
 
+    async def unlock(self, username: str) -> None:
+        """Operator recovery (CLI): lift an account lockout immediately."""
+        user = await self._user_repository.get_by_username(username)
+        if user is None:
+            raise EntityNotFoundException("User", username)
+        user.failed_login_count = 0
+        user.locked_until = None
+        await self._user_repository.update_user(user)
+        logger.info("admin_action", action="unlocked_by_operator", user_id=str(user.id))
+
     # ---------------------------------------------------------------- accounts ---
     async def create_admin(self, username: str, email: str, password: str) -> UserResponseDTO:
         """Create a new administrator account (used by the CLI in production)."""
@@ -283,18 +309,67 @@ class AuthService:
             raise AuthenticationException(GENERIC_LOGIN_ERROR)
         return user
 
-    async def _fail(self, ip_address: str, user: User | None, now: datetime) -> NoReturn:
-        """Record a failed attempt (IP + account) and raise a generic error."""
-        await self._user_repository.record_login_attempt(ip_address, success=False)
-        if user is not None:
+    async def _check_lockout(
+        self, user: User, device: DeviceClaim | None, ip_address: str, now: datetime
+    ) -> str | None:
+        """Apply the lockout that fits the client; return the trusted device id (if any).
+
+        Unknown devices are subject to the account lockout. Trusted devices of this user
+        ignore it and are limited per device instead – the owner can always log in.
+        """
+        if user.trusts_device(device) and device is not None:
+            failures = await self._user_repository.count_failed_device_attempts(
+                device.device_id, now - DEVICE_FAILURE_WINDOW
+            )
+            if failures >= MAX_FAILED_DEVICE_LOGINS:
+                await self._fail(ip_address, None, now, device.device_id)
+            return device.device_id
+        user.locked_until = _as_aware(user.locked_until)
+        if user.is_locked(now):
+            await self._fail(ip_address, None, now)
+        return None
+
+    async def _fail(
+        self, ip_address: str, user: User | None, now: datetime, device_id: str | None = None
+    ) -> NoReturn:
+        """Record a failed attempt and raise a generic error.
+
+        Failures from a trusted device only count for that device; failures from unknown
+        devices count towards the account lockout (and notify the owner when it starts).
+        """
+        await self._user_repository.record_login_attempt(
+            ip_address, success=False, device_id=device_id
+        )
+        if user is not None and device_id is None:
             user.register_failed_login(now)
             await self._user_repository.update_user(user)
+            if user.locked_until is not None and user.is_locked(now):
+                await self._notify_lockout(user, ip_address, user.locked_until)
         logger.warning("login_failed", ip=ip_address)
         raise AuthenticationException(GENERIC_LOGIN_ERROR)
 
-    async def _succeed(self, ip_address: str, user: User, now: datetime) -> None:
-        await self._user_repository.record_login_attempt(ip_address, success=True)
-        user.register_successful_login(now)
+    async def _notify_lockout(self, user: User, ip_address: str, locked_until: datetime) -> None:
+        """Tell the owner about a new lockout; delivery problems never break the login flow."""
+        logger.warning("account_locked", user_id=str(user.id), ip=ip_address)
+        if self._email is None:
+            return
+        try:
+            await self._email.send_lockout_notice(user.email, ip_address, locked_until)
+        except Exception:
+            logger.exception("lockout_notice_failed", user_id=str(user.id))
+
+    async def _succeed(
+        self, ip_address: str, user: User, now: datetime, device_id: str | None = None
+    ) -> None:
+        await self._user_repository.record_login_attempt(
+            ip_address, success=True, device_id=device_id
+        )
+        if device_id is None:
+            user.register_successful_login(now)
+        else:
+            # A trusted device leaves a running lockout of unknown devices untouched – the
+            # owner logging in must not hand an attacker a fresh set of guesses.
+            user.last_login_at = now
         await self._user_repository.update_user(user)
         logger.info("admin_action", action="login", user_id=str(user.id), ip=ip_address)
 

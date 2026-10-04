@@ -1,6 +1,7 @@
 """Email Notification Service Interface (ABC)."""
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 from atem.domain.models.contact import ContactMessage
 
@@ -20,3 +21,9 @@ class IEmailService(ABC):
         message) is ever mirrored to an arbitrary address – the form cannot be abused
         to relay spam.
         """
+
+    @abstractmethod
+    async def send_lockout_notice(
+        self, recipient: str, ip_address: str, locked_until: datetime
+    ) -> bool:
+        """Tell an admin that logins from unknown devices are temporarily locked."""

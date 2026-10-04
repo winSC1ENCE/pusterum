@@ -19,6 +19,7 @@ from atem.presentation.security.admin_auth import (
     require_admin,
     store_authenticated_session,
 )
+from atem.presentation.security.device_cookie import device_cookie
 
 SESSION_TOTP_SETUP_KEY = "totp_setup_secret"
 PASSWORD_FIELD_MAX = 256
@@ -104,9 +105,12 @@ class AdminSecurityController(Controller):
         except ValidationException as exc:
             return await self._render(request, auth_service, theme_service, error=exc.message)
         store_authenticated_session(request, updated)
-        return await self._render(
+        response = await self._render(
             request, auth_service, theme_service, success="Passwort geändert."
         )
+        # A password change revokes all trusted devices – except the current one.
+        response.set_cookie(device_cookie(updated.id))
+        return response
 
     @post("/totp/start")
     async def start_totp(

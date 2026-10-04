@@ -63,9 +63,13 @@ class SqlAlchemyUserRepository(SqlAlchemyRepository[UserModel, User], IUserRepos
             update(RecoveryCodeModel).where(RecoveryCodeModel.id == code_id).values(used_at=used_at)
         )
 
-    async def record_login_attempt(self, ip_address: str, *, success: bool) -> None:
+    async def record_login_attempt(
+        self, ip_address: str, *, success: bool, device_id: str | None = None
+    ) -> None:
         """Store a login attempt for rate limiting and auditing."""
-        self._session.add(LoginAttemptModel(ip_address=ip_address, success=success))
+        self._session.add(
+            LoginAttemptModel(ip_address=ip_address, success=success, device_id=device_id)
+        )
         await self._session.flush()
 
     async def count_failed_attempts(self, ip_address: str, since: datetime) -> int:
@@ -73,6 +77,17 @@ class SqlAlchemyUserRepository(SqlAlchemyRepository[UserModel, User], IUserRepos
         count = await self._session.scalar(
             select(func.count()).where(
                 LoginAttemptModel.ip_address == ip_address,
+                LoginAttemptModel.success.is_(False),
+                LoginAttemptModel.created_at >= since,
+            )
+        )
+        return int(count or 0)
+
+    async def count_failed_device_attempts(self, device_id: str, since: datetime) -> int:
+        """Count failed login attempts from a trusted device since the given time."""
+        count = await self._session.scalar(
+            select(func.count()).where(
+                LoginAttemptModel.device_id == device_id,
                 LoginAttemptModel.success.is_(False),
                 LoginAttemptModel.created_at >= since,
             )

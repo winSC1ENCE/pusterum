@@ -57,6 +57,17 @@ async def _reset_2fa(username: str) -> None:
         await engine.dispose()
 
 
+async def _unlock(username: str) -> None:
+    engine = create_engine()
+    try:
+        async with create_session_factory(engine)() as session:
+            await build_auth_service(session).unlock(username)
+            await session.commit()
+        print(f"Sperre für «{username}» aufgehoben.")
+    finally:
+        await engine.dispose()
+
+
 async def _purge() -> None:
     settings = get_settings()
     engine = create_engine()
@@ -89,6 +100,9 @@ def build_parser() -> argparse.ArgumentParser:
     reset = sub.add_parser("reset-2fa", help="2FA eines Kontos zurücksetzen (Gerät verloren)")
     reset.add_argument("--username", required=True)
 
+    unlock = sub.add_parser("unlock", help="Kontosperre nach Fehlversuchen sofort aufheben")
+    unlock.add_argument("--username", required=True)
+
     sub.add_parser("seed-content", help="Fehlende Standard-Inhalte ergänzen (idempotent)")
     sub.add_parser("purge-messages", help="Aufbewahrungsfrist durchsetzen (alte Daten löschen)")
     return parser
@@ -103,6 +117,8 @@ def main(argv: list[str] | None = None) -> int:
             asyncio.run(_create_admin(args.username, args.email))
         elif args.command == "reset-2fa":
             asyncio.run(_reset_2fa(args.username))
+        elif args.command == "unlock":
+            asyncio.run(_unlock(args.username))
         elif args.command == "purge-messages":
             asyncio.run(_purge())
         elif args.command == "seed-content":

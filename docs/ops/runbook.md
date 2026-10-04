@@ -76,8 +76,19 @@ sind die Backups wertlos.
 docker compose -f docker-compose.prod.yml up -d --build
 docker compose -f docker-compose.prod.yml ps          # alle Dienste "healthy"
 docker compose -f docker-compose.prod.yml exec app python -m atem.cli create-admin \
-    --username stephanie --email kontakt@pusterum.be  # Passwort wird abgefragt (≥ 12 Zeichen)
+    --username <benutzername> --email kontakt@pusterum.be  # Passwort wird abgefragt (≥ 12 Zeichen)
 ```
+**Ein Konto pro Person** (Praxisinhaberin und Entwickler je eigenes Konto mit eigenem Passwort und
+eigener 2FA). Benutzernamen wählen, die nicht erratbar sind (nicht «admin», «stephanie», «pusterum»).
+
+**Aussperr-Schutz (vertraute Geräte):**
+- Nach 5 Fehlversuchen sperrt die App Anmeldungen von **unbekannten Geräten** (15 min, danach
+  exponentiell länger, max. 24 h). Die Kontoinhaberin erhält dazu eine E-Mail.
+- Browser, in denen man sich bereits vollständig angemeldet hat (Passwort + 2FA), sind davon
+  **nicht betroffen**. Sie haben ein eigenes Limit von 5 Fehlversuchen in 15 min.
+- Fremde können das Konto deshalb nicht für die Besitzerin sperren.
+- Nach einer Passwortänderung muss man sich auf den anderen Geräten einmal neu anmelden, damit sie
+  wieder als vertraut gelten.
 Danach unter `https://www.pusterum.be/admin/login` anmelden – die App verlangt zuerst die
 Einrichtung der **Zwei-Faktor-Anmeldung** (Authenticator-App). Die angezeigten
 **Wiederherstellungscodes** sicher aufbewahren.
@@ -133,7 +144,8 @@ Ein bestimmter Stand: `restic snapshots` → ID statt `latest`.
 
 | Situation | Massnahme |
 | :--- | :--- |
-| Smartphone (2FA) verloren | Wiederherstellungscode verwenden – oder: `docker compose -f docker-compose.prod.yml exec app python -m atem.cli reset-2fa --username stephanie` |
+| Smartphone (2FA) verloren | Wiederherstellungscode verwenden – oder: `docker compose -f docker-compose.prod.yml exec app python -m atem.cli reset-2fa --username <benutzername>` |
+| Konto gesperrt (Mail «Anmeldung vorübergehend gesperrt») | Von einem bereits genutzten Gerät anmelden – das funktioniert trotz Sperre. Neues Gerät: Sperre abwarten oder `docker compose -f docker-compose.prod.yml exec app python -m atem.cli unlock --username <benutzername>` |
 | Passwort vergessen | Neuen Admin anlegen (`create-admin`), altes Konto bei Bedarf in der DB deaktivieren |
 | Verdacht auf kompromittierte Session | Im Admin «Abmelden» (widerruft alle Sessions) bzw. Passwort ändern; notfalls `SECRET_KEY` rotieren (alle Sessions ungültig) |
 | IP fälschlich gesperrt | `sudo fail2ban-client set pusterum-admin unbanip <IP>` |

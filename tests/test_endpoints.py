@@ -12,10 +12,28 @@ async def test_health_endpoints(app_client: AsyncTestClient[Litestar]) -> None:
     """Test health and readiness probes."""
     res = await app_client.get("/health")
     assert res.status_code == 200
-    assert res.json() == {"status": "ok", "service": "atem-web"}
+    assert res.json() == {"status": "ok"}
 
     res_ready = await app_client.get("/health/ready")
     assert res_ready.status_code == 200
+    assert res_ready.json() == {"status": "ready", "database": "ok"}
+
+
+@pytest.mark.asyncio
+async def test_readiness_reports_database_failure(
+    app_client: AsyncTestClient[Litestar], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A broken database connection turns the readiness probe red (503)."""
+    from sqlalchemy.exc import OperationalError
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    async def broken_execute(*_: object, **__: object) -> None:
+        raise OperationalError("SELECT 1", {}, Exception("connection refused"))
+
+    monkeypatch.setattr(AsyncSession, "execute", broken_execute)
+    res = await app_client.get("/health/ready")
+    assert res.status_code == 503
+    assert res.json()["database"] == "error"
 
 
 @pytest.mark.asyncio

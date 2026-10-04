@@ -1,0 +1,9 @@
+# secrets/backup_ssh/config – SSH-Zugang zur SFTP-Backup-Speicher (Port 23, nur Schlüssel)
+Host storagebox
+    HostName backup.example.net
+    User uXXXXXX
+    Port 23
+    IdentityFile /root/.ssh/id_ed25519
+    IdentitiesOnly yes
+    StrictHostKeyChecking yes
+    UserKnownHostsFile /root/.ssh/known_hosts

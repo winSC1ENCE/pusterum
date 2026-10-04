@@ -288,8 +288,10 @@ async def test_post_without_csrf_token_is_rejected(app_client: AsyncTestClient[L
 async def test_unknown_host_is_rejected(app_client: AsyncTestClient[Litestar]) -> None:
     response = await app_client.get("/", headers={"host": "evil.example"})
     assert response.status_code == 400
-    with_port = await app_client.get("/health", headers={"host": "localhost:8000"})
-    assert with_port.status_code == 200  # container health check sends a port
+    with_port = await app_client.get("/", headers={"host": "localhost:8000"})
+    assert with_port.status_code == 200  # the port is ignored
+    probe = await app_client.get("/health", headers={"host": "127.0.0.1:8000"})
+    assert probe.status_code == 200  # container health check is exempt
 
 
 @pytest.mark.parametrize(

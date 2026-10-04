@@ -42,6 +42,7 @@ def test_default_environment_is_production() -> None:
         ),
         ({"MAIL_ENABLED": True}, "SMTP_USE_TLS"),
         ({"ENVIRONMENT": "staging", "DEBUG": True}, "DEBUG"),
+        ({"DATABASE_URL": "postgresql+asyncpg://u:CHANGE_ME@db/x"}, "CHANGE_ME"),
     ],
 )
 def test_production_rejects_insecure_configuration(

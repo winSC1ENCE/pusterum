@@ -237,3 +237,8 @@ docs/reviews/
 # Build tooling & generated assets (scripts/build-css.sh)
 .tools/
 src/atem/presentation/static/css/app.css
+
+# Production secrets next to docker-compose.prod.yml (templates live in config/)
+/db.env
+/backup.env
+/secrets/

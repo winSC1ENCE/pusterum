@@ -7,8 +7,9 @@ useDefault = true
 description = "Global allowlist"
 paths = [
     '''tests/.*''',
+    '''tests_e2e/.*''',
     '''\.env\.example$''',
-    '''config/env\.[a-z]+\.example$''',
+    '''config/[a-z.]+\.example$''',
 ]
 # Content-block keys (e.g. "competencies.for_whom_1") are dotted identifiers, not secrets.
 # Matched against the whole line, so only `"key": "<section>.<name>"` entries are allowlisted.

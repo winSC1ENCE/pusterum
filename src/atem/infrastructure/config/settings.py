@@ -125,6 +125,13 @@ class Settings(BaseSettings):
             problems.append("DEBUG muss in Produktion false sein")
         if not set(self.ALLOWED_HOSTS) - LOCAL_HOSTS:
             problems.append("ALLOWED_HOSTS muss die öffentliche Domain enthalten")
+        placeholders = [
+            name
+            for name in ("SECRET_KEY", "DATABASE_URL", "SMTP_HOST", "SMTP_PASSWORD")
+            if "CHANGE_ME" in str(getattr(self, name))
+        ]
+        if placeholders:
+            problems.append(f"Platzhalter «CHANGE_ME» nicht ersetzt: {', '.join(placeholders)}")
         if DEFAULT_DB_PASSWORD in self.DATABASE_URL:
             problems.append("DATABASE_URL verwendet das Standard-Datenbankpasswort")
         if self.MAIL_ENABLED and not (self.SMTP_USE_TLS or self.SMTP_STARTTLS):

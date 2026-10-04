@@ -396,3 +396,28 @@ async def test_empty_optional_hero_text_hidden_publicly_but_placeholder_for_admi
     admin_resp = await app_client.get("/")
     assert placeholder in admin_resp.text
     assert 'id="content-block-hero-text"' in admin_resp.text
+
+
+@pytest.mark.asyncio
+async def test_contact_phone_and_email_are_editable_blocks_without_links_for_admin(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    """Phone/e-mail render from content blocks; admins get edit fields instead of links."""
+    public_resp = await app_client.get("/")
+    assert 'href="tel:+41313100000"' in public_resp.text
+    assert 'href="mailto:kontakt@pusterum.be"' in public_resp.text
+
+    await app_client.post(
+        "/admin/login",
+        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        follow_redirects=True,
+    )
+    admin_resp = await app_client.get("/")
+    assert 'id="content-block-practice-phone"' in admin_resp.text
+    assert 'id="content-block-practice-email"' in admin_resp.text
+    assert 'href="tel:' not in admin_resp.text
+    assert 'href="mailto:kontakt@pusterum.be"' not in admin_resp.text
+
+    impressum_resp = await app_client.get("/impressum")
+    assert 'id="content-block-practice-email"' in impressum_resp.text
+    assert "mailto:kontakt@pusterum.be" not in impressum_resp.text

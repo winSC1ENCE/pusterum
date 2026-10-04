@@ -25,11 +25,21 @@
                     {{ profile.practice.zip_code }} {{ profile.practice.city }}<br>
                     {{ profile.practice.country }}
                 </p>
-                <p class="mt-2">
+                {% set phone_block = content_blocks.get('practice.phone') if content_blocks else none %}
+                {% set email_block = content_blocks.get('practice.email') if content_blocks else none %}
+                {% set practice_phone = phone_block.current_content if phone_block else profile.practice.phone %}
+                {% set practice_email = email_block.current_content if email_block else profile.practice.email %}
+                <div class="mt-2">
                     <strong class="text-theme-text-main">Kontakt:</strong><br>
-                    Telefon: {{ profile.practice.phone }}<br>
-                    E-Mail: <a href="mailto:{{ profile.practice.email }}" class="text-theme-primary hover:underline">{{ profile.practice.email }}</a>
-                </p>
+                    {% if is_admin %}
+                    {# Plain editable fields in admin mode (no tel:/mailto: link while editing) #}
+                    <div class="flex items-baseline gap-1">Telefon: {{ editable('practice.phone', practice_phone, tag='span', type='phone') }}</div>
+                    <div class="flex items-baseline gap-1">E-Mail: {{ editable('practice.email', practice_email, tag='span', type='email') }}</div>
+                    {% else %}
+                    {% if practice_phone %}Telefon: <a href="tel:{{ practice_phone | replace(' ', '') }}" class="text-theme-primary hover:underline">{{ practice_phone }}</a><br>{% endif %}
+                    {% if practice_email %}E-Mail: <a href="mailto:{{ practice_email }}" class="text-theme-primary hover:underline">{{ practice_email }}</a>{% endif %}
+                    {% endif %}
+                </div>
                 {% else %}
                 <p>
                     <strong class="text-theme-text-main">PUSTERUM – Praxis für Atem- und Körpertherapie</strong><br>

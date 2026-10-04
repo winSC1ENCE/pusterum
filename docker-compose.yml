@@ -12,7 +12,8 @@ services:
       - DEBUG=true
       - DATABASE_URL=postgresql+asyncpg://atem_user:atem_secure_password@db:5432/atem_db
       - SECRET_KEY=dev-secret-key-at-least-32-characters-long-12345
-      - ALLOWED_HOSTS=["localhost", "127.0.0.1", "0.0.0.0"]
+      - ALLOWED_HOSTS=["localhost", "127.0.0.1"]
+      - ADMIN_INITIAL_PASSWORD=admin-secure-init-pass-change-me
     volumes:
       - ./src:/app/src
       - ./storage/uploads:/app/storage/uploads
@@ -29,7 +30,7 @@ services:
       POSTGRES_PASSWORD: atem_secure_password
       POSTGRES_DB: atem_db
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

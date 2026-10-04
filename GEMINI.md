@@ -122,7 +122,7 @@ uv run uvicorn atem.presentation.app:create_app --factory --reload --port 8000
 
 ```bash
 # Auf dem Cloud-Server:
-cp .env.example .env
+cp config/env.production.example .env
 # .env mit sicheren Produktionspasswörtern und Domains ausfüllen
 
 # Container mit Caddy Reverse Proxy & Postgres bauen und starten

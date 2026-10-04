@@ -50,6 +50,7 @@ COPY --from=builder --chown=atem:atem /app/.venv /app/.venv
 COPY --chown=atem:atem src /app/src
 COPY --chown=atem:atem pyproject.toml alembic.ini /app/
 COPY --chown=atem:atem migrations /app/migrations
+COPY --chown=atem:atem --chmod=0755 docker/entrypoint.sh /app/docker/entrypoint.sh
 
 # Create persistent storage directories with non-root user permissions
 RUN mkdir -p /app/storage/uploads && chown -R atem:atem /app/storage
@@ -68,5 +69,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Run with granian or uvicorn
+# Migrate + seed once, then run granian
+ENTRYPOINT ["/app/docker/entrypoint.sh"]
 CMD ["granian", "--interface", "asgi", "--factory", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "atem.presentation.app:create_app"]

@@ -749,8 +749,12 @@ class SqlAlchemyContentRepository(IContentRepository):
             created_at=model.created_at,
         )
 
-    async def _ensure_seed_data(self) -> None:
-        """Seed initial default content blocks and ensure any missing defaults are added."""
+    async def seed_missing_blocks(self) -> int:
+        """Insert default content blocks whose key does not exist yet.
+
+        Runs once at startup (development/test lifespan) or via ``python -m atem.cli seed-content``
+        in production. Existing blocks are never overwritten. Returns the number of inserted blocks.
+        """
         existing_stmt = select(ContentBlockModel.key)
         existing_res = await self._session.execute(existing_stmt)
         existing_keys = set(existing_res.scalars().all())
@@ -779,17 +783,16 @@ class SqlAlchemyContentRepository(IContentRepository):
                     created_at=now,
                 )
                 self._session.add(version_model)
-            await self._session.commit()
+            await self._session.flush()
+        return len(missing_blocks)
 
     async def get_block(self, key: str) -> ContentBlock | None:
-        await self._ensure_seed_data()
         stmt = select(ContentBlockModel).where(ContentBlockModel.key == key)
         res = await self._session.execute(stmt)
         model = res.scalar_one_or_none()
         return self._to_entity(model) if model else None
 
     async def get_all_blocks(self) -> dict[str, ContentBlock]:
-        await self._ensure_seed_data()
         stmt = select(ContentBlockModel)
         res = await self._session.execute(stmt)
         models = res.scalars().all()
@@ -803,7 +806,6 @@ class SqlAlchemyContentRepository(IContentRepository):
         author_id: UUID | None = None,
         change_summary: str | None = None,
     ) -> ContentBlockVersion:
-        await self._ensure_seed_data()
         stmt = select(ContentBlockModel).where(ContentBlockModel.key == key)
         res = await self._session.execute(stmt)
         block_model = res.scalar_one_or_none()
@@ -842,7 +844,6 @@ class SqlAlchemyContentRepository(IContentRepository):
         return self._to_version_entity(version_model)
 
     async def get_version_history(self, key: str) -> list[ContentBlockVersion]:
-        await self._ensure_seed_data()
         stmt = (
             select(ContentBlockVersionModel)
             .where(ContentBlockVersionModel.block_key == key)
@@ -859,7 +860,6 @@ class SqlAlchemyContentRepository(IContentRepository):
         author_name: str,
         author_id: UUID | None = None,
     ) -> ContentBlockVersion:
-        await self._ensure_seed_data()
         stmt = select(ContentBlockVersionModel).where(
             ContentBlockVersionModel.block_key == key,
             ContentBlockVersionModel.version_number == target_version_number,

@@ -23,6 +23,13 @@ class ContentService:
     def __init__(self, content_repository: IContentRepository) -> None:
         self._repository = content_repository
 
+    async def seed_defaults(self) -> int:
+        """Insert missing default content blocks (idempotent)."""
+        inserted = await self._repository.seed_missing_blocks()
+        if inserted:
+            logger.info("content_defaults_seeded", inserted=inserted)
+        return inserted
+
     async def get_content_map(self) -> dict[str, ContentBlockResponseDTO]:
         """Fetch all content blocks mapped by their keys for template rendering."""
         blocks = await self._repository.get_all_blocks()

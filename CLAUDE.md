@@ -30,7 +30,8 @@ Clean Architecture unter `src/atem/` (Abhängigkeiten zeigen nur nach innen):
 ```bash
 uv sync && uv run pre-commit install
 docker compose up -d db                     # nur PostgreSQL
-uv run alembic upgrade head                 # Datenmigrationen
+cp config/env.development.example .env      # einmalig; Default-ENVIRONMENT ist production!
+uv run alembic upgrade head                 # Schema (Baseline 0000) + Datenmigrationen
 uv run granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
 ```
 
@@ -64,8 +65,9 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
 - `_ensure_seed_data` fügt nur **fehlende** Keys ein. Wird ein bestehender Default-Text geändert, braucht es
   eine **Alembic-Datenmigration** (Muster: `migrations/versions/…0001_pusterum_rebranding_content.py`,
   nur exakt unveränderte Blöcke ersetzen, als neue Version schreiben). Siehe TDR-0003.
-- Das DB-Schema wird beim App-Start per `Base.metadata.create_all` erzeugt (`presentation/app.py`);
-  Alembic-Revisionen sind bisher reine Datenmigrationen und müssen die Existenz der Tabellen prüfen.
+- Das DB-Schema gehört **ausschliesslich Alembic** (Baseline `0000_initial_schema`). Schema-Änderungen immer
+  als neue Revision; `alembic check` muss „No new upgrade operations“ melden. `create_all` nur in Tests.
+- `.env*`-Dateien sind für Claude gesperrt – Vorlagen liegen in `config/env.*.example`.
 - Profil/Praxis-Daten (`sqlalchemy_profile_repository.py`) liefern Platzhalter, wenn die Tabellen leer sind.
   Keine Fakten (Preise, Adressen, Anerkennungen) erfinden – Services werden im Admin gepflegt.
 
@@ -73,6 +75,8 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
 
 - Architekturentscheide: `docs/adr/` (MADR, `template.md`); kleinere technische Entscheide: `docs/tdr/`.
 - Diagramme in Mermaid (`docs/architecture/`).
+- `docs/reviews/` enthält **lokale, nicht versionierte** Analysen (per `.gitignore` ausgeschlossen, da sie
+  offene Schwachstellen beschreiben) – nie committen oder verlinken.
 - Umsetzungspläne: `docs/plans/` (z. B. `2026-10-04-pusterum-rebranding.md`).
 - Commits: Conventional Commits (`feat(scope): …`, `fix(…)`, `chore: …`).
 
@@ -80,4 +84,5 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
 
 Domain: **www.pusterum.be** (`.be` = Bern, nicht Belgien); `pusterum.be` leitet per Caddy auf `www` um.
 Kontakt-Mail: `kontakt@pusterum.be`. Hosting, `docker compose -f docker-compose.prod.yml up -d --build` (Caddy mit Auto-TLS, `.env` aus
-`.env.example`). Danach Datenmigrationen im Container: `docker compose -f docker-compose.prod.yml exec app alembic upgrade head`.
+`config/env.production.example`). Der Container-Entrypoint (`docker/entrypoint.sh`) führt `alembic upgrade head`
+und `python -m atem.cli seed-content` aus; den ersten Admin legt `python -m atem.cli create-admin` an.

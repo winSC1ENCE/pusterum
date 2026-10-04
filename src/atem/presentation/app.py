@@ -1,4 +1,3 @@
-import contextlib
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -12,7 +11,6 @@ from litestar.openapi.config import OpenAPIConfig
 from litestar.openapi.spec import Contact
 from litestar.static_files import create_static_files_router
 from litestar.template.config import TemplateConfig
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from atem.application.services.auth_service import AuthService
@@ -28,7 +26,6 @@ from atem.domain.interfaces.profile_repository import IProfileRepository
 from atem.domain.interfaces.theme_repository import IThemeRepository
 from atem.domain.interfaces.user_repository import IUserRepository
 from atem.infrastructure.config.settings import Settings, get_settings
-from atem.infrastructure.database.base import Base
 from atem.infrastructure.database.repositories.sqlalchemy_contact_repository import (
     SqlAlchemyContactRepository,
 )
@@ -49,6 +46,7 @@ from atem.infrastructure.email.mock_email_service import MockEmailService
 from atem.infrastructure.email.smtp_email_service import SmtpEmailService
 from atem.infrastructure.logging.logger import get_logger, setup_logging
 from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHasher
+from atem.presentation.bootstrap import ensure_dev_admin, seed_content
 from atem.presentation.controllers.admin_controller import AdminController
 from atem.presentation.controllers.health_controller import HealthController
 from atem.presentation.controllers.public_controller import PublicController
@@ -166,30 +164,11 @@ async def lifespan(app: Litestar) -> AsyncGenerator[None, None]:
         engine = app.state.engine
         session_factory = app.state.session_factory
 
-    # In dev or testing, ensure tables are created
-    if settings.is_dev or settings.ENVIRONMENT == "test":
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-            if not settings.DATABASE_URL.startswith("sqlite"):
-                with contextlib.suppress(Exception):
-                    await conn.execute(
-                        text(
-                            "ALTER TABLE theme_configs "
-                            "ALTER COLUMN dandelion_mode TYPE VARCHAR(255);"
-                        )
-                    )
-
-        # Seed initial admin user if needed
-        async with session_factory() as session:
-            user_repo = SqlAlchemyUserRepository(session)
-            hasher = Argon2PasswordHasher()
-            auth_service = AuthService(user_repo, hasher)
-            await auth_service.ensure_initial_admin(
-                username=settings.ADMIN_USERNAME,
-                email=settings.ADMIN_EMAIL,
-                initial_password=settings.ADMIN_INITIAL_PASSWORD,
-            )
-            await session.commit()
+    # The schema is owned by Alembic (`alembic upgrade head`). In production the container
+    # entrypoint migrates and seeds once before the workers start (see docker/entrypoint.sh).
+    if not settings.is_production_like:
+        await seed_content(session_factory)
+        await ensure_dev_admin(session_factory, settings)
 
     yield
 
@@ -230,11 +209,9 @@ def create_app() -> Litestar:
         engine=JinjaTemplateEngine,
     )
 
-    # Session Middleware (Cookie Backend)
-    # Ensure secret is at least 16/24/32 bytes for AES
-    secret_bytes = settings.SECRET_KEY.encode()[:32].ljust(32, b"0")
+    # Session Middleware (encrypted cookie, key derived from SECRET_KEY via HKDF)
     session_config = CookieBackendConfig(
-        secret=secret_bytes,
+        secret=settings.session_secret,
         key="atem_session",
         max_age=3600 * 24 * 7,  # 7 days
     )

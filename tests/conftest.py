@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import (
 os.environ["ENVIRONMENT"] = "test"
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-chars-long-12345"
+os.environ["ADMIN_INITIAL_PASSWORD"] = "admin-secure-init-pass-change-me"
 
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
@@ -85,10 +86,11 @@ def profile_service(db_session: AsyncSession) -> ProfileService:
 
 
 @pytest.fixture
-def content_service(db_session: AsyncSession) -> ContentService:
-    """Content service fixture."""
-    repo = SqlAlchemyContentRepository(db_session)
-    return ContentService(repo)
+async def content_service(db_session: AsyncSession) -> ContentService:
+    """Content service fixture with seeded default content."""
+    service = ContentService(SqlAlchemyContentRepository(db_session))
+    await service.seed_defaults()
+    return service
 
 
 @pytest.fixture

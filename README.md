@@ -36,8 +36,8 @@ uv sync
 # Pre-Commit Hooks installieren
 uv run pre-commit install
 
-# Umgebungsvariablen initialisieren
-cp .env.example .env
+# Umgebungsvariablen initialisieren (Entwicklung)
+cp config/env.development.example .env
 ```
 
 ### 3. Datenbank starten & migrieren
@@ -49,7 +49,7 @@ Starten Sie nur den PostgreSQL-Container:
 docker compose up -d db
 
 # Datenbank-Migrationen anwenden
-uv run alembic upgrade head
+uv run alembic upgrade head   # Schema + Datenmigrationen (Pflicht, kein create_all mehr)
 ```
 
 ### 4. Lokalen Entwicklungs-Server starten
@@ -117,6 +117,11 @@ Produktions-Domain: **https://www.pusterum.be** (`.be` = Bern). In `.env` `DOMAI
 # Docker Compose mit Caddy Reverse Proxy & automatischem TLS
 docker compose -f docker-compose.prod.yml up -d --build
 
-# Datenmigrationen (Inhalte) anwenden
-docker compose -f docker-compose.prod.yml exec app alembic upgrade head
+# Migrationen + Standard-Inhalte laufen automatisch im Container-Entrypoint.
+# Einmalig: ersten Admin anlegen (Passwort wird interaktiv abgefragt)
+docker compose -f docker-compose.prod.yml exec app python -m atem.cli create-admin \
+  --username stephanie --email kontakt@pusterum.be
 ```
+
+Produktions-`.env`: `cp config/env.production.example .env` und alle `CHANGE_ME` ersetzen – die App
+verweigert den Start mit unsicheren Werten.

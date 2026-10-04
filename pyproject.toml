@@ -160,6 +160,9 @@ addopts = "-v --cov=src/atem --cov-report=term-missing --cov-report=xml --cov-fa
 
 [tool.coverage.run]
 source = ["src/atem"]
+# SQLAlchemy async runs code after DB awaits inside greenlets – without this, coverage
+# silently misses those lines and the reported percentage is meaningless.
+concurrency = ["greenlet", "thread"]
 omit = [
     "*/tests/*",
     "*/migrations/*",

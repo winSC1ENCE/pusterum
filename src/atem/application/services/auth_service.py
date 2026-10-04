@@ -3,12 +3,14 @@
 import structlog
 
 from atem.application.dto.auth import LoginRequestDTO, UserResponseDTO
-from atem.domain.exceptions import AuthenticationException
+from atem.domain.exceptions import AuthenticationException, ValidationException
 from atem.domain.interfaces.password_hasher import IPasswordHasher
 from atem.domain.interfaces.user_repository import IUserRepository
 from atem.domain.models.user import User, UserRole
 
 logger = structlog.get_logger(__name__)
+
+MIN_ADMIN_PASSWORD_LENGTH = 12
 
 
 class AuthService:
@@ -64,3 +66,29 @@ class AuthService:
             )
             await self._user_repository.create_user(admin_user)
             logger.info("Created initial admin user", username=username)
+
+    async def create_admin(self, username: str, email: str, password: str) -> UserResponseDTO:
+        """Create a new administrator account (used by the CLI in production)."""
+        if len(password) < MIN_ADMIN_PASSWORD_LENGTH:
+            raise ValidationException(
+                f"Das Passwort muss mindestens {MIN_ADMIN_PASSWORD_LENGTH} Zeichen lang sein."
+            )
+        if await self._user_repository.get_by_username(username):
+            raise ValidationException(f"Benutzer «{username}» existiert bereits.")
+        user = await self._user_repository.create_user(
+            User(
+                username=username,
+                email=email,
+                password_hash=self._password_hasher.hash_password(password),
+                role=UserRole.ADMIN,
+                is_active=True,
+            )
+        )
+        logger.info("admin_created", user_id=str(user.id))
+        return UserResponseDTO(
+            id=user.id,
+            username=user.username,
+            email=user.email,
+            role=user.role,
+            is_active=user.is_active,
+        )

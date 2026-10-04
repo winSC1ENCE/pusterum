@@ -230,3 +230,6 @@ src/atem/presentation/static/images/test_upload*.png
 # Dynamic User Media Storage (Persistent Docker Volume)
 storage/uploads/*
 !storage/uploads/.gitkeep
+
+# Lokale, nicht versionierte Analysen/Reviews (enthalten offene Schwachstellen)
+docs/reviews/

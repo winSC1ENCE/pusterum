@@ -19,10 +19,11 @@ Folgende Tools müssen auf dem System installiert sein:
 
 ## 2. DEV-Umgebung in 4 Schritten starten
 
-### Schritt 1: Abhängigkeiten installieren
+### Schritt 1: Abhängigkeiten installieren & `.env` anlegen
 ```bash
 uv sync
 uv run pre-commit install
+cp config/env.development.example .env   # ENVIRONMENT=development ist Pflicht (Default = production)
 ```
 
 ### Schritt 2: PostgreSQL Datenbank starten

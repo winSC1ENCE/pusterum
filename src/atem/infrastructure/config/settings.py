@@ -38,8 +38,8 @@ class Settings(BaseSettings):
 
     # Email
     MAIL_ENABLED: bool = False
-    MAIL_FROM: str = "info@atem-praxis.ch"
-    MAIL_TO: str = "therapeutin@atem-praxis.ch"
+    MAIL_FROM: str = "kontakt@pusterum.be"
+    MAIL_TO: str = "kontakt@pusterum.be"
     SMTP_HOST: str = "localhost"
     SMTP_PORT: int = 1025
     SMTP_USER: str = ""
@@ -48,7 +48,7 @@ class Settings(BaseSettings):
 
     # Initial Admin
     ADMIN_USERNAME: str = "admin"
-    ADMIN_EMAIL: str = "admin@atem-praxis.ch"
+    ADMIN_EMAIL: str = "admin@pusterum.be"
     ADMIN_INITIAL_PASSWORD: str = "admin-secure-init-pass-change-me"
 
     # Dynamic User Media Storage (Persistent Docker Volume)

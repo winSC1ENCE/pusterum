@@ -478,7 +478,7 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "key": "practice.email",
         "section": "practice",
         "type": "email",
-        "content": "kontakt@pusterum.ch",
+        "content": "kontakt@pusterum.be",
     },
     {
         "key": "practice.directions",

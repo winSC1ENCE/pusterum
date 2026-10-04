@@ -223,7 +223,7 @@ class SqlAlchemyProfileRepository(IProfileRepository):
                 canton="BE",
                 country="Schweiz",
                 phone="+41 31 123 45 67",
-                email="kontakt@pusterum.ch",
+                email="kontakt@pusterum.be",
                 directions_info=(
                     "In den Praxisräumen der Physiotherapie-Gemeinschaftspraxis. "
                     "Zentral gelegen und bestens mit ÖV und Auto erreichbar."

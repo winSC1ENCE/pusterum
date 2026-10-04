@@ -111,7 +111,12 @@ uv run vulture src
 
 ## 🚢 Deployment (Hosting Server)
 
+Produktions-Domain: **https://www.pusterum.be** (`.be` = Bern). In `.env` `DOMAIN=www.pusterum.be` setzen; die Apex-Domain `pusterum.be` wird im `Caddyfile` permanent auf `www` umgeleitet. DNS: A/AAAA-Records für `pusterum.be` **und** `www.pusterum.be` auf den Cloud-Server.
+
 ```bash
 # Docker Compose mit Caddy Reverse Proxy & automatischem TLS
 docker compose -f docker-compose.prod.yml up -d --build
+
+# Datenmigrationen (Inhalte) anwenden
+docker compose -f docker-compose.prod.yml exec app alembic upgrade head
 ```

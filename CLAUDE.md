@@ -78,5 +78,6 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
 
 ## Deployment
 
-Hosting, `docker compose -f docker-compose.prod.yml up -d --build` (Caddy mit Auto-TLS, `.env` aus
+Domain: **www.pusterum.be** (`.be` = Bern, nicht Belgien); `pusterum.be` leitet per Caddy auf `www` um.
+Kontakt-Mail: `kontakt@pusterum.be`. Hosting, `docker compose -f docker-compose.prod.yml up -d --build` (Caddy mit Auto-TLS, `.env` aus
 `.env.example`). Danach Datenmigrationen im Container: `docker compose -f docker-compose.prod.yml exec app alembic upgrade head`.

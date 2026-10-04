@@ -241,10 +241,12 @@ def create_app() -> Litestar:
 
     # OpenAPI Config
     openapi_config = OpenAPIConfig(
-        title="Atemtherapie API",
+        title="PUSTERUM API",
         version="0.1.0",
-        description="Clean Architecture API für Atemtherapie-Praxis",
-        contact=Contact(name="Praxis Atemtherapie", email="info@atem-praxis.ch"),
+        description="Clean Architecture API für PUSTERUM – Praxis für Atem- und Körpertherapie",
+        contact=Contact(
+            name="PUSTERUM", email="kontakt@pusterum.be", url="https://www.pusterum.be"
+        ),
     )
 
     return Litestar(

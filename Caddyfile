@@ -2,6 +2,12 @@
 # Caddyfile - Reverse Proxy & Automatic SSL Configuration
 # ==============================================================================
 
+# Apex-Domain dauerhaft auf die kanonische www-Domain umleiten (.be = Bern)
+pusterum.be {
+    redir https://www.pusterum.be{uri} permanent
+}
+
+# Kanonische Domain: DOMAIN=www.pusterum.be in .env
 {$DOMAIN:localhost} {
     encode gzip zstd
 

@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
-    { name = "Atemtherapie Praxis", email = "info@atem-praxis.ch" }
+    { name = "PUSTERUM", email = "kontakt@pusterum.be" }
 ]
 dependencies = [
     "litestar[jinja,structlog]>=2.14.0",

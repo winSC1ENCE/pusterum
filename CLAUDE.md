@@ -71,6 +71,16 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
 - Profil/Praxis-Daten (`sqlalchemy_profile_repository.py`) liefern Platzhalter, wenn die Tabellen leer sind.
   Keine Fakten (Preise, Adressen, Anerkennungen) erfinden – Services werden im Admin gepflegt.
 
+## Sicherheitsregeln (Admin & Formulare)
+
+- Neue Admin-Routen gehören in einen Controller mit `guards = [require_admin]`
+  (`presentation/security/admin_auth.py`) – nie eigene Session-Prüfungen schreiben.
+- Jeder POST braucht CSRF: HTMX/`fetch` senden `x-csrftoken` automatisch (`hx-headers` am `<body>`,
+  `csrfHeaders()` in `app.js`), klassische Formulare ein `<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">`.
+- Logout ist ein POST. Sessions werden über `User.session_version` widerrufen.
+- 2FA (TOTP + Recovery-Codes) ist in production/staging Pflicht (`ADMIN_REQUIRE_2FA`).
+  Notfall: `python -m atem.cli reset-2fa --username …`.
+
 ## Dokumentation & Governance
 
 - Architekturentscheide: `docs/adr/` (MADR, `template.md`); kleinere technische Entscheide: `docs/tdr/`.

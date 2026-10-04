@@ -81,3 +81,4 @@ def test_cli_parser_commands() -> None:
     args = parser.parse_args(["create-admin", "--username", "s", "--email", "s@pusterum.be"])
     assert args.command == "create-admin"
     assert parser.parse_args(["seed-content"]).command == "seed-content"
+    assert parser.parse_args(["reset-2fa", "--username", "s"]).command == "reset-2fa"

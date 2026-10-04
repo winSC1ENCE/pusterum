@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Praxis-Login | Atemtherapie Administration{% endblock %}
+{% block title %}Praxis-Login | PUSTERUM Administration{% endblock %}
 
 {% block content %}
 <div class="min-h-[80vh] flex items-center justify-center py-24 px-4 sm:px-6 lg:px-8 bg-theme-main transition-colors duration-300">
@@ -22,6 +22,7 @@
         {% endif %}
 
         <form method="POST" action="/admin/login" class="space-y-6">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label for="username" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">Benutzername</label>
                 <input type="text" id="username" name="username" required value="{{ username or '' }}"

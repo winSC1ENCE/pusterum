@@ -3,6 +3,15 @@
  * Includes Smooth Scrolling, HTMX Debugging, Alpine.js In-Context Inline Editor & Image Manager (ADR-0002).
  */
 
+/**
+ * CSRF header for fetch() POSTs (token rendered into <meta name="csrf-token">).
+ * HTMX requests get the same header via hx-headers on <body>.
+ */
+function csrfHeaders() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? { "x-csrftoken": meta.content } : {};
+}
+
 document.addEventListener("alpine:init", () => {
     // 1. Text & Inline Element Editor Component
     Alpine.data("inlineEditor", (key, type) => ({
@@ -135,6 +144,7 @@ document.addEventListener("alpine:init", () => {
 
             try {
                 const res = await fetch("/admin/images/upload", {
+                    headers: csrfHeaders(),
                     method: "POST",
                     body: formData,
                 });
@@ -189,6 +199,7 @@ document.addEventListener("alpine:init", () => {
 
             try {
                 const res = await fetch(`/admin/content/${this.blockKey}/save`, {
+                    headers: csrfHeaders(),
                     method: "POST",
                     body: formData,
                 });

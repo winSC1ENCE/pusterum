@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from atem.application.services.auth_service import AuthService
 from atem.application.services.content_service import ContentService
-from atem.infrastructure.config.settings import Settings
+from atem.infrastructure.config.settings import Settings, get_settings
 from atem.infrastructure.database.repositories.sqlalchemy_content_repository import (
     SqlAlchemyContentRepository,
 )
@@ -17,6 +17,8 @@ from atem.infrastructure.database.repositories.sqlalchemy_user_repository import
 )
 from atem.infrastructure.logging.logger import get_logger
 from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHasher
+from atem.infrastructure.security.fernet_secret_cipher import FernetSecretCipher
+from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
 
 logger = get_logger(__name__)
 
@@ -30,9 +32,19 @@ async def seed_content(session_factory: async_sessionmaker[AsyncSession]) -> int
     return inserted
 
 
+def build_secret_cipher(settings: Settings) -> FernetSecretCipher:
+    """Cipher for secrets at rest (TOTP seeds), keyed from SECRET_KEY via HKDF."""
+    return FernetSecretCipher(settings.derive_key(b"atem-secret-cipher"))
+
+
 def build_auth_service(session: AsyncSession) -> AuthService:
     """Create an AuthService bound to the given session."""
-    return AuthService(SqlAlchemyUserRepository(session), Argon2PasswordHasher())
+    return AuthService(
+        SqlAlchemyUserRepository(session),
+        Argon2PasswordHasher(),
+        build_secret_cipher(get_settings()),
+        PyotpTotpProvider(),
+    )
 
 
 async def ensure_dev_admin(

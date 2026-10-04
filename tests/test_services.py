@@ -121,13 +121,14 @@ async def test_auth_service(auth_service: AuthService) -> None:
     )
 
     # Valid login
-    user = await auth_service.authenticate(
-        LoginRequestDTO(username="admin", password="SecretAdminPassword123!")
+    result = await auth_service.authenticate(
+        LoginRequestDTO(username="admin", password="SecretAdminPassword123!"), "198.51.100.1"
     )
-    assert user.username == "admin"
+    assert result.user.username == "admin"
+    assert result.requires_totp is False
 
     # Invalid login
     with pytest.raises(AuthenticationException):
         await auth_service.authenticate(
-            LoginRequestDTO(username="admin", password="wrong-password")
+            LoginRequestDTO(username="admin", password="wrong-password"), "198.51.100.1"
         )

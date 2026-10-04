@@ -108,5 +108,8 @@ async def test_admin_flow(app_client: AsyncTestClient[Litestar]) -> None:
     assert "dandelion-ambient-engine" in res_landing.text
 
     # Logout
-    res_logout = await app_client.get("/admin/logout", follow_redirects=True)
+    res_logout = await app_client.post("/admin/logout", follow_redirects=True)
     assert res_logout.status_code == 200
+    # The revoked session no longer grants access
+    res_after = await app_client.get("/admin", follow_redirects=False)
+    assert res_after.status_code == 302

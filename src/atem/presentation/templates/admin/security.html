@@ -1,0 +1,113 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Sicherheit | PUSTERUM Administration{% endblock %}
+
+{% macro csrf() %}<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+{% set input_class = "w-full px-4 py-2.5 rounded-xl border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main bg-theme-main text-sm outline-none" %}
+{% set button_class = "px-5 py-2.5 rounded-full text-white bg-theme-primary hover-bg-theme-primary text-sm font-medium shadow-sm transition-all" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-16 px-4 sm:px-6 lg:px-8 space-y-8">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <h1 class="font-heading text-3xl font-bold text-theme-text-main">Kontosicherheit</h1>
+            <p class="text-sm text-theme-text-muted mt-1">Angemeldet als <strong>{{ account.username }}</strong></p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="/admin" class="px-4 py-2 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted">Zum Dashboard</a>
+            <form method="POST" action="/admin/logout" class="inline">{{ csrf() }}<button type="submit" class="px-4 py-2 rounded-full bg-slate-200 hover:bg-slate-300 text-xs font-medium text-slate-800">Abmelden</button></form>
+        </div>
+    </div>
+
+    {% if account.must_change_password or (require_2fa and not account.totp_enabled) %}
+    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm" role="status">
+        <strong>Bitte zuerst abschliessen:</strong>
+        {% if account.must_change_password %}Ändern Sie Ihr Initialpasswort.{% endif %}
+        {% if require_2fa and not account.totp_enabled %}Richten Sie die Zwei-Faktor-Anmeldung ein.{% endif %}
+        Erst danach ist der Admin-Bereich freigeschaltet.
+    </div>
+    {% endif %}
+
+    {% if error %}<div class="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm" role="alert">{{ error }}</div>{% endif %}
+    {% if success %}<div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm" role="status">{{ success }}</div>{% endif %}
+
+    {% if recovery_codes %}
+    <section class="bg-theme-card border border-theme rounded-3xl p-6 space-y-4">
+        <h2 class="font-heading text-xl font-bold text-theme-text-main">Ihre Wiederherstellungscodes</h2>
+        <p class="text-sm text-theme-text-muted">Diese Codes werden <strong>nur jetzt</strong> angezeigt. Speichern Sie sie sicher (z. B. ausgedruckt oder im Passwortmanager). Jeder Code funktioniert genau einmal, falls Sie keinen Zugriff auf Ihr Smartphone haben.</p>
+        <ul class="grid grid-cols-2 gap-2 font-mono text-base text-theme-text-main">
+            {% for code in recovery_codes %}<li class="px-3 py-2 rounded-lg bg-theme-main border border-theme text-center">{{ code }}</li>{% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    <!-- Two-factor authentication -->
+    <section class="bg-theme-card border border-theme rounded-3xl p-6 space-y-4">
+        <h2 class="font-heading text-xl font-bold text-theme-text-main">Zwei-Faktor-Anmeldung (Authenticator-App)</h2>
+        {% if account.totp_enabled %}
+            <p class="text-sm text-emerald-700 font-medium">Aktiv ✓ – noch {{ recovery_codes_left }} unbenutzte Wiederherstellungscodes.</p>
+            <form method="POST" action="/admin/security/recovery-codes" class="flex flex-wrap items-end gap-3">
+                {{ csrf() }}
+                <div class="flex-1 min-w-[12rem]">
+                    <label for="rc-password" class="block text-xs font-bold text-theme-text-main mb-1">Passwort bestätigen</label>
+                    <input id="rc-password" type="password" name="password" required autocomplete="current-password" class="{{ input_class }}">
+                </div>
+                <button type="submit" class="{{ button_class }}">Neue Wiederherstellungscodes</button>
+            </form>
+            {% if not require_2fa %}
+            <form method="POST" action="/admin/security/totp/disable" class="flex flex-wrap items-end gap-3 pt-2 border-t border-theme/50">
+                {{ csrf() }}
+                <div class="flex-1 min-w-[12rem]">
+                    <label for="dis-password" class="block text-xs font-bold text-theme-text-main mb-1">Passwort bestätigen</label>
+                    <input id="dis-password" type="password" name="password" required autocomplete="current-password" class="{{ input_class }}">
+                </div>
+                <button type="submit" class="px-5 py-2.5 rounded-full bg-red-50 border border-red-200 text-red-700 text-sm font-medium">2FA deaktivieren</button>
+            </form>
+            {% endif %}
+        {% elif totp_setup %}
+            <ol class="text-sm text-theme-text-muted list-decimal pl-5 space-y-1">
+                <li>Öffnen Sie eine Authenticator-App (z. B. 2FAS, Aegis, Google/Microsoft Authenticator).</li>
+                <li>Scannen Sie den QR-Code oder geben Sie den Schlüssel manuell ein.</li>
+                <li>Bestätigen Sie mit dem angezeigten 6-stelligen Code.</li>
+            </ol>
+            <div class="flex flex-wrap items-center gap-6">
+                <div class="bg-white p-2 rounded-xl border border-theme" aria-label="QR-Code für die Authenticator-App">{{ totp_setup.qr }}</div>
+                <div class="text-xs text-theme-text-muted break-all">Schlüssel:<br><code class="text-sm text-theme-text-main">{{ totp_setup.secret }}</code></div>
+            </div>
+            <form method="POST" action="/admin/security/totp/confirm" class="flex flex-wrap items-end gap-3">
+                {{ csrf() }}
+                <div class="flex-1 min-w-[10rem]">
+                    <label for="totp-code" class="block text-xs font-bold text-theme-text-main mb-1">Code aus der App</label>
+                    <input id="totp-code" type="text" name="code" required inputmode="numeric" autocomplete="one-time-code" maxlength="8" class="{{ input_class }} tracking-widest">
+                </div>
+                <button type="submit" class="{{ button_class }}">Aktivieren</button>
+            </form>
+        {% else %}
+            <p class="text-sm text-theme-text-muted">Schützt den Admin-Bereich zusätzlich mit einem Einmalcode vom Smartphone.{% if require_2fa %} In Produktion ist dies obligatorisch.{% endif %}</p>
+            <form method="POST" action="/admin/security/totp/start">{{ csrf() }}<button type="submit" class="{{ button_class }}">Einrichtung starten</button></form>
+        {% endif %}
+    </section>
+
+    <!-- Password -->
+    <section class="bg-theme-card border border-theme rounded-3xl p-6 space-y-4">
+        <h2 class="font-heading text-xl font-bold text-theme-text-main">Passwort ändern</h2>
+        <p class="text-sm text-theme-text-muted">Mindestens 12 Zeichen. Nach der Änderung werden alle anderen Geräte abgemeldet.</p>
+        <form method="POST" action="/admin/security/password" class="grid gap-3 sm:grid-cols-3 items-end">
+            {{ csrf() }}
+            <div>
+                <label for="cur-pw" class="block text-xs font-bold text-theme-text-main mb-1">Aktuelles Passwort</label>
+                <input id="cur-pw" type="password" name="current_password" required autocomplete="current-password" class="{{ input_class }}">
+            </div>
+            <div>
+                <label for="new-pw" class="block text-xs font-bold text-theme-text-main mb-1">Neues Passwort</label>
+                <input id="new-pw" type="password" name="new_password" required minlength="12" autocomplete="new-password" class="{{ input_class }}">
+            </div>
+            <div>
+                <label for="new-pw2" class="block text-xs font-bold text-theme-text-main mb-1">Wiederholen</label>
+                <input id="new-pw2" type="password" name="new_password_confirm" required minlength="12" autocomplete="new-password" class="{{ input_class }}">
+            </div>
+            <div class="sm:col-span-3"><button type="submit" class="{{ button_class }}">Passwort ändern</button></div>
+        </form>
+    </section>
+</div>
+{% endblock %}

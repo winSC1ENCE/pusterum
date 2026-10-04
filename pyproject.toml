@@ -24,6 +24,9 @@ dependencies = [
     "uvicorn[standard]>=0.34.0",
     "httpx>=0.28.1",
     "aiosmtplib>=3.0.2",
+    "pyotp>=2.9.0",
+    "segno>=1.6.1",
+    "markupsafe>=2.1",
 ]
 
 [dependency-groups]

@@ -11,19 +11,16 @@ import structlog
 from litestar import Controller, Request, get, post
 from litestar.datastructures import UploadFile
 from litestar.enums import RequestEncodingType
-from litestar.exceptions import NotAuthorizedException, ValidationException
+from litestar.exceptions import ValidationException
 from litestar.params import Body
 from litestar.response import Redirect, Response, Template
 
-from atem.application.dto.auth import LoginRequestDTO
 from atem.application.dto.content import SaveContentBlockRequestDTO
 from atem.application.dto.theme import UpdateThemeRequestDTO
-from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
 from atem.application.services.content_service import ContentService
 from atem.application.services.profile_service import ProfileService
 from atem.application.services.theme_service import ThemeService
-from atem.domain.exceptions import AuthenticationException
 from atem.domain.models.theme import (
     PRESET_THEMES,
     ColorPresetKey,
@@ -31,6 +28,7 @@ from atem.domain.models.theme import (
     ShapeType,
 )
 from atem.infrastructure.config.settings import get_settings
+from atem.presentation.security.admin_auth import require_admin
 
 logger = structlog.get_logger(__name__)
 
@@ -43,62 +41,8 @@ class AdminController(Controller):
     """Administration area for managing content, corporate design, and client messages."""
 
     path = "/admin"
-
-    @get("/login")
-    async def login_page(
-        self,
-        request: Request[Any, Any, Any],
-        theme_service: ThemeService,
-    ) -> Template | Redirect:
-        """Render login form."""
-        if request.session.get("user"):
-            return Redirect(path="/admin")
-        theme = await theme_service.get_active_theme()
-        theme_css = theme_service.generate_css_variables(theme)
-        return Template(
-            template_name="admin/login.html",
-            context={"error": None, "theme": theme, "theme_css": theme_css},
-        )
-
-    @post("/login")
-    async def process_login(
-        self,
-        request: Request[Any, Any, Any],
-        auth_service: AuthService,
-        theme_service: ThemeService,
-        data: Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)],
-    ) -> Template | Redirect:
-        """Process login credentials."""
-        username = data.get("username", "")
-        password = data.get("password", "")
-        theme = await theme_service.get_active_theme()
-        theme_css = theme_service.generate_css_variables(theme)
-
-        try:
-            dto = LoginRequestDTO(username=username, password=password)
-            user = await auth_service.authenticate(dto)
-            request.session["user"] = {
-                "id": str(user.id),
-                "username": user.username,
-                "role": user.role.value,
-            }
-            return Redirect(path="/admin")
-        except AuthenticationException as exc:
-            return Template(
-                template_name="admin/login.html",
-                context={
-                    "error": exc.message,
-                    "username": username,
-                    "theme": theme,
-                    "theme_css": theme_css,
-                },
-            )
-
-    @get("/logout")
-    async def logout(self, request: Request[Any, Any, Any]) -> Redirect:
-        """Clear admin session."""
-        request.session.clear()
-        return Redirect(path="/admin/login")
+    guards = [require_admin]  # noqa: RUF012 - Litestar controller attribute
+    include_in_schema = False
 
     @get("")
     async def dashboard(
@@ -109,9 +53,6 @@ class AdminController(Controller):
         theme_service: ThemeService,
     ) -> Template | Redirect:
         """Render main admin dashboard."""
-        if not request.session.get("user"):
-            return Redirect(path="/admin/login")
-
         profile = await profile_service.get_public_profile()
         messages = await contact_service.list_messages(limit=20)
         theme = await theme_service.get_active_theme()
@@ -135,9 +76,6 @@ class AdminController(Controller):
         theme_service: ThemeService,
     ) -> Template | Redirect:
         """Render Corporate Design Studio in Admin Console."""
-        if not request.session.get("user"):
-            return Redirect(path="/admin/login")
-
         theme = await theme_service.get_active_theme()
         theme_css = theme_service.generate_css_variables(theme)
         presets = theme_service.get_all_color_presets()
@@ -220,9 +158,6 @@ class AdminController(Controller):
         data: Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)],
     ) -> Response[bytes] | Redirect:
         """Apply one of the 5 pastel color presets."""
-        if not request.session.get("user"):
-            return Redirect(path="/admin/login")
-
         preset_str = data.get("preset_key", ColorPresetKey.SALBEI_SAND.value)
         try:
             preset_key = ColorPresetKey(preset_str)
@@ -242,9 +177,6 @@ class AdminController(Controller):
         data: Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)],
     ) -> Response[bytes] | Redirect:
         """Apply one of the 5 geometric/organic shapes."""
-        if not request.session.get("user"):
-            return Redirect(path="/admin/login")
-
         shape_str = data.get("shape_type", ShapeType.DANDELION_SEED.value)
         try:
             shape_type = ShapeType(shape_str)
@@ -282,9 +214,6 @@ class AdminController(Controller):
         data: Annotated[dict[str, Any], Body(media_type=RequestEncodingType.URL_ENCODED)],
     ) -> Response[bytes] | Redirect:
         """Apply ambient dandelion effect multi-select modes and slider settings."""
-        if not request.session.get("user"):
-            return Redirect(path="/admin/login")
-
         current_theme = await theme_service.get_active_theme()
         parsed_modes = self._extract_dandelion_modes(data)
 
@@ -318,9 +247,6 @@ class AdminController(Controller):
         data: Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)],
     ) -> Response[bytes] | Redirect:
         """Save custom colors and typography while preserving active shapes and modes."""
-        if not request.session.get("user"):
-            return Redirect(path="/admin/login")
-
         current_theme = await theme_service.get_active_theme()
 
         active_shape_str = data.get("active_shape", current_theme.active_shape.value)
@@ -418,10 +344,7 @@ class AdminController(Controller):
         key: str,
     ) -> Template:
         """Save a new content block version from inline editor or media manager."""
-        user = request.session.get("user")
-        if not user:
-            raise NotAuthorizedException("Anmeldung erforderlich.")
-
+        user = request.session["user"]
         content_type = request.headers.get("content-type", "")
         data: dict[str, Any] = {}
         if "application/json" in content_type:
@@ -488,15 +411,10 @@ class AdminController(Controller):
     @get("/content/{key:str}/history")
     async def get_content_history(
         self,
-        request: Request[Any, Any, Any],
         content_service: ContentService,
         key: str,
     ) -> Template:
         """Fetch audit trail and history modal content for a content block."""
-        user = request.session.get("user")
-        if not user:
-            raise NotAuthorizedException("Anmeldung erforderlich.")
-
         history = await content_service.get_block_history(key)
         return Template(
             template_name="admin/version_history_modal_content.html",
@@ -514,10 +432,7 @@ class AdminController(Controller):
         version_number: int,
     ) -> Template:
         """Restore an older version as the next version number and return updated fragment."""
-        user = request.session.get("user")
-        if not user:
-            raise NotAuthorizedException("Anmeldung erforderlich.")
-
+        user = request.session["user"]
         user_id_str = user.get("id")
         user_id = UUID(user_id_str) if user_id_str else None
         username = user.get("username", "Admin")
@@ -545,14 +460,8 @@ class AdminController(Controller):
         )
 
     @get("/images/list")
-    async def list_images(
-        self,
-        request: Request[Any, Any, Any],
-    ) -> list[dict[str, Any]]:
+    async def list_images(self) -> list[dict[str, Any]]:
         """List all available image files from persistent media directory and static assets."""
-        if not request.session.get("user"):
-            raise NotAuthorizedException("Anmeldung erforderlich.")
-
         settings = get_settings()
         media_dir = settings.media_storage_path
         media_dir.mkdir(parents=True, exist_ok=True)
@@ -596,13 +505,9 @@ class AdminController(Controller):
     @post("/images/upload")
     async def upload_image(
         self,
-        request: Request[Any, Any, Any],
         data: Annotated[UploadFile, Body(media_type=RequestEncodingType.MULTI_PART)],
     ) -> dict[str, Any]:
         """Upload an image directly into the persistent media directory (storage/uploads)."""
-        if not request.session.get("user"):
-            raise NotAuthorizedException("Anmeldung erforderlich.")
-
         settings = get_settings()
         media_dir = settings.media_storage_path
         media_dir.mkdir(parents=True, exist_ok=True)

@@ -428,8 +428,10 @@ async def test_admin_design_autosave_and_guards(
     )
     assert invalid_dandelion.status_code == 204
 
-    # 6. Unauthenticated POST guards
+    # 6. Unauthenticated POST guards (valid CSRF token, but no session)
     app_client.cookies.clear()
+    await app_client.get("/")
+    app_client.headers["x-csrftoken"] = app_client.cookies["csrftoken"]
     unauth_preset = await app_client.post(
         "/admin/design/preset",
         data={"preset_key": "salbei_sand"},

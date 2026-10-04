@@ -1,11 +1,17 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 
-from litestar import Litestar
+from litestar import Litestar, Request
+from litestar.config.allowed_hosts import AllowedHostsConfig
+from litestar.config.csrf import CSRFConfig
 from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.datastructures import State
 from litestar.di import Provide
+from litestar.exceptions import NotAuthorizedException
+from litestar.middleware import DefineMiddleware
+from litestar.middleware.rate_limit import RateLimitConfig
 from litestar.middleware.session.client_side import CookieBackendConfig
 from litestar.openapi.config import OpenAPIConfig
 from litestar.openapi.spec import Contact
@@ -46,10 +52,15 @@ from atem.infrastructure.email.mock_email_service import MockEmailService
 from atem.infrastructure.email.smtp_email_service import SmtpEmailService
 from atem.infrastructure.logging.logger import get_logger, setup_logging
 from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHasher
-from atem.presentation.bootstrap import ensure_dev_admin, seed_content
+from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
+from atem.presentation.bootstrap import build_secret_cipher, ensure_dev_admin, seed_content
+from atem.presentation.controllers.admin_auth_controller import AdminAuthController
 from atem.presentation.controllers.admin_controller import AdminController
+from atem.presentation.controllers.admin_security_controller import AdminSecurityController
 from atem.presentation.controllers.health_controller import HealthController
 from atem.presentation.controllers.public_controller import PublicController
+from atem.presentation.security.admin_auth import unauthorized_handler
+from atem.presentation.security.proxy_headers import ProxyHeadersMiddleware
 
 logger = get_logger(__name__)
 BASE_DIR = Path(__file__).parent
@@ -136,11 +147,14 @@ async def provide_contact_service(
 async def provide_auth_service(
     user_repository: IUserRepository,
     password_hasher: IPasswordHasher,
+    settings: Settings,
 ) -> AuthService:
-    """Provide AuthService."""
+    """Provide AuthService (TOTP seeds encrypted with a key derived from SECRET_KEY)."""
     return AuthService(
         user_repository=user_repository,
         password_hasher=password_hasher,
+        secret_cipher=build_secret_cipher(settings),
+        totp_provider=PyotpTotpProvider(),
     )
 
 
@@ -179,6 +193,14 @@ async def lifespan(app: Litestar) -> AsyncGenerator[None, None]:
 # ------------------------------------------------------------------------------
 # APPLICATION FACTORY
 # ------------------------------------------------------------------------------
+SENSITIVE_POST_PATHS = frozenset({"/admin/login", "/admin/login/verify", "/contact"})
+
+
+def _is_sensitive_post(request: Request[Any, Any, Any]) -> bool:
+    """Throttle only abuse-prone endpoints (login, second factor, contact form)."""
+    return request.method == "POST" and request.url.path in SENSITIVE_POST_PATHS
+
+
 def create_app() -> Litestar:
     """Build and configure the Litestar Application."""
     settings = get_settings()
@@ -209,27 +231,54 @@ def create_app() -> Litestar:
         engine=JinjaTemplateEngine,
     )
 
-    # Session Middleware (encrypted cookie, key derived from SECRET_KEY via HKDF)
+    # Session Middleware (encrypted cookie, key derived from SECRET_KEY via HKDF).
+    # Revocation happens server-side via User.session_version (see security/admin_auth.py).
+    secure_cookies = settings.is_production_like
     session_config = CookieBackendConfig(
         secret=settings.session_secret,
         key="atem_session",
-        max_age=3600 * 24 * 7,  # 7 days
+        max_age=3600 * settings.SESSION_MAX_AGE_HOURS,
+        secure=secure_cookies,
+        httponly=True,
+        samesite="strict",
     )
 
-    # OpenAPI Config
-    openapi_config = OpenAPIConfig(
-        title="PUSTERUM API",
-        version="0.1.0",
-        description="Clean Architecture API für PUSTERUM – Praxis für Atem- und Körpertherapie",
-        contact=Contact(
-            name="PUSTERUM", email="kontakt@pusterum.be", url="https://www.pusterum.be"
-        ),
+    # CSRF: double-submit cookie; HTMX/fetch send the token in the `x-csrftoken` header
+    # (see layouts/base.html), classic forms in the hidden `_csrf_token` field.
+    csrf_config = CSRFConfig(
+        secret=settings.derive_key(b"atem-csrf").hex(),
+        cookie_secure=secure_cookies,
+        cookie_samesite="strict",
+        exclude=["/health"],
+    )
+
+    # First line of abuse protection (per worker, in-memory). The authoritative limits for
+    # login attempts live in the database (AuthService) and apply across all workers.
+    rate_limit_config = RateLimitConfig(
+        rate_limit=("minute", settings.RATE_LIMIT_SENSITIVE_PER_MINUTE),
+        check_throttle_handler=_is_sensitive_post,
+    )
+
+    # OpenAPI Config (disabled in production – it would list every admin route)
+    openapi_config = (
+        None
+        if settings.is_production_like
+        else OpenAPIConfig(
+            title="PUSTERUM API",
+            version="0.1.0",
+            description="Clean Architecture API für PUSTERUM – Praxis für Atem- und Körpertherapie",
+            contact=Contact(
+                name="PUSTERUM", email="kontakt@pusterum.be", url="https://www.pusterum.be"
+            ),
+        )
     )
 
     return Litestar(
         route_handlers=[
             HealthController,
             PublicController,
+            AdminAuthController,
+            AdminSecurityController,
             AdminController,
             static_router,
             media_router,
@@ -251,7 +300,14 @@ def create_app() -> Litestar:
             "auth_service": Provide(provide_auth_service),
         },
         template_config=template_config,
-        middleware=[session_config.middleware],
+        middleware=[
+            DefineMiddleware(ProxyHeadersMiddleware, trusted_proxies=settings.TRUSTED_PROXIES),
+            rate_limit_config.middleware,
+            session_config.middleware,
+        ],
+        csrf_config=csrf_config,
+        allowed_hosts=AllowedHostsConfig(allowed_hosts=settings.ALLOWED_HOSTS),
+        exception_handlers={NotAuthorizedException: unauthorized_handler},
         lifespan=[lifespan],
         openapi_config=openapi_config,
         debug=settings.DEBUG,

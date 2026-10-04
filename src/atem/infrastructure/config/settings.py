@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     ADMIN_USERNAME: str = "admin"
     ADMIN_EMAIL: str = "admin@pusterum.be"
     ADMIN_INITIAL_PASSWORD: str | None = None
+    # Two-factor authentication for the admin. None = mandatory in production/staging only.
+    ADMIN_REQUIRE_2FA: bool | None = None
+    SESSION_MAX_AGE_HOURS: int = 12
+    # Requests per minute and client IP on login / 2FA / contact (in-memory, per worker)
+    RATE_LIMIT_SENSITIVE_PER_MINUTE: int = 10
 
     # Dynamic User Media Storage (Persistent Docker Volume)
     MEDIA_DIR: str = "storage/uploads"
@@ -79,6 +84,13 @@ class Settings(BaseSettings):
     def is_production_like(self) -> bool:
         """Return True for environments that face the internet (production, staging)."""
         return self.ENVIRONMENT in ("production", "staging")
+
+    @property
+    def require_2fa(self) -> bool:
+        """Return True if admins must enrol a second factor before using the admin area."""
+        if self.ADMIN_REQUIRE_2FA is not None:
+            return self.ADMIN_REQUIRE_2FA
+        return self.is_production_like
 
     @property
     def session_secret(self) -> bytes:

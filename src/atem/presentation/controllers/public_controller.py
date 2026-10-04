@@ -15,6 +15,7 @@ from atem.application.services.content_service import ContentService
 from atem.application.services.profile_service import ProfileService
 from atem.application.services.theme_service import ThemeService
 from atem.domain.exceptions import ValidationException
+from atem.presentation.security.admin_auth import load_session_user
 
 logger = structlog.get_logger(__name__)
 
@@ -37,7 +38,7 @@ class PublicController(Controller):
         theme = await theme_service.get_active_theme()
         theme_css = theme_service.generate_css_variables(theme)
         content_blocks = await content_service.get_content_map()
-        is_admin = bool(request.session.get("user"))
+        is_admin = await load_session_user(request) is not None
 
         return Template(
             template_name="pages/index.html",
@@ -108,7 +109,7 @@ class PublicController(Controller):
         theme = await theme_service.get_active_theme()
         theme_css = theme_service.generate_css_variables(theme)
         content_blocks = await content_service.get_content_map()
-        is_admin = bool(request.session.get("user"))
+        is_admin = await load_session_user(request) is not None
 
         return Template(
             template_name="pages/impressum.html",
@@ -134,7 +135,7 @@ class PublicController(Controller):
         theme = await theme_service.get_active_theme()
         theme_css = theme_service.generate_css_variables(theme)
         content_blocks = await content_service.get_content_map()
-        is_admin = bool(request.session.get("user"))
+        is_admin = await load_session_user(request) is not None
 
         return Template(
             template_name="pages/datenschutz.html",

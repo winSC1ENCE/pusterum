@@ -20,12 +20,13 @@
                     </svg>
                     <span>Corporate Design Studio</span>
                 </a>
+                <a href="/admin/security" class="px-4 py-2.5 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted transition-colors">
+                    Sicherheit &amp; 2FA
+                </a>
                 <a href="/" target="_blank" class="px-4 py-2.5 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted transition-colors">
                     Webseite anzeigen ↗
                 </a>
-                <a href="/admin/logout" class="px-4 py-2.5 rounded-full bg-slate-200 hover:bg-slate-300 text-xs font-medium text-slate-800 transition-colors">
-                    Abmelden
-                </a>
+                <form method="POST" action="/admin/logout" class="inline"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="px-4 py-2.5 rounded-full bg-slate-200 hover:bg-slate-300 text-xs font-medium text-slate-800 transition-colors">Abmelden</button></form>
             </div>
         </div>
 

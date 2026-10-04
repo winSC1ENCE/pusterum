@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="de" class="h-full bg-slate-50">
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Corporate Design Studio – Admin Console</title>
@@ -78,6 +79,7 @@
     </script>
 </head>
 <body
+    hx-headers='{"x-csrftoken": "{{ csrf_token() }}"}'
     class="h-full flex flex-col font-sans text-slate-800 antialiased"
     x-data="designStudioState()"
     @htmx:before-request="isSaving = true"
@@ -117,7 +119,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                         </svg>
                     </a>
-                    <a href="/admin/logout" class="text-xs text-red-600 hover:text-red-800 font-medium">Abmelden</a>
+                    <form method="POST" action="/admin/logout" class="inline"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="text-xs text-red-600 hover:text-red-800 font-medium">Abmelden</button></form>
                 </div>
             </div>
         </div>

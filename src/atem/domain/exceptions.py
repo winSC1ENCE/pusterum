@@ -28,3 +28,7 @@ class AuthenticationException(DomainException):
 
 class AuthorizationException(DomainException):
     """Raised when user lacks permission."""
+
+
+class RateLimitedException(DomainException):
+    """Raised when a client exceeds an abuse-protection limit."""

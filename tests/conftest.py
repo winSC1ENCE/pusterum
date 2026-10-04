@@ -18,6 +18,7 @@ os.environ["ENVIRONMENT"] = "test"
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-chars-long-12345"
 os.environ["ADMIN_INITIAL_PASSWORD"] = "admin-secure-init-pass-change-me"
+os.environ["ALLOWED_HOSTS"] = '["testserver.local", "localhost"]'
 
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
@@ -26,6 +27,7 @@ from atem.application.services.profile_service import ProfileService
 from atem.application.services.theme_service import ThemeService
 from atem.domain.interfaces.email_service import IEmailService
 from atem.domain.interfaces.password_hasher import IPasswordHasher
+from atem.infrastructure.config.settings import get_settings
 from atem.infrastructure.database.base import Base
 from atem.infrastructure.database.repositories.sqlalchemy_contact_repository import (
     SqlAlchemyContactRepository,
@@ -44,7 +46,9 @@ from atem.infrastructure.database.repositories.sqlalchemy_user_repository import
 )
 from atem.infrastructure.email.mock_email_service import MockEmailService
 from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHasher
+from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
 from atem.presentation.app import create_app
+from atem.presentation.bootstrap import build_secret_cipher
 
 
 @pytest.fixture
@@ -109,9 +113,21 @@ def theme_service(db_session: AsyncSession) -> ThemeService:
 
 @pytest.fixture
 def auth_service(db_session: AsyncSession, password_hasher: IPasswordHasher) -> AuthService:
-    """Auth service fixture."""
-    repo = SqlAlchemyUserRepository(db_session)
-    return AuthService(repo, password_hasher)
+    """Auth service fixture (real Fernet cipher + TOTP provider)."""
+    return AuthService(
+        SqlAlchemyUserRepository(db_session),
+        password_hasher,
+        build_secret_cipher(get_settings()),
+        PyotpTotpProvider(),
+    )
+
+
+async def refresh_csrf(client: AsyncTestClient[Litestar]) -> None:
+    """Obtain a CSRF cookie via a safe request and send it as header on all later requests."""
+    await client.get("/")
+    token = client.cookies.get("csrftoken")
+    if token:
+        client.headers["x-csrftoken"] = token
 
 
 @pytest.fixture
@@ -127,4 +143,5 @@ async def app_client(
     app.state.engine = async_engine
 
     async with AsyncTestClient(app=app) as client:
+        await refresh_csrf(client)
         yield client

@@ -1,10 +1,8 @@
 """Admin login (password + TOTP second factor) and logout."""
 
-from typing import Annotated, Any
+from typing import Any
 
 from litestar import Controller, Request, get, post
-from litestar.enums import RequestEncodingType
-from litestar.params import Body
 from litestar.response import Redirect, Template
 from pydantic import ValidationError
 
@@ -12,6 +10,7 @@ from atem.application.dto.auth import LoginRequestDTO
 from atem.application.services.auth_service import AuthService
 from atem.application.services.theme_service import ThemeService
 from atem.domain.exceptions import AuthenticationException, RateLimitedException
+from atem.presentation.controllers.admin.common import FormData
 from atem.presentation.security.admin_auth import (
     load_session_user,
     pending_second_factor_user_id,
@@ -19,7 +18,6 @@ from atem.presentation.security.admin_auth import (
     store_pending_second_factor,
 )
 
-FormData = Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)]
 LOGIN_ERROR_INVALID_INPUT = "Bitte Benutzername und Passwort eingeben."
 
 

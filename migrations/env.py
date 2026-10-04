@@ -19,12 +19,7 @@ from atem.infrastructure.database.models.content import (  # noqa: F401
     ContentBlockModel,
     ContentBlockVersionModel,
 )
-from atem.infrastructure.database.models.profile import (  # noqa: F401
-    CompetencyModel,
-    PracticeInfoModel,
-    ServiceOfferingModel,
-    TherapistProfileModel,
-)
+from atem.infrastructure.database.models.offering import ServiceOfferingModel  # noqa: F401
 from atem.infrastructure.database.models.theme import ThemeConfigModel  # noqa: F401
 from atem.infrastructure.database.models.user import UserModel  # noqa: F401
 

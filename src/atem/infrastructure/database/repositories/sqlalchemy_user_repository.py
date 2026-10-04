@@ -1,11 +1,9 @@
 """SQLAlchemy implementation of IUserRepository."""
 
-from dataclasses import fields
 from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import delete, func, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from atem.domain.interfaces.user_repository import IUserRepository
 from atem.domain.models.user import User
@@ -14,48 +12,31 @@ from atem.infrastructure.database.models.user import (
     RecoveryCodeModel,
     UserModel,
 )
-
-_USER_FIELDS = tuple(f.name for f in fields(User))
-_IMMUTABLE_FIELDS = frozenset({"id", "created_at", "updated_at"})
+from atem.infrastructure.database.repositories.base import SqlAlchemyRepository
 
 
-def _to_entity(model: UserModel) -> User:
-    return User(**{name: getattr(model, name) for name in _USER_FIELDS})
-
-
-class SqlAlchemyUserRepository(IUserRepository):
+class SqlAlchemyUserRepository(SqlAlchemyRepository[UserModel, User], IUserRepository):
     """SQLAlchemy 2.0 Async repository for users, recovery codes and login attempts."""
 
-    def __init__(self, session: AsyncSession) -> None:
-        self._session = session
+    model = UserModel
+    entity = User
 
     async def get_by_username(self, username: str) -> User | None:
         """Find user by username."""
         model = await self._session.scalar(select(UserModel).where(UserModel.username == username))
-        return _to_entity(model) if model else None
+        return self._to_entity(model) if model else None
 
     async def get_by_id(self, user_id: UUID) -> User | None:
         """Find user by UUID."""
-        model = await self._session.get(UserModel, user_id)
-        return _to_entity(model) if model else None
+        return await self._get(user_id)
 
     async def create_user(self, user: User) -> User:
         """Create new user entity in database."""
-        model = UserModel(**{name: getattr(user, name) for name in _USER_FIELDS})
-        self._session.add(model)
-        await self._session.flush()
-        return _to_entity(model)
+        return await self._add(user)
 
     async def update_user(self, user: User) -> User:
         """Persist all mutable fields of an existing user."""
-        model = await self._session.get(UserModel, user.id)
-        if model is None:
-            return user
-        for name in _USER_FIELDS:
-            if name not in _IMMUTABLE_FIELDS:
-                setattr(model, name, getattr(user, name))
-        await self._session.flush()
-        return _to_entity(model)
+        return await self._save(user)
 
     async def replace_recovery_codes(self, user_id: UUID, code_hashes: list[str]) -> None:
         """Delete all recovery codes of the user and store the given hashes."""

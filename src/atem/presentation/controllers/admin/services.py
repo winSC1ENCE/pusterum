@@ -1,20 +1,18 @@
 """Admin management of offerings & prices (shown in the «Angebote & Tarife» section)."""
 
-from typing import Annotated, Any
+from typing import Any
 from uuid import UUID
 
 from litestar import Controller, Request, get, post
-from litestar.enums import RequestEncodingType
-from litestar.params import Body
 from litestar.response import Redirect, Template
 from pydantic import ValidationError
 
-from atem.application.dto.profile import ServiceFormDTO
-from atem.application.services.profile_service import ProfileService
+from atem.application.dto.offering import ServiceFormDTO
+from atem.application.services.offering_service import OfferingService
 from atem.application.services.theme_service import ThemeService
+from atem.presentation.controllers.admin.common import FormData
 from atem.presentation.security.admin_auth import require_admin
 
-FormData = Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)]
 FORM_ERROR = (
     "Bitte prüfen Sie die Angaben: Titel (mind. 2 Zeichen), Beschreibung (mind. 10 Zeichen), "
     "Dauer 15–300 Minuten und ein gültiger Preis sind erforderlich."
@@ -47,7 +45,7 @@ class AdminServicesController(Controller):
     async def _render(
         self,
         request: Request[Any, Any, Any],
-        profile_service: ProfileService,
+        offering_service: OfferingService,
         theme_service: ThemeService,
         **context: Any,
     ) -> Template:
@@ -56,7 +54,7 @@ class AdminServicesController(Controller):
             template_name="admin/services.html",
             context={
                 "user": request.session.get("user"),
-                "services": await profile_service.list_services(include_inactive=True),
+                "services": await offering_service.list_services(include_inactive=True),
                 "theme": theme,
                 "theme_css": theme_service.generate_css_variables(theme),
                 "error": None,
@@ -69,26 +67,26 @@ class AdminServicesController(Controller):
     async def services_page(
         self,
         request: Request[Any, Any, Any],
-        profile_service: ProfileService,
+        offering_service: OfferingService,
         theme_service: ThemeService,
     ) -> Template:
         """List all offerings with edit forms."""
-        return await self._render(request, profile_service, theme_service)
+        return await self._render(request, offering_service, theme_service)
 
     @post("")
     async def create_service(
         self,
         request: Request[Any, Any, Any],
-        profile_service: ProfileService,
+        offering_service: OfferingService,
         theme_service: ThemeService,
         data: FormData,
     ) -> Template | Redirect:
         """Create a new offering."""
         try:
-            await profile_service.create_service(_parse_form(data))
+            await offering_service.create_service(_parse_form(data))
         except ValidationError:
             return await self._render(
-                request, profile_service, theme_service, error=FORM_ERROR, form=data
+                request, offering_service, theme_service, error=FORM_ERROR, form=data
             )
         return Redirect(path="/admin/services?saved=1")
 
@@ -96,20 +94,20 @@ class AdminServicesController(Controller):
     async def update_service(
         self,
         request: Request[Any, Any, Any],
-        profile_service: ProfileService,
+        offering_service: OfferingService,
         theme_service: ThemeService,
         service_id: UUID,
         data: FormData,
     ) -> Template | Redirect:
         """Update an existing offering."""
         try:
-            await profile_service.update_service(service_id, _parse_form(data))
+            await offering_service.update_service(service_id, _parse_form(data))
         except ValidationError:
-            return await self._render(request, profile_service, theme_service, error=FORM_ERROR)
+            return await self._render(request, offering_service, theme_service, error=FORM_ERROR)
         return Redirect(path="/admin/services?saved=1")
 
     @post("/{service_id:uuid}/delete")
-    async def delete_service(self, profile_service: ProfileService, service_id: UUID) -> Redirect:
+    async def delete_service(self, offering_service: OfferingService, service_id: UUID) -> Redirect:
         """Delete an offering."""
-        await profile_service.delete_service(service_id)
+        await offering_service.delete_service(service_id)
         return Redirect(path="/admin/services?saved=1")

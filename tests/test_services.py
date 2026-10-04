@@ -4,10 +4,10 @@ import pytest
 
 from atem.application.dto.auth import LoginRequestDTO
 from atem.application.dto.contact import CreateContactMessageDTO
-from atem.application.dto.profile import PracticeInfoDTO, ServiceFormDTO, TherapistProfileDTO
+from atem.application.dto.offering import ServiceFormDTO
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
-from atem.application.services.profile_service import ProfileService
+from atem.application.services.offering_service import OfferingService, slugify
 from atem.domain.exceptions import (
     AuthenticationException,
     EntityNotFoundException,
@@ -18,38 +18,7 @@ from tests.conftest import solve_altcha
 
 
 @pytest.mark.asyncio
-async def test_profile_service_defaults_and_update(profile_service: ProfileService) -> None:
-    """Test getting default public profile and updating."""
-    profile = await profile_service.get_public_profile()
-    assert profile.full_name is not None
-
-    update_dto = TherapistProfileDTO(
-        id=profile.id,
-        full_name="Anna Beispiel",
-        title="Dipl. Komplementärtherapeutin",
-        diploma="OdA KT Atem",
-        tagline="Tief durchatmen.",
-        bio="Seit über 15 Jahren begleite ich Klientinnen und Klienten.",
-        quote="In der Ruhe liegt die Kraft.",
-    )
-    saved = await profile_service.update_profile(update_dto)
-    assert saved.full_name == "Anna Beispiel"
-
-    # Test practice info update
-    practice_dto = PracticeInfoDTO(
-        name="Praxis Atem Oase",
-        street="Bahnhofstrasse 1",
-        zip_code="8001",
-        city="Zürich",
-        phone="+41 44 999 88 77",
-        email="info@atem-oase.ch",
-    )
-    saved_practice = await profile_service.update_practice_info(practice_dto)
-    assert saved_practice.name == "Praxis Atem Oase"
-
-
-@pytest.mark.asyncio
-async def test_service_offering_crud(profile_service: ProfileService) -> None:
+async def test_service_offering_crud(offering_service: OfferingService) -> None:
     """Create/update/delete offerings; slugs are derived and unique."""
     form = ServiceFormDTO(
         title="Atem-Einzelsitzung für Körper & Psyche",
@@ -58,27 +27,27 @@ async def test_service_offering_crud(profile_service: ProfileService) -> None:
         duration_minutes=60,
         price_chf=140.0,
     )
-    created = await profile_service.create_service(form)
+    created = await offering_service.create_service(form)
     assert created.id is not None
     assert created.slug == "atem-einzelsitzung-fuer-koerper-psyche"
     assert created.is_health_insurance_recognized is False
 
-    duplicate = await profile_service.create_service(form)
+    duplicate = await offering_service.create_service(form)
     assert duplicate.slug == "atem-einzelsitzung-fuer-koerper-psyche-2"
 
-    updated = await profile_service.update_service(
+    updated = await offering_service.update_service(
         created.id, form.model_copy(update={"price_chf": 150.0, "is_active": False})
     )
     assert updated.price_chf == 150.0
     assert updated.slug == created.slug  # unchanged title keeps its slug
-    assert [s.id for s in await profile_service.list_services()] == [duplicate.id]
-    assert len(await profile_service.list_services(include_inactive=True)) == 2
+    assert [s.id for s in await offering_service.list_services()] == [duplicate.id]
+    assert len(await offering_service.list_services(include_inactive=True)) == 2
 
-    assert await profile_service.delete_service(created.id) is True
+    assert await offering_service.delete_service(created.id) is True
     with pytest.raises(EntityNotFoundException):
-        await profile_service.delete_service(created.id)
+        await offering_service.delete_service(created.id)
     with pytest.raises(EntityNotFoundException):
-        await profile_service.update_service(created.id, form)
+        await offering_service.update_service(created.id, form)
 
 
 @pytest.mark.asyncio
@@ -139,3 +108,8 @@ async def test_auth_service(auth_service: AuthService) -> None:
         await auth_service.authenticate(
             LoginRequestDTO(username="admin", password="wrong-password"), "198.51.100.1"
         )
+
+
+def test_slugify_transliterates_umlauts() -> None:
+    assert slugify("Atem & Körper – Übung für Groß") == "atem-koerper-uebung-fuer-gross"
+    assert slugify("!!!") == ""

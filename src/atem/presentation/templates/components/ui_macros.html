@@ -1,0 +1,37 @@
+{# =============================================================================
+   Reusable UI building blocks (import with context so editable() sees content_blocks):
+   {% from "components/ui_macros.html" import section_header, check_item with context %}
+   ============================================================================= #}
+{% from "components/editable_block.html" import editable with context %}
+
+{# Centered section header: badge, title, subtitle (content keys <prefix>.badge/.title/.subtitle) #}
+{% macro section_header(prefix, subtitle_rows=3) %}
+<div class="text-center max-w-3xl mx-auto mb-16">
+    <span class="text-xs uppercase font-bold tracking-widest text-theme-primary block mb-2">
+        {{ editable(prefix ~ '.badge', tag='span') }}
+    </span>
+    <h2 class="font-heading text-3xl sm:text-4xl font-bold text-theme-text-main">
+        {{ editable(prefix ~ '.title', tag='span') }}
+    </h2>
+    <div class="mt-3">
+        {{ editable(prefix ~ '.subtitle', tag='p', class='text-theme-text-muted text-base leading-relaxed', type='textarea', rows=subtitle_rows) }}
+    </div>
+</div>
+{% endmacro %}
+
+{# Round check icon used in lists #}
+{% macro check_icon() %}
+<span class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0" aria-hidden="true">
+    <svg class="w-4 h-4" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+    </svg>
+</span>
+{% endmacro %}
+
+{# Checklist entry with an editable text (rendered as <li>) #}
+{% macro check_item(key) %}
+<li class="flex items-start gap-3">
+    {{ check_icon() }}
+    {{ editable(key, tag='span', class='text-sm text-theme-text-main') }}
+</li>
+{% endmacro %}

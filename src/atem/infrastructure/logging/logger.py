@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import structlog
 
@@ -57,8 +57,3 @@ def setup_logging(is_dev: bool = True) -> None:
     # Suppress verbose loggers
     for noisy in ["uvicorn.access", "sqlalchemy.engine", "httpcore", "httpx"]:
         logging.getLogger(noisy).setLevel(logging.WARNING)
-
-
-def get_logger(name: str) -> Any:
-    """Get structured logger instance."""
-    return structlog.get_logger(name)

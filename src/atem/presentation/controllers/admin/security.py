@@ -1,11 +1,9 @@
 """Admin account security: password change, TOTP enrolment and recovery codes."""
 
-from typing import Annotated, Any
+from typing import Any
 
 import segno
 from litestar import Controller, Request, get, post
-from litestar.enums import RequestEncodingType
-from litestar.params import Body
 from litestar.response import Template
 from markupsafe import Markup
 
@@ -14,6 +12,7 @@ from atem.application.services.auth_service import AuthService
 from atem.application.services.theme_service import ThemeService
 from atem.domain.exceptions import ValidationException
 from atem.infrastructure.config.settings import get_settings
+from atem.presentation.controllers.admin.common import FormData
 from atem.presentation.security.admin_auth import (
     ALLOW_PENDING_SECURITY_OPT,
     load_session_user,
@@ -21,7 +20,6 @@ from atem.presentation.security.admin_auth import (
     store_authenticated_session,
 )
 
-FormData = Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)]
 SESSION_TOTP_SETUP_KEY = "totp_setup_secret"
 PASSWORD_FIELD_MAX = 256
 

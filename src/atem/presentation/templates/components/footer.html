@@ -7,7 +7,7 @@
             <!-- Column 1: Info & Brand -->
             <div class="space-y-4 md:col-span-2">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center p-1.5 border border-slate-700 text-white flex-shrink-0" style="width: 40px; height: 40px;">
+                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center p-1.5 border border-slate-700 text-white flex-shrink-0">
                         <svg class="w-full h-full text-slate-200" viewBox="0 0 100 100" fill="none" width="28" height="28">
                             <!-- Center Receptacle & Core -->
                             <circle cx="48" cy="52" r="5" fill="currentColor"/>
@@ -76,7 +76,7 @@
                         <span class="text-[11px] text-slate-400 uppercase tracking-wider block">Atem- und Körpertherapie &bull; Gemeinschaftspraxis Physiotherapie</span>
                     </div>
                 </div>
-                {{ editable('footer.tagline', 'PUSTERUM – Praxis für Atem- und Körpertherapie. Stephanie.\nAusbildung Ganzheitlich integrative Atemtherapie (IKP).\nEingebettet in eine interdisziplinäre Physiotherapie-Gemeinschaftspraxis.', tag='p', class='text-xs text-slate-400 max-w-md leading-relaxed whitespace-pre-line') }}
+                {{ editable('footer.tagline', tag='p', class='text-xs text-slate-400 max-w-md leading-relaxed whitespace-pre-line') }}
             </div>
 
             <!-- Column 2: Quick Links -->
@@ -109,11 +109,11 @@
                 <p>&copy; 2026 PUSTERUM. Alle Rechte vorbehalten.</p>
                 <span class="hidden sm:inline text-slate-700">&bull;</span>
                 <div class="flex items-center gap-1.5 text-slate-400">
-                    {{ editable('footer.webdesign', 'Webdesign bynico.', tag='span', class='hover:text-slate-200 transition-colors') }}
+                    {{ editable('footer.webdesign', tag='span', class='hover:text-slate-200 transition-colors') }}
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-right">
-                {{ editable('footer.trademark_notice', '«bynico.» ist eine eingetragene Marke von Nicolas Mischler.', tag='span', class='text-[11px] text-slate-500') }}
+                {{ editable('footer.trademark_notice', tag='span', class='text-[11px] text-slate-500') }}
                 <span class="hidden sm:inline text-slate-700">&bull;</span>
                 <p class="text-slate-500">Ganzheitlich-Integrative Atemtherapie (IKP)</p>
             </div>

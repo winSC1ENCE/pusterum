@@ -49,26 +49,3 @@ class ContentBlockVersion:
     author_id: UUID | None = None
     change_summary: str | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-
-    @classmethod
-    def create(
-        cls,
-        block_key: str,
-        version_number: int,
-        content: str,
-        author_name: str,
-        *,
-        author_id: UUID | None = None,
-        change_summary: str | None = None,
-    ) -> "ContentBlockVersion":
-        """Factory method to create a new content version snapshot."""
-        return cls(
-            id=uuid4(),
-            block_key=block_key,
-            version_number=version_number,
-            content=content,
-            author_id=author_id,
-            author_name=author_name,
-            change_summary=change_summary,
-            created_at=datetime.now(UTC),
-        )

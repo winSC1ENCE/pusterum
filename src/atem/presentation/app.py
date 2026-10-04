@@ -1,3 +1,5 @@
+"""Litestar application factory: dependency injection, middleware, security and lifespan."""
+
 import asyncio
 import contextlib
 from collections.abc import AsyncGenerator
@@ -5,6 +7,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
+import structlog
 from litestar import Litestar, Request
 from litestar.config.csrf import CSRFConfig
 from litestar.contrib.jinja import JinjaTemplateEngine
@@ -24,13 +27,13 @@ from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
 from atem.application.services.content_service import ContentService
 from atem.application.services.media_service import MediaService
-from atem.application.services.profile_service import ProfileService
+from atem.application.services.offering_service import OfferingService
 from atem.application.services.theme_service import ThemeService
 from atem.domain.interfaces.contact_repository import IContactRepository
 from atem.domain.interfaces.content_repository import IContentRepository
 from atem.domain.interfaces.email_service import IEmailService
+from atem.domain.interfaces.offering_repository import IOfferingRepository
 from atem.domain.interfaces.password_hasher import IPasswordHasher
-from atem.domain.interfaces.profile_repository import IProfileRepository
 from atem.domain.interfaces.theme_repository import IThemeRepository
 from atem.domain.interfaces.user_repository import IUserRepository
 from atem.infrastructure.config.settings import Settings, get_settings
@@ -40,8 +43,8 @@ from atem.infrastructure.database.repositories.sqlalchemy_contact_repository imp
 from atem.infrastructure.database.repositories.sqlalchemy_content_repository import (
     SqlAlchemyContentRepository,
 )
-from atem.infrastructure.database.repositories.sqlalchemy_profile_repository import (
-    SqlAlchemyProfileRepository,
+from atem.infrastructure.database.repositories.sqlalchemy_offering_repository import (
+    SqlAlchemyOfferingRepository,
 )
 from atem.infrastructure.database.repositories.sqlalchemy_theme_repository import (
     SqlAlchemyThemeRepository,
@@ -52,7 +55,7 @@ from atem.infrastructure.database.repositories.sqlalchemy_user_repository import
 from atem.infrastructure.database.session import create_engine, create_session_factory
 from atem.infrastructure.email.mock_email_service import MockEmailService
 from atem.infrastructure.email.smtp_email_service import SmtpEmailService
-from atem.infrastructure.logging.logger import get_logger, setup_logging
+from atem.infrastructure.logging.logger import setup_logging
 from atem.infrastructure.media.pillow_image_sanitizer import PillowImageSanitizer
 from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHasher
 from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
@@ -63,10 +66,7 @@ from atem.presentation.bootstrap import (
     purge_expired_data,
     seed_content,
 )
-from atem.presentation.controllers.admin_auth_controller import AdminAuthController
-from atem.presentation.controllers.admin_controller import AdminController
-from atem.presentation.controllers.admin_security_controller import AdminSecurityController
-from atem.presentation.controllers.admin_services_controller import AdminServicesController
+from atem.presentation.controllers.admin import ADMIN_CONTROLLERS
 from atem.presentation.controllers.health_controller import HealthController
 from atem.presentation.controllers.public_controller import PublicController
 from atem.presentation.errors import EXCEPTION_HANDLERS
@@ -76,7 +76,7 @@ from atem.presentation.security.proxy_headers import ProxyHeadersMiddleware
 from atem.presentation.security.security_headers import SecurityHeadersMiddleware
 from atem.presentation.templating import configure_jinja
 
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 BASE_DIR = Path(__file__).parent
 
 
@@ -107,9 +107,9 @@ async def provide_email_service(settings: Settings) -> IEmailService:
     return MockEmailService()
 
 
-async def provide_profile_repository(db_session: AsyncSession) -> IProfileRepository:
-    """Provide profile repository implementing IProfileRepository ABC."""
-    return SqlAlchemyProfileRepository(session=db_session)
+async def provide_offering_repository(db_session: AsyncSession) -> IOfferingRepository:
+    """Provide the offering repository (IOfferingRepository)."""
+    return SqlAlchemyOfferingRepository(session=db_session)
 
 
 async def provide_contact_repository(db_session: AsyncSession) -> IContactRepository:
@@ -142,9 +142,9 @@ async def provide_content_service(content_repository: IContentRepository) -> Con
     return ContentService(content_repository=content_repository)
 
 
-async def provide_profile_service(profile_repository: IProfileRepository) -> ProfileService:
-    """Provide ProfileService."""
-    return ProfileService(profile_repository=profile_repository)
+async def provide_offering_service(offering_repository: IOfferingRepository) -> OfferingService:
+    """Provide OfferingService."""
+    return OfferingService(repository=offering_repository)
 
 
 async def provide_contact_service(
@@ -327,10 +327,7 @@ def create_app() -> Litestar:
         route_handlers=[
             HealthController,
             PublicController,
-            AdminAuthController,
-            AdminSecurityController,
-            AdminServicesController,
-            AdminController,
+            *ADMIN_CONTROLLERS,
             static_router,
             media_router,
         ],
@@ -343,10 +340,10 @@ def create_app() -> Litestar:
             "theme_service": Provide(provide_theme_service),
             "content_repository": Provide(provide_content_repository),
             "content_service": Provide(provide_content_service),
-            "profile_repository": Provide(provide_profile_repository),
+            "offering_repository": Provide(provide_offering_repository),
             "contact_repository": Provide(provide_contact_repository),
             "user_repository": Provide(provide_user_repository),
-            "profile_service": Provide(provide_profile_service),
+            "offering_service": Provide(provide_offering_service),
             "contact_service": Provide(provide_contact_service),
             "auth_service": Provide(provide_auth_service),
             "media_service": Provide(provide_media_service),

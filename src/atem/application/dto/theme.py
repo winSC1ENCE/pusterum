@@ -70,9 +70,6 @@ class ThemeConfigDTO(BaseModel):
     body_font: str = Field(default="Plus Jakarta Sans", max_length=50)
 
     active_shape: ShapeType = ShapeType.DANDELION_SEED
-    motif_enabled: bool = True
-    motif_animation_speed: str = Field(default="normal", max_length=20)
-    dandelion_mode: DandelionEffectMode = DandelionEffectMode.DISABLED
     dandelion_modes: list[DandelionEffectMode] = Field(
         default_factory=lambda: [DandelionEffectMode.DISABLED]
     )
@@ -80,9 +77,8 @@ class ThemeConfigDTO(BaseModel):
     dandelion_seed_opacity: int = Field(default=80, ge=10, le=100)
 
     def has_dandelion_mode(self, mode: DandelionEffectMode | str) -> bool:
-        """Check if a specific dandelion mode is active."""
-        val = mode.value if isinstance(mode, DandelionEffectMode) else mode
-        return any(m.value == val for m in self.dandelion_modes)
+        """Check if a specific dandelion mode is active (used by templates)."""
+        return DandelionEffectMode(mode) in self.dandelion_modes
 
     @property
     def dandelion_modes_list(self) -> list[str]:
@@ -107,22 +103,8 @@ class UpdateThemeRequestDTO(BaseModel):
     heading_font: FontFamily = FontFamily.LORA
     body_font: FontFamily = FontFamily.PLUS_JAKARTA_SANS
     active_shape: ShapeType = ShapeType.DANDELION_SEED
-    motif_enabled: bool = True
-    motif_animation_speed: str = Field(default="normal", max_length=20)
-    dandelion_mode: DandelionEffectMode = DandelionEffectMode.DISABLED
     dandelion_modes: list[DandelionEffectMode] = Field(
         default_factory=lambda: [DandelionEffectMode.DISABLED]
     )
     dandelion_seed_size: SeedSize = 48
     dandelion_seed_opacity: SeedOpacity = 80
-
-
-class UpdateDandelionModeRequestDTO(BaseModel):
-    """Request payload to update ambient dandelion effect mode and sliders."""
-
-    dandelion_mode: DandelionEffectMode = DandelionEffectMode.DISABLED
-    dandelion_modes: list[DandelionEffectMode] = Field(
-        default_factory=lambda: [DandelionEffectMode.DISABLED]
-    )
-    dandelion_seed_size: int = Field(default=48, ge=20, le=120)
-    dandelion_seed_opacity: int = Field(default=80, ge=10, le=100)

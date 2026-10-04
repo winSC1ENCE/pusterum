@@ -4,9 +4,10 @@
    Alt+S save, Esc cancel, immutable version badges, and modal audit trail.
    ============================================================================= #}
 
-{% macro editable(key, default_value, tag='p', class='', type='text', img_alt='', img_class='', rows=3, force_admin=none) %}
+{% macro editable(key, default_value=none, tag='p', class='', type='text', img_alt='', img_class='', rows=3, force_admin=none) %}
+    {# Fallback (only used before seeding): explicit value or the default from content_defaults.py #}
     {% set block = content_blocks.get(key) if content_blocks else none %}
-    {% set val = block.current_content if block else default_value %}
+    {% set val = block.current_content if block else (default_value if default_value is not none else content_default(key)) %}
     {% set version = block.current_version_number if block else 1 %}
     {% set dom_id = "content-block-" ~ (key | replace('.', '-')) %}
     {% set show_admin = force_admin if force_admin is not none else is_admin %}

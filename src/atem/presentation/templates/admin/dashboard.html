@@ -66,11 +66,11 @@
             </div>
             <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
                 <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Aktive Angebote</span>
-                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ profile.services|length }}</div>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ services|length }}</div>
             </div>
             <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
-                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Kompetenzen</span>
-                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ profile.competencies|length }}</div>
+                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Neue Anfragen</span>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ messages|selectattr("status.value", "equalto", "NEW")|list|length }}</div>
             </div>
         </div>
 

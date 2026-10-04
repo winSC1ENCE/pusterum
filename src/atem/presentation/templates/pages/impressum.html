@@ -11,20 +11,20 @@
         </nav>
 
         <h1 class="font-heading text-3xl sm:text-4xl text-theme-text-main font-bold mb-8">
-            {{ editable('impressum.title', 'Impressum', tag='span') }}
+            {{ editable('impressum.title', tag='span') }}
         </h1>
 
         <div class="space-y-6 text-sm text-theme-text-muted leading-relaxed">
             <div>
-                {{ editable('impressum.responsible_title', 'Verantwortliche Stelle', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {{ editable('impressum.responsible_title', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
                 {% set phone_block = content_blocks.get('practice.phone') if content_blocks else none %}
                 {% set email_block = content_blocks.get('practice.email') if content_blocks else none %}
                 {% set practice_phone = phone_block.current_content if phone_block else '' %}
                 {% set practice_email = email_block.current_content if email_block else '' %}
                 <div>
-                    {{ editable('practice.name', 'PUSTERUM', tag='strong', class='text-theme-text-main') }}
-                    <p>{{ profile.full_name }}</p>
-                    {{ editable('practice.address', 'Kramgasse 42, 3011 Bern', tag='p', class='whitespace-pre-line', type='textarea', rows=3) }}
+                    {{ editable('practice.name', tag='strong', class='text-theme-text-main') }}
+                    {{ editable('impressum.owner_name', tag='p') }}
+                    {{ editable('practice.address', tag='p', class='whitespace-pre-line', type='textarea', rows=3) }}
                     <p>Schweiz</p>
                 </div>
                 <div class="mt-2">
@@ -41,20 +41,20 @@
             </div>
 
             <div>
-                {{ editable('impressum.recognition_title', 'Ausbildung & Methode', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
-                {{ editable('impressum.recognition_text', 'PUSTERUM – Praxis für Atem- und Körpertherapie\nStephanie\nAusbildung Ganzheitlich integrative Atemtherapie, IKP Institut für Körperzentrierte Psychotherapie\nEingebettet in Physiotherapie-Gemeinschaftspraxis.', tag='p', type='textarea', rows=3) }}
+                {{ editable('impressum.recognition_title', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {{ editable('impressum.recognition_text', tag='p', type='textarea', rows=3) }}
             </div>
 
             <div>
-                {{ editable('impressum.disclaimer_title', 'Haftungsausschluss', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
-                {{ editable('impressum.disclaimer_text', 'Die Inhalte dieser Webseite wurden mit grösstmöglicher Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte übernimmt die Praxisinhaberin keine Gewähr. Die bereitgestellten Informationen stellen keine medizinische Diagnose dar und ersetzen nicht die Konsultation einer Ärztin oder eines Arztes.', tag='p', type='textarea', rows=4) }}
+                {{ editable('impressum.disclaimer_title', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {{ editable('impressum.disclaimer_text', tag='p', type='textarea', rows=4) }}
             </div>
 
             <div>
-                {{ editable('impressum.webdesign_title', 'Konzeption & Webdesign', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {{ editable('impressum.webdesign_title', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
                 <div class="space-y-1">
-                    {{ editable('impressum.webdesign_by', 'Webdesign bynico.', tag='p', class='font-medium text-theme-text-main') }}
-                    {{ editable('impressum.webdesign_notice', '«bynico.» ist eine eingetragene Marke von Nicolas Mischler.', tag='p', class='text-xs text-theme-text-muted') }}
+                    {{ editable('impressum.webdesign_by', tag='p', class='font-medium text-theme-text-main') }}
+                    {{ editable('impressum.webdesign_notice', tag='p', class='text-xs text-theme-text-muted') }}
                 </div>
             </div>
         </div>

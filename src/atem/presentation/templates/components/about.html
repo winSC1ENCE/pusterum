@@ -1,4 +1,5 @@
 {% from "components/editable_block.html" import editable with context %}
+{% from "components/ui_macros.html" import check_item with context %}
 
 <section id="ueber-mich" class="py-20 bg-theme-surface border-y border-theme transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,19 +13,19 @@
 
                     <!-- Portrait Container -->
                     <div class="bg-theme-main border border-theme p-3 shadow-md shape-organic overflow-hidden aspect-square flex items-center justify-center">
-                        {{ editable('about.portrait', '/static/images/stephanie_portrait.jpg', type='image', img_alt='Stephanie – PUSTERUM Praxis für Atem- und Körpertherapie', img_class='w-full h-full aspect-square object-cover shape-organic shadow-inner') }}
+                        {{ editable('about.portrait', type='image', img_alt='Stephanie – PUSTERUM Praxis für Atem- und Körpertherapie', img_class='w-full h-full aspect-square object-cover shape-organic shadow-inner') }}
                     </div>
 
                     <!-- Floating Quality Badge (Editable) -->
                     <div class="absolute -bottom-4 -right-2 bg-theme-card border border-theme px-4 py-2.5 rounded-2xl shadow-lg flex items-center gap-3 z-10">
-                        <div class="w-8 h-8 rounded-full bg-theme-primary/10 flex items-center justify-center text-theme-primary flex-shrink-0" style="width: 32px; height: 32px;">
+                        <div class="w-8 h-8 rounded-full bg-theme-primary/10 flex items-center justify-center text-theme-primary flex-shrink-0">
                             <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                             </svg>
                         </div>
                         <div>
-                            {{ editable('about.badge_title', 'Atemtherapie IKP', tag='span', class='text-xs font-bold text-theme-primary block') }}
-                            {{ editable('about.badge_subtitle', 'Ganzheitlich-Integrativ', tag='span', class='text-[10px] text-theme-text-muted block') }}
+                            {{ editable('about.badge_title', tag='span', class='text-xs font-bold text-theme-primary block') }}
+                            {{ editable('about.badge_subtitle', tag='span', class='text-[10px] text-theme-text-muted block') }}
                         </div>
                     </div>
                 </div>
@@ -36,8 +37,8 @@
                     <span class="text-xs uppercase font-bold tracking-widest text-theme-primary block mb-2">
                         Philosophie &amp; Praxis
                     </span>
-                    {{ editable('about.title', 'PUSTERUM', tag='h2', class='font-heading text-3xl sm:text-4xl font-bold text-theme-text-main') }}
-                    {{ editable('about.subtitle', 'Praxis für Atem- und Körpertherapie • Stephanie', tag='p', class='text-theme-primary font-medium text-lg mt-1') }}
+                    {{ editable('about.title', tag='h2', class='font-heading text-3xl sm:text-4xl font-bold text-theme-text-main') }}
+                    {{ editable('about.subtitle', tag='p', class='text-theme-primary font-medium text-lg mt-1') }}
                 </div>
 
                 <div class="space-y-4 text-theme-text-muted leading-relaxed text-base">
@@ -47,59 +48,27 @@
                             <svg class="w-4 h-4 text-theme-primary" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
                             </svg>
-                            {{ editable('about.meaning_title', 'PUSTERUM [ˈpuːsdəʀomʔ]', tag='span') }}
+                            {{ editable('about.meaning_title', tag='span') }}
                         </h3>
-                        {{ editable('about.meaning_text', 'Pusterum ist ein dänisches Wort und bedeutet auf Deutsch „Raum zum Atmen“ oder im übertragenen Sinne „Atempause“, „Erholungspause“ bzw. „Zufluchtsort“. Setzt man das Wort wörtlich aus den dänischen Begriffen zusammen, beschreibt es einen Freiraum oder Moment, in dem man durchatmen und dem Alltagsstress entfliehen kann.', tag='p', class='text-xs sm:text-sm text-theme-text-muted leading-relaxed', type='textarea', rows=4) }}
+                        {{ editable('about.meaning_text', tag='p', class='text-xs sm:text-sm text-theme-text-muted leading-relaxed', type='textarea', rows=4) }}
                     </div>
 
-                    {{ editable('about.bio', profile.bio, tag='p', type='textarea', rows=4) }}
+                    {{ editable('about.bio', tag='p', type='textarea', rows=4) }}
 
-                    {{ editable('about.interdisciplinary', 'Mit der Zeit wuchs in mir der Wunsch nach einer beruflichen Veränderung, die mehr Sinnhaftigkeit und persönlichen Ausgleich bietet. Den entscheidenden Impuls für diese Neuausrichtung gab schliesslich eine gesundheitlich herausfordernde Phase. Bei meiner Suche nach neuen Wegen bin ich auf die Atem- und Körpertherapie gestossen; sie hat mich von Anfang an tief begeistert. Der lebensnotwendige Atem ist so selbstverständlich und allgegenwärtig und dennoch unbeachtet, wird er jedoch bewusst wahrgenommen ist er äusserst kraftvoll. Die Arbeit mit dem Atem fasziniert mich durch ihre Direktheit und ihre ganzheitliche Wirkung auf Körper und Geist. Heute nutze ich die Erfahrungen, die ich in den bisherigen Jahren meiner Ausbildung sammeln durfte, um Menschen auf ihrem Weg zu mehr Wohlbefinden, Selbstheilung und innerer Balance kompetent zu begleiten.', tag='p', type='textarea', rows=4) }}
+                    {{ editable('about.interdisciplinary', tag='p', type='textarea', rows=4) }}
                 </div>
 
                 <!-- Personal Quote -->
                 <div>
-                    {{ editable('about.quote', profile.quote, tag='div', class='p-5 rounded-2xl bg-theme-muted border-l-4 border-theme-primary whitespace-pre-line italic text-theme-text-main font-heading text-lg') }}
+                    {{ editable('about.quote', tag='div', class='p-5 rounded-2xl bg-theme-muted border-l-4 border-theme-primary whitespace-pre-line italic text-theme-text-main font-heading text-lg') }}
                 </div>
 
                 <!-- Key Credentials List -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                    <div class="flex items-start gap-3">
-                        <div class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0" style="width: 24px; height: 24px;">
-                            <svg class="w-4 h-4" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        {{ editable('about.credential_1', '2023 – heute: Ausbildung Ganzheitlich integrative Atemtherapie, IKP Institut für Körperzentrierte Psychotherapie', tag='span', class='text-sm text-theme-text-main') }}
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                        <div class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0" style="width: 24px; height: 24px;">
-                            <svg class="w-4 h-4" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        {{ editable('about.credential_2', '2014: Diplom Yogalehrerin, International Sivananda Yoga Vedanta Centre', tag='span', class='text-sm text-theme-text-main') }}
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                        <div class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0" style="width: 24px; height: 24px;">
-                            <svg class="w-4 h-4" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        {{ editable('about.credential_3', '2006 – 2007: Diplom ErnährungsCoach, Klubschule Migros', tag='span', class='text-sm text-theme-text-main') }}
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                        <div class="w-6 h-6 rounded-full bg-theme-secondary/50 flex items-center justify-center text-theme-primary mt-0.5 flex-shrink-0" style="width: 24px; height: 24px;">
-                            <svg class="w-4 h-4" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        {{ editable('about.credential_4', 'In Gemeinschaftspraxis Physiotherapie', tag='span', class='text-sm text-theme-text-main') }}
-                    </div>
-                </div>
+                <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    {% for i in range(1, count_numbered_keys('about.credential_') + 1) %}
+                    {{ check_item('about.credential_' ~ i) }}
+                    {% endfor %}
+                </ul>
 
             </div>
         </div>

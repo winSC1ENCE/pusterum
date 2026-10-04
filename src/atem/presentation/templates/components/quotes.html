@@ -1,7 +1,7 @@
 {% from "components/editable_block.html" import editable with context %}
 
 {# Rotating breath quotes band (TDR-0003). Admins see every quote stacked for inline editing. #}
-{% set quote_count = 6 %}
+{% set quote_count = count_numbered_keys('quotes.', '.text') %}
 
 <section id="zitate" class="py-16 bg-theme-main transition-colors duration-300" aria-label="Zitate zum Atem">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -14,8 +14,8 @@
         <div class="space-y-8">
             {% for i in range(1, quote_count + 1) %}
             <figure class="space-y-2">
-                {{ editable('quotes.' ~ i ~ '.text', '', tag='blockquote', class='font-heading italic text-xl sm:text-2xl text-theme-text-main leading-relaxed', type='textarea', rows=3) }}
-                {{ editable('quotes.' ~ i ~ '.author', '', tag='figcaption', class='text-sm font-semibold uppercase tracking-wider text-theme-primary') }}
+                {{ editable('quotes.' ~ i ~ '.text', tag='blockquote', class='font-heading italic text-xl sm:text-2xl text-theme-text-main leading-relaxed', type='textarea', rows=3) }}
+                {{ editable('quotes.' ~ i ~ '.author', tag='figcaption', class='text-sm font-semibold uppercase tracking-wider text-theme-primary') }}
             </figure>
             {% endfor %}
         </div>
@@ -43,9 +43,9 @@
                     class="space-y-4"
                     style="grid-area: 1 / 1;"
                 >
-                    {{ editable('quotes.' ~ i ~ '.text', '', tag='blockquote', class='font-heading italic text-xl sm:text-2xl lg:text-3xl text-theme-text-main leading-relaxed') }}
+                    {{ editable('quotes.' ~ i ~ '.text', tag='blockquote', class='font-heading italic text-xl sm:text-2xl lg:text-3xl text-theme-text-main leading-relaxed') }}
                     <figcaption class="text-sm font-semibold uppercase tracking-wider text-theme-primary">
-                        – {{ editable('quotes.' ~ i ~ '.author', '', tag='span') }}
+                        – {{ editable('quotes.' ~ i ~ '.author', tag='span') }}
                     </figcaption>
                 </figure>
                 {% endfor %}

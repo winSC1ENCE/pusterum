@@ -6,6 +6,7 @@ which the production container entrypoint runs once before the web workers start
 
 from datetime import UTC, datetime, timedelta
 
+import structlog
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from atem.application.services.auth_service import AuthService
@@ -25,12 +26,11 @@ from atem.infrastructure.database.repositories.sqlalchemy_user_repository import
     SqlAlchemyUserRepository,
 )
 from atem.infrastructure.email.mock_email_service import MockEmailService
-from atem.infrastructure.logging.logger import get_logger
 from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHasher
 from atem.infrastructure.security.fernet_secret_cipher import FernetSecretCipher
 from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
 
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 
 LOGIN_ATTEMPT_RETENTION = timedelta(days=30)
 

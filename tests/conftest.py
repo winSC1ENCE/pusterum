@@ -32,7 +32,7 @@ os.environ["ALTCHA_MAX_NUMBER"] = "2000"  # cheap proof-of-work in tests
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
 from atem.application.services.content_service import ContentService
-from atem.application.services.profile_service import ProfileService
+from atem.application.services.offering_service import OfferingService
 from atem.application.services.theme_service import ThemeService
 from atem.domain.interfaces.email_service import IEmailService
 from atem.domain.interfaces.password_hasher import IPasswordHasher
@@ -44,8 +44,8 @@ from atem.infrastructure.database.repositories.sqlalchemy_contact_repository imp
 from atem.infrastructure.database.repositories.sqlalchemy_content_repository import (
     SqlAlchemyContentRepository,
 )
-from atem.infrastructure.database.repositories.sqlalchemy_profile_repository import (
-    SqlAlchemyProfileRepository,
+from atem.infrastructure.database.repositories.sqlalchemy_offering_repository import (
+    SqlAlchemyOfferingRepository,
 )
 from atem.infrastructure.database.repositories.sqlalchemy_theme_repository import (
     SqlAlchemyThemeRepository,
@@ -105,10 +105,9 @@ async def db_session(async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, 
 
 
 @pytest.fixture
-def profile_service(db_session: AsyncSession) -> ProfileService:
-    """Profile service fixture."""
-    repo = SqlAlchemyProfileRepository(db_session)
-    return ProfileService(repo)
+def offering_service(db_session: AsyncSession) -> OfferingService:
+    """Offering service fixture."""
+    return OfferingService(SqlAlchemyOfferingRepository(db_session))
 
 
 @pytest.fixture

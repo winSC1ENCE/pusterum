@@ -3,6 +3,8 @@
 import pytest
 from litestar import Litestar
 from litestar.testing import AsyncTestClient
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.conftest import contact_form_payload
 
@@ -24,8 +26,6 @@ async def test_readiness_reports_database_failure(
     app_client: AsyncTestClient[Litestar], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A broken database connection turns the readiness probe red (503)."""
-    from sqlalchemy.exc import OperationalError
-    from sqlalchemy.ext.asyncio import AsyncSession
 
     async def broken_execute(*_: object, **__: object) -> None:
         raise OperationalError("SELECT 1", {}, Exception("connection refused"))

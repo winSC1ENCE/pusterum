@@ -11,7 +11,6 @@ from atem.domain.models.theme import (
     ColorPresetKey,
     DandelionEffectMode,
     ShapeType,
-    ThemeConfig,
 )
 from atem.infrastructure.database.models.theme import ThemeConfigModel
 from atem.infrastructure.database.repositories.sqlalchemy_theme_repository import (
@@ -29,7 +28,7 @@ async def test_default_theme_initialization(theme_service: ThemeService) -> None
     assert theme.active_shape == ShapeType.DANDELION_SEED
     assert theme.heading_font == "Lora"
     assert theme.body_font == "Plus Jakarta Sans"
-    assert theme.dandelion_mode == DandelionEffectMode.DISABLED
+    assert theme.dandelion_modes == [DandelionEffectMode.DISABLED]
 
 
 @pytest.mark.asyncio
@@ -79,8 +78,8 @@ async def test_apply_all_dandelion_modes(theme_service: ThemeService) -> None:
     ]
 
     for mode in modes:
-        theme = await theme_service.set_dandelion_mode(mode)
-        assert theme.dandelion_mode == mode
+        theme = await theme_service.apply_dandelion_modes([mode])
+        assert theme.dandelion_modes == [mode]
 
 
 @pytest.mark.asyncio
@@ -106,35 +105,20 @@ async def test_apply_multiple_dandelion_modes(theme_service: ThemeService) -> No
 
 
 @pytest.mark.asyncio
-async def test_update_dandelion_settings_legacy(theme_service: ThemeService) -> None:
-    """Verify legacy single-mode update_dandelion_settings method."""
-    theme = await theme_service.update_dandelion_settings(
-        mode=DandelionEffectMode.WATERMARK_ACCENTS,
-        seed_size=60,
-        seed_opacity=70,
+async def test_dandelion_sliders_are_clamped(theme_service: ThemeService) -> None:
+    """Seed size and opacity are clamped to their domain limits."""
+    theme = await theme_service.apply_dandelion_modes(
+        [DandelionEffectMode.WATERMARK_ACCENTS], seed_size=500, seed_opacity=1
     )
-    assert theme.dandelion_mode == DandelionEffectMode.WATERMARK_ACCENTS
-    assert theme.dandelion_seed_size == 60
-    assert theme.dandelion_seed_opacity == 70
+    assert theme.dandelion_modes == [DandelionEffectMode.WATERMARK_ACCENTS]
+    assert theme.dandelion_seed_size == 120
+    assert theme.dandelion_seed_opacity == 10
 
 
-def test_theme_config_properties() -> None:
-    """Verify ThemeConfig and ThemeConfigDTO helper properties."""
-    config = ThemeConfig(dandelion_modes=[DandelionEffectMode.BREATHING_FLOW])
-    assert config.dandelion_mode == DandelionEffectMode.BREATHING_FLOW
-    assert config.has_dandelion_mode("breathing_flow")
-    assert config.has_dandelion_mode(DandelionEffectMode.BREATHING_FLOW)
-    assert not config.has_dandelion_mode("disabled")
-
-    config.dandelion_mode = DandelionEffectMode.SCROLL_JOURNEY
-    assert config.dandelion_mode == DandelionEffectMode.SCROLL_JOURNEY
-    assert config.dandelion_modes_list == ["scroll_journey"]
-
+def test_theme_dto_mode_helpers() -> None:
+    """ThemeConfigDTO helpers used by the templates."""
     dto = ThemeConfigDTO(
-        dandelion_modes=[
-            DandelionEffectMode.BREATHING_FLOW,
-            DandelionEffectMode.BREATH_WIDGET,
-        ]
+        dandelion_modes=[DandelionEffectMode.BREATHING_FLOW, DandelionEffectMode.BREATH_WIDGET]
     )
     assert dto.has_dandelion_mode("breathing_flow")
     assert dto.has_dandelion_mode(DandelionEffectMode.BREATH_WIDGET)
@@ -143,36 +127,23 @@ def test_theme_config_properties() -> None:
 
 
 @pytest.mark.asyncio
-async def test_theme_repository_mode_fallback(theme_service: ThemeService) -> None:
-    """Verify repository fallback when applying single mode."""
-    theme = await theme_service.set_dandelion_mode(DandelionEffectMode.WHISPER_TRAIL)
-    assert theme.dandelion_mode == DandelionEffectMode.WHISPER_TRAIL
-    assert theme.has_dandelion_mode(DandelionEffectMode.WHISPER_TRAIL)
-
-
-@pytest.mark.asyncio
-async def test_theme_repository_methods(db_session: AsyncSession) -> None:
-    """Verify SqlAlchemyThemeRepository methods and entity conversion edge cases."""
+async def test_theme_repository_persistence(db_session: AsyncSession) -> None:
+    """The repository stores the modes as text and parses malformed values safely."""
     repo = SqlAlchemyThemeRepository(db_session)
-    applied = await repo.apply_dandelion_modes([DandelionEffectMode.BREATHING_FLOW])
-    assert applied.has_dandelion_mode(DandelionEffectMode.BREATHING_FLOW)
+    theme = await repo.get_active_theme()
+    theme.dandelion_modes = [DandelionEffectMode.BREATHING_FLOW, DandelionEffectMode.WHISPER_TRAIL]
+    saved = await repo.save_theme(theme)
+    assert saved.dandelion_modes == theme.dandelion_modes
+    assert (await repo.get_active_theme()).id == saved.id
 
-    empty_applied = await repo.apply_dandelion_modes([])
-    assert empty_applied.dandelion_modes == [DandelionEffectMode.DISABLED]
-
-    # Test _to_entity with malformed string and empty parts
     raw_model = ThemeConfigModel(
         dandelion_mode=",,unknown_mode,breath_widget,,",
         dandelion_seed_size=50,
         dandelion_seed_opacity=80,
     )
-    entity = repo._to_entity(raw_model)
-    assert entity.dandelion_modes == [DandelionEffectMode.BREATH_WIDGET]
-
-    # Test _to_entity when entirely invalid
+    assert repo._to_entity(raw_model).dandelion_modes == [DandelionEffectMode.BREATH_WIDGET]
     empty_model = ThemeConfigModel(dandelion_mode="invalid1,invalid2")
-    entity_empty = repo._to_entity(empty_model)
-    assert entity_empty.dandelion_modes == [DandelionEffectMode.DISABLED]
+    assert repo._to_entity(empty_model).dandelion_modes == [DandelionEffectMode.DISABLED]
 
 
 @pytest.mark.asyncio
@@ -193,9 +164,7 @@ async def test_custom_theme_update(theme_service: ThemeService) -> None:
         heading_font="Playfair Display",
         body_font="Rubik",
         active_shape=ShapeType.SOFT_PEBBLE,
-        motif_enabled=True,
-        motif_animation_speed="slow",
-        dandelion_mode=DandelionEffectMode.BREATHING_FLOW,
+        dandelion_modes=[DandelionEffectMode.BREATHING_FLOW],
     )
     saved = await theme_service.update_theme(dto)
 
@@ -203,7 +172,8 @@ async def test_custom_theme_update(theme_service: ThemeService) -> None:
     assert saved.heading_font == "Playfair Display"
     assert saved.body_font == "Rubik"
     assert saved.active_shape == ShapeType.SOFT_PEBBLE
-    assert saved.dandelion_mode == DandelionEffectMode.BREATHING_FLOW
+    assert saved.dandelion_modes == [DandelionEffectMode.BREATHING_FLOW]
+    assert saved.name == "Individuelles Design"
 
 
 def test_theme_css_variable_generation(theme_service: ThemeService) -> None:
@@ -334,8 +304,6 @@ async def test_admin_design_autosave_and_guards(
             "heading_font": "Playfair Display",
             "body_font": "Rubik",
             "active_shape": "breath_wave",
-            "motif_enabled": "true",
-            "motif_animation_speed": "slow",
             "dandelion_seed_size": "60",
             "dandelion_seed_opacity": "85",
         },

@@ -9,20 +9,20 @@
             <div class="lg:col-span-6 space-y-6">
                 <div>
                     <span class="text-xs uppercase font-bold tracking-widest text-theme-primary block mb-2">
-                        {{ editable('practice.setting', 'Gemeinschaftspraxis • Raum für Ruhe & Ankommen', tag='span') }}
+                        {{ editable('practice.setting', tag='span') }}
                     </span>
                     <h2 class="font-heading text-3xl sm:text-4xl font-bold text-theme-text-main">
-                        {{ editable('practice.title', 'Die Praxisräume', tag='span') }}
+                        {{ editable('practice.title', tag='span') }}
                     </h2>
                     <div class="mt-3">
-                        {{ editable('practice.description', 'Die Praxis PUSTERUM für Atem- und Körpertherapie ist eingebettet in eine modern ausgestattete Physiotherapie-Gemeinschaftspraxis. Ein geschützter, ruhiger Raum mit angenehmer Atmosphäre lädt dazu ein, den Alltag hinter sich zu lassen und ganz bei sich und dem eigenen Atem anzukommen.', tag='p', class='text-theme-text-muted text-base leading-relaxed', type='textarea', rows=4) }}
+                        {{ editable('practice.description', tag='p', class='text-theme-text-muted text-base leading-relaxed', type='textarea', rows=4) }}
                     </div>
                 </div>
 
                 <!-- Address & Contact Info Card -->
                 <div class="bg-theme-card border border-theme p-6 rounded-3xl space-y-4 shadow-sm">
                     <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-theme-secondary/40 flex items-center justify-center text-theme-primary flex-shrink-0" style="width: 40px; height: 40px;">
+                        <div class="w-10 h-10 rounded-xl bg-theme-secondary/40 flex items-center justify-center text-theme-primary flex-shrink-0">
                             <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -30,21 +30,21 @@
                         </div>
                         <div>
                             <h4 class="font-bold text-theme-text-main text-sm">Standort &amp; Gemeinschaftspraxis</h4>
-                            {{ editable('practice.name', 'PUSTERUM', tag='p', class='text-sm text-theme-text-muted font-semibold') }}
-                            {{ editable('practice.address', 'Kramgasse 42, 3011 Bern', tag='p', class='text-sm text-theme-text-muted whitespace-pre-line', type='textarea', rows=3) }}
+                            {{ editable('practice.name', tag='p', class='text-sm text-theme-text-muted font-semibold') }}
+                            {{ editable('practice.address', tag='p', class='text-sm text-theme-text-muted whitespace-pre-line', type='textarea', rows=3) }}
                         </div>
                     </div>
 
                     <div class="flex items-start gap-4 pt-3 border-t border-theme/50">
-                        <div class="w-10 h-10 rounded-xl bg-theme-secondary/40 flex items-center justify-center text-theme-primary flex-shrink-0" style="width: 40px; height: 40px;">
+                        <div class="w-10 h-10 rounded-xl bg-theme-secondary/40 flex items-center justify-center text-theme-primary flex-shrink-0">
                             <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
                         <div class="space-y-1 w-full">
                             <h4 class="font-bold text-theme-text-main text-sm">Infrastruktur &amp; Anreise</h4>
-                            {{ editable('practice.directions', 'Zentral in der Berner Altstadt gelegen, ca. 8 Gehminuten vom Hauptbahnhof Bern entfernt. Tram 6, 7, 8 oder 9 bis Haltestelle Zytglogge. Parkmöglichkeiten im Parkhaus Rathaus (3 Min. Fussweg).', tag='p', class='text-sm text-theme-text-muted', type='textarea', rows=3) }}
-                            {{ editable('practice.accessibility', 'Die Praxisräume befinden sich im 1. Stock eines historischen Altstadthauses. Ein rollstuhlgängiger Lift und ein barrierefreier Zugang sind vorhanden.', tag='p', class='text-sm text-theme-text-muted mt-1', type='textarea', rows=2) }}
+                            {{ editable('practice.directions', tag='p', class='text-sm text-theme-text-muted', type='textarea', rows=3) }}
+                            {{ editable('practice.accessibility', tag='p', class='text-sm text-theme-text-muted mt-1', type='textarea', rows=2) }}
                         </div>
                     </div>
                 </div>
@@ -55,7 +55,7 @@
                 <div class="relative w-full max-w-sm sm:max-w-md">
                     <div class="absolute -inset-4 bg-theme-secondary/40 shape-organic filter blur-sm -z-10 transform rotate-2"></div>
                     <div class="bg-theme-card border border-theme p-3 shadow-md shape-organic aspect-square flex items-center justify-center">
-                        {{ editable('practice.interior_image', '/static/images/practice_interior.png', type='image', img_alt='Praxisraum PUSTERUM in Physiotherapie Gemeinschaftspraxis', img_class='w-full h-full aspect-square object-cover shape-organic shadow-inner') }}
+                        {{ editable('practice.interior_image', type='image', img_alt='Praxisraum PUSTERUM in Physiotherapie Gemeinschaftspraxis', img_class='w-full h-full aspect-square object-cover shape-organic shadow-inner') }}
                     </div>
                 </div>
             </div>

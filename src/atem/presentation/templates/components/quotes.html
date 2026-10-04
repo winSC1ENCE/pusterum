@@ -21,23 +21,12 @@
         </div>
         {% else %}
         <div
-            x-data="{
-                active: 0,
-                count: {{ quote_count }},
-                paused: false,
-                timer: null,
-                start() {
-                    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-                    this.timer = setInterval(() => { if (!this.paused) this.next(); }, 7000);
-                },
-                next() { this.active = (this.active + 1) % this.count; },
-                go(i) { this.active = i; },
-            }"
-            x-init="start()"
-            @mouseenter="paused = true"
-            @mouseleave="paused = false"
-            @focusin="paused = true"
-            @focusout="paused = false"
+            x-data="quoteRotator"
+            data-count="{{ quote_count }}"
+            @mouseenter="pause()"
+            @mouseleave="resume()"
+            @focusin="pause()"
+            @focusout="resume()"
             class="relative"
         >
             <div class="grid" aria-live="polite">

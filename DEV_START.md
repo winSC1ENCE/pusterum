@@ -26,6 +26,12 @@ uv run pre-commit install
 cp config/env.development.example .env   # ENVIRONMENT=development ist Pflicht (Default = production)
 ```
 
+### Schritt 1b: CSS kompilieren (Tailwind, ohne Node.js)
+```bash
+scripts/build-css.sh            # einmalig
+scripts/build-css.sh --watch    # während der Arbeit an Templates (eigenes Terminal)
+```
+
 ### Schritt 2: PostgreSQL Datenbank starten
 ```bash
 docker compose up -d db

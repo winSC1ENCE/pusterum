@@ -81,6 +81,18 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
 - 2FA (TOTP + Recovery-Codes) ist in production/staging Pflicht (`ADMIN_REQUIRE_2FA`).
   Notfall: `python -m atem.cli reset-2fa --username …`.
 
+## Frontend & Content-Security-Policy
+
+- Strikte CSP (`presentation/security/security_headers.py`): **kein Inline-JS, kein `eval`, keine `<style>`-Elemente,
+  keine externen Hosts**. Erlaubt sind nur `style="…"`-Attribute.
+- Tailwind wird kompiliert: `scripts/build-css.sh` (`--watch` beim Entwickeln). `static/css/app.css` ist generiert
+  (gitignored, im Docker-Build erzeugt). Neue Klassen in Templates/JS werden automatisch erfasst.
+- Alpine läuft als **CSP-Build** (`static/vendor/alpinejs-csp`): in Templates keine Template-Literals, Pfeilfunktionen,
+  Statements oder Globals (`window`, `document`, `Math`) – Logik in `Alpine.data`-Komponenten unter
+  `static/js/components/`; Werte über `data-*`-Attribute übergeben.
+- Theme-Variablen kommen aus `GET /theme.css`; Schriften sind lokal (`static/fonts`, `static/css/fonts.css`).
+- Browser-Tests: `uv run pytest tests_e2e --no-cov` (Playwright; prüft CSP-Verletzungen und JS-Fehler).
+
 ## Dokumentation & Governance
 
 - Architekturentscheide: `docs/adr/` (MADR, `template.md`); kleinere technische Entscheide: `docs/tdr/`.

@@ -21,26 +21,6 @@
        ========================================================================= #}
     {% if 'breathing_flow' in active_modes %}
     <div class="fixed inset-0 overflow-hidden z-20 pointer-events-none hidden lg:block">
-        <style>
-            @keyframes seedBreathFloat1 {
-                0%, 100% { transform: translate3d(0, 0, 0) rotate(-5deg); }
-                40% { transform: translate3d(18px, -28px, 0) rotate(8deg); }
-                70% { transform: translate3d(-10px, -14px, 0) rotate(-8deg); }
-            }
-            @keyframes seedBreathFloat2 {
-                0%, 100% { transform: translate3d(0, 0, 0) rotate(6deg); }
-                45% { transform: translate3d(-20px, -32px, 0) rotate(-10deg); }
-                80% { transform: translate3d(12px, -12px, 0) rotate(7deg); }
-            }
-            @keyframes seedBreathFloat3 {
-                0%, 100% { transform: translate3d(0, 0, 0) rotate(-8deg); }
-                35% { transform: translate3d(24px, -22px, 0) rotate(12deg); }
-                65% { transform: translate3d(10px, 16px, 0) rotate(-3deg); }
-            }
-            @media (prefers-reduced-motion: reduce) {
-                .ambient-png-seed { animation: none !important; }
-            }
-        </style>
 
         <!-- Seed 1 (Top Left) -->
         <div class="ambient-png-seed absolute hover:opacity-100 transition-opacity"
@@ -82,91 +62,14 @@
        ========================================================================= #}
     {% if 'scroll_journey' in active_modes %}
     <div
-        x-data="{
-            progress: 0,
-            initialLeft: 76,
-            initialTop: 28,
-            init() {
-                this.measureFlower();
-                this.update();
-                window.addEventListener('scroll', () => {
-                    requestAnimationFrame(() => this.update());
-                }, { passive: true });
-                window.addEventListener('resize', () => {
-                    this.measureFlower();
-                    this.update();
-                }, { passive: true });
-                window.addEventListener('load', () => {
-                    this.measureFlower();
-                    this.update();
-                }, { passive: true });
-            },
-            measureFlower() {
-                const el = document.getElementById('hero-dandelion-artwork');
-                if (el) {
-                    const rect = el.getBoundingClientRect();
-                    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-                    // Upper-right crown of dandelion head where seeds naturally detach
-                    const flowerX = rect.left + (rect.width * 0.54);
-                    const flowerY = (rect.top + scrollY) + (rect.height * 0.24);
-                    if (window.innerWidth > 0 && window.innerHeight > 0) {
-                        this.initialLeft = Math.min(Math.max((flowerX / window.innerWidth) * 100, 50), 90);
-                        this.initialTop = Math.min(Math.max((flowerY / window.innerHeight) * 100, 10), 50);
-                    }
-                }
-            },
-            update() {
-                const total = document.documentElement.scrollHeight - window.innerHeight;
-                const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-                this.progress = total > 0 ? Math.min(Math.max(scrollY / total, 0), 1) : 0;
-            },
-            getLeft() {
-                const p = this.progress;
-                const startX = this.initialLeft || 76;
-                if (p <= 0.02) return startX;
-                if (p < 0.25) {
-                    const localP = (p - 0.02) / 0.23;
-                    return startX - (localP * (startX - 30));
-                } else if (p < 0.50) {
-                    const localP = (p - 0.25) / 0.25;
-                    return 30 + (localP * 38);
-                } else if (p < 0.75) {
-                    const localP = (p - 0.50) / 0.25;
-                    return 68 - (localP * 40);
-                } else {
-                    const localP = (p - 0.75) / 0.25;
-                    return 28 + (localP * 44);
-                }
-            },
-            getTop() {
-                const p = this.progress;
-                const startY = this.initialTop || 28;
-                if (p <= 0.02) return startY;
-                const localP = (p - 0.02) / 0.98;
-                return startY + (localP * (82 - startY));
-            },
-            getRotation() {
-                const p = this.progress;
-                if (p <= 0.02) return 26; // Startwinkel synchron zum Samen auf der Blüte
-                const localP = (p - 0.02) / 0.98;
-                // Sanfter Übergang von Startwinkel in die dynamische Flugbahn
-                const blend = Math.min(localP * 6, 1);
-                // Organische Neigung passend zur Flugrichtung (-32° Linksdrift bis +52° Rechtsdrift) mit feinem Schwebe-Hauch
-                const aeroAngle = 10 - (Math.sin(localP * Math.PI * 4) * 42) + (Math.sin(localP * Math.PI * 8) * 7);
-                return Math.round((26 * (1 - blend)) + (aeroAngle * blend));
-            }
-        }"
+        x-data="seedJourney"
+        data-seed-size="{{ seed_size }}"
+        data-seed-opacity="{{ seed_opacity }}"
         class="fixed inset-0 pointer-events-none z-20 overflow-hidden hidden lg:block"
     >
         <div
             class="absolute transition-[top,left,transform] duration-300 ease-out will-change-transform"
-            :style="`
-                top: ${getTop()}vh;
-                left: ${getLeft()}vw;
-                transform: translate3d(0, 0, 0) rotate(${getRotation()}deg);
-                opacity: ${progress <= 0.02 ? {{ seed_opacity }} : {{ (seed_opacity * 0.9) | round(2) }}};
-                width: ${progress <= 0.02 ? '{{ seed_size }}px' : '{{ (seed_size * 0.9) | round | int }}px'};
-            `"
+            :style="journeyStyle"
         >
             <img
                 src="/static/images/dandelion_seed_single.png"
@@ -206,101 +109,7 @@
        ========================================================================= #}
     {% if 'breath_widget' in active_modes %}
     <div
-        x-data="{
-            isOpen: false,
-            phase: 'inhale', // 'inhale' | 'hold' | 'exhale'
-            totalSeconds: 4,
-            currentSecond: 1,
-            phaseProgress: 0,
-            intervalId: null,
-
-            get phaseLabel() {
-                if (this.phase === 'inhale') return 'EINATMEN';
-                if (this.phase === 'hold') return 'HALTEN & SPÜREN';
-                return 'AUSATMEN & LOSLASSEN';
-            },
-
-            get phaseInstruction() {
-                if (this.phase === 'inhale') return 'Sanft & tief durch die Nase einatmen';
-                if (this.phase === 'hold') return 'In der Stille ankommen & Atem halten';
-                return 'Langsam & vollständig durch den Mund ausatmen';
-            },
-
-            get phaseBadgeClass() {
-                if (this.phase === 'inhale') return 'text-emerald-700 bg-emerald-100/90 border-emerald-300';
-                if (this.phase === 'hold') return 'text-amber-700 bg-amber-100/90 border-amber-300';
-                return 'text-sky-700 bg-sky-100/90 border-sky-300';
-            },
-
-            get ringStrokeColor() {
-                if (this.phase === 'inhale') return '#10B981';
-                if (this.phase === 'hold') return '#F59E0B';
-                return '#0284C7';
-            },
-
-            get strokeDashoffset() {
-                const circumference = 364.4; // 2 * PI * 58
-                if (this.phase === 'inhale') {
-                    return circumference * (1 - (this.phaseProgress / 100));
-                } else if (this.phase === 'hold') {
-                    return 0;
-                } else {
-                    return circumference * (this.phaseProgress / 100);
-                }
-            },
-
-            startBreathCycle() {
-                this.clearIntervals();
-                this.runPhase('inhale', 4);
-            },
-
-            runPhase(phaseName, durationSec) {
-                if (!this.isOpen) return;
-                this.phase = phaseName;
-                this.totalSeconds = durationSec;
-                this.currentSecond = 1;
-                this.phaseProgress = 0;
-
-                const startTime = Date.now();
-                const totalMs = durationSec * 1000;
-
-                this.intervalId = setInterval(() => {
-                    if (!this.isOpen) {
-                        this.clearIntervals();
-                        return;
-                    }
-                    const elapsed = Date.now() - startTime;
-                    this.currentSecond = Math.min(Math.floor(elapsed / 1000) + 1, durationSec);
-                    this.phaseProgress = Math.min((elapsed / totalMs) * 100, 100);
-
-                    if (elapsed >= totalMs) {
-                        clearInterval(this.intervalId);
-                        if (!this.isOpen) return;
-                        if (phaseName === 'inhale') {
-                            this.runPhase('hold', 4);
-                        } else if (phaseName === 'hold') {
-                            this.runPhase('exhale', 6);
-                        } else {
-                            this.runPhase('inhale', 4);
-                        }
-                    }
-                }, 40);
-            },
-
-            clearIntervals() {
-                if (this.intervalId) clearInterval(this.intervalId);
-            },
-
-            openWidget() {
-                this.isOpen = true;
-                this.startBreathCycle();
-            },
-
-            closeWidget() {
-                this.isOpen = false;
-                this.clearIntervals();
-            }
-        }"
+        x-data="breathWidget"
         class="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 font-sans pointer-events-auto block"
     >
         <!-- Floating Trigger Button -->
@@ -488,48 +297,16 @@
        ========================================================================= #}
     {% if 'whisper_trail' in active_modes %}
     <div
-        x-data="{
-            particles: [],
-            lastSpawn: 0,
-            handleMove(e) {
-                const now = Date.now();
-                if (now - this.lastSpawn < 300) return; // Throttle to max 3 seeds/sec
-                this.lastSpawn = now;
-
-                const id = now + Math.random();
-                this.particles.push({
-                    id: id,
-                    x: e.clientX,
-                    y: e.clientY,
-                    rotation: (Math.random() - 0.5) * 30
-                });
-
-                setTimeout(() => {
-                    this.particles = this.particles.filter(p => p.id !== id);
-                }, 1200);
-            }
-        }"
-        x-init="window.addEventListener('mousemove', (e) => handleMove(e), { passive: true });"
+        x-data="whisperTrail"
+        data-seed-size="{{ seed_size }}"
+        data-seed-opacity="{{ seed_opacity }}"
         class="fixed inset-0 pointer-events-none z-20 overflow-hidden hidden lg:block"
     >
         <template x-for="p in particles" :key="p.id">
             <div
-                class="absolute pointer-events-none will-change-transform"
-                :style="`
-                    left: ${p.x - 10}px;
-                    top: ${p.y - 35}px;
-                    transform: rotate(${p.rotation}deg);
-                    animation: pngWhisperFloat 1.2s ease-out forwards;
-                    width: {{ (seed_size * 0.70) | round | int }}px;
-                    opacity: {{ seed_opacity }};
-                `"
+                class="whisper-seed absolute pointer-events-none will-change-transform"
+                :style="particleStyle(p)"
             >
-                <style>
-                    @keyframes pngWhisperFloat {
-                        0% { opacity: 0.85; transform: translate3d(0, 0, 0) scale(0.85); }
-                        100% { opacity: 0; transform: translate3d(10px, -35px, 0) scale(1.1); }
-                    }
-                </style>
                 <img src="/static/images/dandelion_seed_single.png" alt="Samen Hauch" class="w-full h-auto drop-shadow-sm" />
             </div>
         </template>

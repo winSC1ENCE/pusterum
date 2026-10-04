@@ -250,7 +250,10 @@ async def test_admin_design_routes_and_presets(
     pub_res = await app_client.get("/")
     assert pub_res.status_code == 200
     assert "dandelion_hero.png" in pub_res.text
-    assert "--theme-primary" in pub_res.text
+    assert 'href="/theme.css?v=' in pub_res.text
+    theme_css = await app_client.get("/theme.css")
+    assert theme_css.headers["content-type"].startswith("text/css")
+    assert "--theme-primary" in theme_css.text
     assert "Atem" in pub_res.text
 
     # 3. Authenticate as Admin
@@ -301,8 +304,9 @@ async def test_admin_design_routes_and_presets(
     pub_active_res = await app_client.get("/")
     assert pub_active_res.status_code == 200
     assert 'data-mode="breathing_flow"' in pub_active_res.text
-    assert "--dandelion-seed-size: 56px;" in pub_active_res.text
-    assert "--dandelion-seed-opacity: 0.90;" in pub_active_res.text
+    theme_css = (await app_client.get("/theme.css")).text
+    assert "--dandelion-seed-size: 56px;" in theme_css
+    assert "--dandelion-seed-opacity: 0.90;" in theme_css
 
 
 @pytest.mark.asyncio
@@ -530,4 +534,4 @@ async def test_all_dandelion_mode_combinations_and_rendering(
                 elif m == DandelionEffectMode.BREATH_WIDGET:
                     assert "Geführte Atem-Pause" in html
                 elif m == DandelionEffectMode.WHISPER_TRAIL:
-                    assert "pngWhisperFloat" in html
+                    assert 'x-data="whisperTrail"' in html

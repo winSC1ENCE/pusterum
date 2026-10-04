@@ -99,4 +99,4 @@ async def test_custom_theme_keeps_all_selected_dandelion_modes(
         headers={"hx-request": "true"},
     )
     design = await app_client.get("/admin/design")
-    assert '"breathing_flow", "whisper_trail"' in design.text
+    assert "&#34;breathing_flow&#34;, &#34;whisper_trail&#34;" in design.text

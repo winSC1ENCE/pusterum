@@ -73,6 +73,8 @@ from atem.presentation.errors import EXCEPTION_HANDLERS
 from atem.presentation.security.admin_auth import unauthorized_handler
 from atem.presentation.security.host_validation import HostValidationMiddleware
 from atem.presentation.security.proxy_headers import ProxyHeadersMiddleware
+from atem.presentation.security.security_headers import SecurityHeadersMiddleware
+from atem.presentation.templating import configure_jinja
 
 logger = get_logger(__name__)
 BASE_DIR = Path(__file__).parent
@@ -276,6 +278,7 @@ def create_app() -> Litestar:
     template_config = TemplateConfig(
         directory=templates_dir,
         engine=JinjaTemplateEngine,
+        engine_callback=configure_jinja,
     )
 
     # Session Middleware (encrypted cookie, key derived from SECRET_KEY via HKDF).
@@ -350,6 +353,7 @@ def create_app() -> Litestar:
         },
         template_config=template_config,
         middleware=[
+            DefineMiddleware(SecurityHeadersMiddleware, production=settings.is_production_like),
             DefineMiddleware(HostValidationMiddleware, allowed_hosts=settings.ALLOWED_HOSTS),
             DefineMiddleware(ProxyHeadersMiddleware, trusted_proxies=settings.TRUSTED_PROXIES),
             rate_limit_config.middleware,

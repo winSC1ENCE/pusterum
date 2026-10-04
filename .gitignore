@@ -233,3 +233,7 @@ storage/uploads/*
 
 # Lokale, nicht versionierte Analysen/Reviews (enthalten offene Schwachstellen)
 docs/reviews/
+
+# Build tooling & generated assets (scripts/build-css.sh)
+.tools/
+src/atem/presentation/static/css/app.css

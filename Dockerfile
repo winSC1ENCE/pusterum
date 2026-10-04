@@ -30,7 +30,21 @@ COPY README.md ./
 RUN uv sync --frozen --no-dev
 
 # ------------------------------------------------------------------------------
-# Stage 2: Final Runtime Image
+# Stage 2: Frontend assets – compile Tailwind CSS (standalone CLI, pinned + SHA256)
+# ------------------------------------------------------------------------------
+FROM debian:bookworm-slim AS assets
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /build
+COPY scripts/build-css.sh scripts/build-css.sh
+COPY tailwind.config.js ./
+COPY src/atem/presentation/assets src/atem/presentation/assets
+COPY src/atem/presentation/templates src/atem/presentation/templates
+COPY src/atem/presentation/static/js src/atem/presentation/static/js
+RUN mkdir -p src/atem/presentation/static/css && sh scripts/build-css.sh
+
+# ------------------------------------------------------------------------------
+# Stage 3: Final Runtime Image
 # ------------------------------------------------------------------------------
 FROM python:3.12-slim-bookworm AS runner
 
@@ -48,6 +62,8 @@ WORKDIR /app
 # Copy virtual environment from builder
 COPY --from=builder --chown=atem:atem /app/.venv /app/.venv
 COPY --chown=atem:atem src /app/src
+COPY --from=assets --chown=atem:atem /build/src/atem/presentation/static/css/app.css \
+    /app/src/atem/presentation/static/css/app.css
 COPY --chown=atem:atem pyproject.toml alembic.ini /app/
 COPY --chown=atem:atem migrations /app/migrations
 COPY --chown=atem:atem --chmod=0755 docker/entrypoint.sh /app/docker/entrypoint.sh

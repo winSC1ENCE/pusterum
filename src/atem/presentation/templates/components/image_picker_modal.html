@@ -9,7 +9,7 @@
     x-cloak
     @open-image-picker.window="openModal($event.detail)"
     @keydown.window.escape="closeModal()"
-    @keydown.window.alt.s.prevent="if (isOpen) applyAndSave()"
+    @keydown.window.alt.s.prevent="saveShortcut()"
     class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm transition-opacity duration-200"
     aria-labelledby="image-modal-title"
     role="dialog"

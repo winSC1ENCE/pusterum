@@ -165,6 +165,11 @@ document.addEventListener("alpine:init", () => {
             }
         },
 
+        /** Alt+S while the picker is open (CSP build: no inline statements in templates). */
+        saveShortcut() {
+            if (this.isOpen) this.applyAndSave();
+        },
+
         async applyAndSave() {
             if (!this.selectedUrl || !this.blockKey) {
                 this.closeModal();
@@ -227,25 +232,6 @@ document.addEventListener("alpine:init", () => {
         },
     }));
 
-    // 3. Design Studio Live Sliders & Autosave Component
-    Alpine.data("designStudio", (initialSize = 48, initialOpacity = 80) => ({
-        seedSize: initialSize,
-        seedOpacity: initialOpacity,
-        init() {
-            this.updateLivePreview();
-        },
-        updateLivePreview() {
-            const previewEl = document.getElementById("seed-live-preview-img");
-            if (previewEl) {
-                previewEl.style.width = Math.min(this.seedSize, 90) + "px";
-                previewEl.style.opacity = String(this.seedOpacity / 100);
-            }
-            const sizeBadge = document.getElementById("seed-size-badge");
-            if (sizeBadge) sizeBadge.textContent = this.seedSize + " px";
-            const opacityBadge = document.getElementById("seed-opacity-badge");
-            if (opacityBadge) opacityBadge.textContent = this.seedOpacity + " %";
-        },
-    }));
 });
 
 // Re-initialize Alpine.js on HTMX swaps so reactivity is never lost

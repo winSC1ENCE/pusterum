@@ -69,6 +69,19 @@ class PublicController(Controller):
             },
         )
 
+    @get("/theme.css", include_in_schema=False)
+    async def theme_stylesheet(self, theme_service: ThemeService) -> Response[str]:
+        """Theme CSS variables as a stylesheet (no inline <style> → strict CSP).
+
+        Pages reference it as ``/theme.css?v=<content hash>``, so it can be cached forever.
+        """
+        theme = await theme_service.get_active_theme()
+        return Response(
+            content=theme_service.generate_css_variables(theme),
+            media_type="text/css",
+            headers={"Cache-Control": "public, max-age=31536000, immutable"},
+        )
+
     @get("/altcha/challenge", cache=False)
     async def altcha_challenge(self, contact_service: ContactService) -> Response[dict[str, Any]]:
         """Issue a proof-of-work challenge for the contact form widget."""

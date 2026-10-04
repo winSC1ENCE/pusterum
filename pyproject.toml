@@ -44,6 +44,7 @@ dev = [
     "licensecheck>=2024.3",
     "pre-commit>=4.0.1",
     "aiosqlite>=0.20.0",
+    "pytest-playwright>=0.5",
 ]
 
 [build-system]

@@ -38,6 +38,9 @@ uv run pre-commit install
 
 # Umgebungsvariablen initialisieren (Entwicklung)
 cp config/env.development.example .env
+
+# CSS kompilieren (Tailwind Standalone-CLI, kein Node.js nötig)
+scripts/build-css.sh
 ```
 
 ### 3. Datenbank starten & migrieren

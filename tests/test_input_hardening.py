@@ -60,7 +60,7 @@ async def test_custom_theme_accepts_valid_values(app_client: AsyncTestClient[Lit
         "/admin/design/custom", data=VALID_THEME, headers={"hx-request": "true"}
     )
     assert response.status_code == 204
-    assert "--theme-primary: #112233" in (await app_client.get("/")).text
+    assert "--theme-primary: #112233" in (await app_client.get("/theme.css")).text
 
 
 def test_css_generation_falls_back_for_invalid_stored_values(theme_service: ThemeService) -> None:

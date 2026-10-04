@@ -17,67 +17,20 @@
     <link rel="shortcut icon" href="/static/images/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
 
-    <!-- Google Webfonts (Playfair, Lora, Plus Jakarta Sans, Rubik) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..600;1,400..600&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Rubik:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Styles: self-hosted fonts, compiled Tailwind, base styles, theme variables -->
+    <link rel="stylesheet" href="/static/css/fonts.css?v={{ asset_version }}">
+    <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}">
+    <link rel="stylesheet" href="/static/css/styles.css?v={{ asset_version }}">
+    <link rel="stylesheet" href="/theme.css?v={{ theme_css | content_hash }}">
 
-    <!-- Tailwind CSS Script (Self-Hosted with CDN Fallback) -->
-    <script src="/static/js/tailwindcss.js"></script>
-    <script>
-        if (typeof tailwind !== 'undefined') {
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        colors: {
-                            theme: {
-                                primary: 'var(--theme-primary, #4A6C50)',
-                                'primary-hover': 'var(--theme-primary-hover, #3C5641)',
-                                secondary: 'var(--theme-secondary, #CEDECF)',
-                                accent: 'var(--theme-accent, #7FA485)',
-                                bg: 'var(--theme-bg, #FAF8F5)',
-                                surface: 'var(--theme-surface, #FFFFFF)',
-                                'surface-muted': 'var(--theme-surface-muted, #F3EFE8)',
-                                'text-main': 'var(--theme-text-main, #1E293B)',
-                                'text-muted': 'var(--theme-text-muted, #64748B)',
-                                border: 'var(--theme-border, #E6DED1)',
-                            }
-                        },
-                        fontFamily: {
-                            heading: ['var(--font-heading, Lora)', 'serif'],
-                            body: ['var(--font-body, Plus Jakarta Sans)', 'sans-serif'],
-                        },
-                        borderRadius: {
-                            'organic': 'var(--theme-shape-radius, 42% 58% 70% 30% / 45% 45% 55% 55%)',
-                            'pebble': '60% 40% 30% 70% / 60% 30% 70% 40%',
-                            'capsule': '2rem 6rem 2rem 6rem',
-                        },
-                        animation: {
-                            'pulse-slow': 'pulseSlow 8s ease-in-out infinite',
-                            'float-slow': 'floatSlow 12s ease-in-out infinite',
-                            'float-medium': 'floatMedium 9s ease-in-out infinite',
-                            'float-reverse': 'floatReverse 11s ease-in-out infinite',
-                            'breath': 'breathe 6s ease-in-out infinite',
-                        },
-                    }
-                }
-            };
-        }
-    </script>
-
-    <!-- Base & Fallback CSS -->
-    <link rel="stylesheet" href="/static/css/styles.css">
-
-    <!-- Dynamic Corporate Design Variables -->
-    <style id="dynamic-corporate-design">
-        {{ theme_css | safe }}
-    </style>
-
-    <!-- HTMX, App Scripts & Alpine.js -->
-    <script src="/static/js/htmx.min.js"></script>
-    <script defer src="/static/js/app.js"></script>
-    <script defer src="/static/js/alpine.min.js"></script>
+    <!-- Scripts (no inline JS – strict Content-Security-Policy). htmx must not inject styles. -->
+    <meta name="htmx-config" content='{"includeIndicatorStyles": false, "allowEval": false}'>
+    <script src="/static/js/htmx.min.js?v={{ asset_version }}"></script>
+    <script defer src="/static/js/app.js?v={{ asset_version }}"></script>
+    <script defer src="/static/js/components/dandelion.js?v={{ asset_version }}"></script>
+    <script defer src="/static/js/components/quotes.js?v={{ asset_version }}"></script>
     {% block head_extra %}{% endblock %}
+    <script defer src="/static/vendor/alpinejs-csp/cdn.min.js"></script>
 </head>
 <body hx-headers='{"x-csrftoken": "{{ csrf_token() }}"}' class="min-h-screen flex flex-col antialiased selection:bg-theme-secondary selection:text-theme-primary overflow-x-hidden">
 

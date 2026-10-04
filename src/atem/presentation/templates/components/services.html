@@ -6,10 +6,10 @@
 
         {{ section_header('services', subtitle_rows=2) }}
 
-        <!-- Service Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Service cards: fixed third-width cards in a centred, wrapping row (1–2 offers stay centred) -->
+        <div class="flex flex-wrap justify-center gap-8">
             {% for service in services %}
-            <div class="bg-theme-main border border-theme p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
+            <div class="w-full md:w-[calc((100%-4rem)/3)] bg-theme-main border border-theme p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
                 {% if service.is_health_insurance_recognized %}
                 <div class="absolute top-0 right-0 bg-theme-primary text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-bl-xl">
                     Krankenkassen-Anerkannt
@@ -45,7 +45,7 @@
                 </div>
             </div>
             {% else %}
-            <div class="md:col-span-3 text-center bg-theme-main border border-theme rounded-3xl p-8">
+            <div class="w-full text-center bg-theme-main border border-theme rounded-3xl p-8">
                 {{ editable('services.empty_text', tag='p', class='text-theme-text-muted', type='textarea', rows=2) }}
             </div>
             {% endfor %}

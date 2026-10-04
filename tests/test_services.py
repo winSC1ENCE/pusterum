@@ -4,7 +4,7 @@ import pytest
 
 from atem.application.dto.auth import LoginRequestDTO
 from atem.application.dto.contact import CreateContactMessageDTO
-from atem.application.dto.profile import PracticeInfoDTO, ServiceOfferingDTO, TherapistProfileDTO
+from atem.application.dto.profile import PracticeInfoDTO, ServiceFormDTO, TherapistProfileDTO
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
 from atem.application.services.profile_service import ProfileService
@@ -50,30 +50,35 @@ async def test_profile_service_defaults_and_update(profile_service: ProfileServi
 
 @pytest.mark.asyncio
 async def test_service_offering_crud(profile_service: ProfileService) -> None:
-    """Test service offering CRUD operations."""
-    service_dto = ServiceOfferingDTO(
-        title="Atem-Einzelsitzung",
-        slug="einzelsitzung",
+    """Create/update/delete offerings; slugs are derived and unique."""
+    form = ServiceFormDTO(
+        title="Atem-Einzelsitzung für Körper & Psyche",
         subtitle="Individuelle Begleitung",
-        description="60 Minuten sanfte Atemtherapie",
+        description="60 Minuten sanfte Atem- und Körpertherapie",
         duration_minutes=60,
         price_chf=140.0,
     )
-    created = await profile_service.create_service(service_dto)
+    created = await profile_service.create_service(form)
     assert created.id is not None
+    assert created.slug == "atem-einzelsitzung-fuer-koerper-psyche"
+    assert created.is_health_insurance_recognized is False
 
-    # Update
-    created.price_chf = 150.0
-    updated = await profile_service.update_service(created.id, created)
+    duplicate = await profile_service.create_service(form)
+    assert duplicate.slug == "atem-einzelsitzung-fuer-koerper-psyche-2"
+
+    updated = await profile_service.update_service(
+        created.id, form.model_copy(update={"price_chf": 150.0, "is_active": False})
+    )
     assert updated.price_chf == 150.0
+    assert updated.slug == created.slug  # unchanged title keeps its slug
+    assert [s.id for s in await profile_service.list_services()] == [duplicate.id]
+    assert len(await profile_service.list_services(include_inactive=True)) == 2
 
-    # Delete
-    deleted = await profile_service.delete_service(created.id)
-    assert deleted is True
-
-    # Delete non-existing throws EntityNotFoundException
+    assert await profile_service.delete_service(created.id) is True
     with pytest.raises(EntityNotFoundException):
         await profile_service.delete_service(created.id)
+    with pytest.raises(EntityNotFoundException):
+        await profile_service.update_service(created.id, form)
 
 
 @pytest.mark.asyncio

@@ -30,11 +30,8 @@
                         </div>
                         <div>
                             <h4 class="font-bold text-theme-text-main text-sm">Standort &amp; Gemeinschaftspraxis</h4>
-                            <p class="text-sm text-theme-text-muted">
-                                {{ profile.practice.name }}<br/>
-                                {{ profile.practice.street }}<br/>
-                                {{ profile.practice.zip_code }} {{ profile.practice.city }}
-                            </p>
+                            {{ editable('practice.name', 'PUSTERUM', tag='p', class='text-sm text-theme-text-muted font-semibold') }}
+                            {{ editable('practice.address', 'Kramgasse 42, 3011 Bern', tag='p', class='text-sm text-theme-text-muted whitespace-pre-line', type='textarea', rows=3) }}
                         </div>
                     </div>
 
@@ -46,8 +43,8 @@
                         </div>
                         <div class="space-y-1 w-full">
                             <h4 class="font-bold text-theme-text-main text-sm">Infrastruktur &amp; Anreise</h4>
-                            {{ editable('practice.directions', profile.practice.directions_info, tag='p', class='text-sm text-theme-text-muted', type='textarea', rows=3) }}
-                            {{ editable('practice.accessibility', profile.practice.accessibility_info, tag='p', class='text-sm text-theme-text-muted mt-1', type='textarea', rows=2) }}
+                            {{ editable('practice.directions', 'Zentral in der Berner Altstadt gelegen, ca. 8 Gehminuten vom Hauptbahnhof Bern entfernt. Tram 6, 7, 8 oder 9 bis Haltestelle Zytglogge. Parkmöglichkeiten im Parkhaus Rathaus (3 Min. Fussweg).', tag='p', class='text-sm text-theme-text-muted', type='textarea', rows=3) }}
+                            {{ editable('practice.accessibility', 'Die Praxisräume befinden sich im 1. Stock eines historischen Altstadthauses. Ein rollstuhlgängiger Lift und ein barrierefreier Zugang sind vorhanden.', tag='p', class='text-sm text-theme-text-muted mt-1', type='textarea', rows=2) }}
                         </div>
                     </div>
                 </div>

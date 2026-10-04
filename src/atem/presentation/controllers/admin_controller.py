@@ -299,11 +299,12 @@ class AdminController(Controller):
         except ValueError:
             shape_type = current_theme.active_shape
 
-        dandelion_mode_str = data.get("dandelion_mode", current_theme.dandelion_mode.value)
-        try:
-            dandelion_mode = DandelionEffectMode(dandelion_mode_str)
-        except ValueError:
-            dandelion_mode = current_theme.dandelion_mode
+        # Keep all selected ambient modes (BUG-02: previously only one mode survived).
+        dandelion_modes = (
+            self._extract_dandelion_modes(data)
+            if data.get("dandelion_mode")
+            else list(current_theme.dandelion_modes)
+        )
 
         try:
             seed_size = int(data.get("dandelion_seed_size", str(current_theme.dandelion_seed_size)))
@@ -367,7 +368,8 @@ class AdminController(Controller):
             active_shape=shape_type,
             motif_enabled=current_theme.motif_enabled,
             motif_animation_speed=current_theme.motif_animation_speed,
-            dandelion_mode=dandelion_mode,
+            dandelion_mode=dandelion_modes[0],
+            dandelion_modes=dandelion_modes,
             dandelion_seed_size=seed_size,
             dandelion_seed_opacity=seed_opacity,
         )

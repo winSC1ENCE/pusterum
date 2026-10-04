@@ -54,6 +54,10 @@
                     </a>
                 </div>
             </div>
+            {% else %}
+            <div class="md:col-span-3 text-center bg-theme-main border border-theme rounded-3xl p-8">
+                {{ editable('services.empty_text', 'Tarife auf Anfrage – gerne beantworte ich Ihre Fragen zu Ablauf und Kosten persönlich.', tag='p', class='text-theme-text-muted', type='textarea', rows=2) }}
+            </div>
             {% endfor %}
         </div>
 

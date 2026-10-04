@@ -66,6 +66,7 @@ from atem.presentation.bootstrap import (
 from atem.presentation.controllers.admin_auth_controller import AdminAuthController
 from atem.presentation.controllers.admin_controller import AdminController
 from atem.presentation.controllers.admin_security_controller import AdminSecurityController
+from atem.presentation.controllers.admin_services_controller import AdminServicesController
 from atem.presentation.controllers.health_controller import HealthController
 from atem.presentation.controllers.public_controller import PublicController
 from atem.presentation.errors import EXCEPTION_HANDLERS
@@ -325,6 +326,7 @@ def create_app() -> Litestar:
             PublicController,
             AdminAuthController,
             AdminSecurityController,
+            AdminServicesController,
             AdminController,
             static_router,
             media_router,

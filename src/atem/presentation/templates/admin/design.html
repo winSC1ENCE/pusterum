@@ -494,7 +494,7 @@
             >
                 <!-- State preservation hidden fields -->
                 <input type="hidden" name="active_shape" :value="activeShape">
-                <input type="hidden" name="dandelion_mode" :value="activeMode">
+                <input type="hidden" name="dandelion_mode" :value="activeModes.join(',')">
                 <input type="hidden" name="dandelion_seed_size" :value="seedSize">
                 <input type="hidden" name="dandelion_seed_opacity" :value="seedOpacity">
                 <input type="hidden" name="text_main_color" value="{{ theme.text_main_color }}">

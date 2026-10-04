@@ -406,6 +406,14 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         ),
     },
     {
+        "key": "services.empty_text",
+        "section": "services",
+        "type": "textarea",
+        "content": (
+            "Tarife auf Anfrage – gerne beantworte ich Ihre Fragen zu Ablauf und Kosten persönlich."
+        ),
+    },
+    {
         "key": "services.insurance_title",
         "section": "services",
         "type": "text",

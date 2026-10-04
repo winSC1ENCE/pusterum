@@ -17,18 +17,16 @@
         <div class="space-y-6 text-sm text-theme-text-muted leading-relaxed">
             <div>
                 {{ editable('impressum.responsible_title', 'Verantwortliche Stelle', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
-                {% if profile.practice %}
-                <p>
-                    <strong class="text-theme-text-main">{{ profile.practice.name }}</strong><br>
-                    {{ profile.full_name }}<br>
-                    {{ profile.practice.street }}<br>
-                    {{ profile.practice.zip_code }} {{ profile.practice.city }}<br>
-                    {{ profile.practice.country }}
-                </p>
                 {% set phone_block = content_blocks.get('practice.phone') if content_blocks else none %}
                 {% set email_block = content_blocks.get('practice.email') if content_blocks else none %}
-                {% set practice_phone = phone_block.current_content if phone_block else profile.practice.phone %}
-                {% set practice_email = email_block.current_content if email_block else profile.practice.email %}
+                {% set practice_phone = phone_block.current_content if phone_block else '' %}
+                {% set practice_email = email_block.current_content if email_block else '' %}
+                <div>
+                    {{ editable('practice.name', 'PUSTERUM', tag='strong', class='text-theme-text-main') }}
+                    <p>{{ profile.full_name }}</p>
+                    {{ editable('practice.address', 'Kramgasse 42, 3011 Bern', tag='p', class='whitespace-pre-line', type='textarea', rows=3) }}
+                    <p>Schweiz</p>
+                </div>
                 <div class="mt-2">
                     <strong class="text-theme-text-main">Kontakt:</strong><br>
                     {% if is_admin %}
@@ -40,13 +38,6 @@
                     {% if practice_email %}E-Mail: <a href="mailto:{{ practice_email }}" class="text-theme-primary hover:underline">{{ practice_email }}</a>{% endif %}
                     {% endif %}
                 </div>
-                {% else %}
-                <p>
-                    <strong class="text-theme-text-main">PUSTERUM – Praxis für Atem- und Körpertherapie</strong><br>
-                    Kramgasse 42, 3011 Bern<br>
-                    E-Mail: kontakt@pusterum.be
-                </p>
-                {% endif %}
             </div>
 
             <div>

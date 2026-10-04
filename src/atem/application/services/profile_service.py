@@ -1,16 +1,36 @@
 """Profile Application Service."""
 
+import re
+import unicodedata
 from uuid import UUID
+
+import structlog
 
 from atem.application.dto.profile import (
     CompetencyDTO,
     PracticeInfoDTO,
+    ServiceFormDTO,
     ServiceOfferingDTO,
     TherapistProfileDTO,
 )
 from atem.domain.exceptions import EntityNotFoundException
 from atem.domain.interfaces.profile_repository import IProfileRepository
 from atem.domain.models.profile import PracticeInfo, ServiceOffering, TherapistProfile
+
+logger = structlog.get_logger(__name__)
+
+
+_UMLAUTS = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
+
+
+def slugify(text: str) -> str:
+    """Lower-case ASCII slug: 'Einzelsitzung Atem & Körper' -> 'einzelsitzung-atem-koerper'."""
+    ascii_text = (
+        unicodedata.normalize("NFKD", text.lower().translate(_UMLAUTS))
+        .encode("ascii", "ignore")
+        .decode()
+    )
+    return re.sub(r"[^a-z0-9]+", "-", ascii_text).strip("-")[:150]
 
 
 class ProfileService:
@@ -99,49 +119,54 @@ class ProfileService:
         dto.id = saved.id
         return dto
 
-    async def create_service(self, dto: ServiceOfferingDTO) -> ServiceOfferingDTO:
-        """Create new service offering."""
+    async def list_services(self, *, include_inactive: bool = False) -> list[ServiceOfferingDTO]:
+        """Offerings ordered by sort order (admin view includes inactive ones)."""
+        services = await self._repository.get_services(active_only=not include_inactive)
+        return [ServiceOfferingDTO.model_validate(s, from_attributes=True) for s in services]
+
+    async def create_service(self, form: ServiceFormDTO) -> ServiceOfferingDTO:
+        """Create a new service offering."""
         service = ServiceOffering(
-            title=dto.title,
-            slug=dto.slug,
-            subtitle=dto.subtitle,
-            description=dto.description,
-            duration_minutes=dto.duration_minutes,
-            price_chf=dto.price_chf,
-            is_health_insurance_recognized=dto.is_health_insurance_recognized,
-            sort_order=dto.sort_order,
-            is_active=dto.is_active,
+            **form.model_dump(),
+            slug=await self._unique_slug(form.title),
+            is_health_insurance_recognized=False,
         )
         saved = await self._repository.save_service(service)
-        dto.id = saved.id
-        return dto
+        logger.info("admin_action", action="service_created", service_id=str(saved.id))
+        return ServiceOfferingDTO.model_validate(saved, from_attributes=True)
 
-    async def update_service(self, service_id: UUID, dto: ServiceOfferingDTO) -> ServiceOfferingDTO:
-        """Update existing service offering."""
+    async def update_service(self, service_id: UUID, form: ServiceFormDTO) -> ServiceOfferingDTO:
+        """Update an existing service offering."""
         existing = await self._repository.get_service_by_id(service_id)
         if not existing:
             raise EntityNotFoundException("ServiceOffering", str(service_id))
-
-        existing.title = dto.title
-        existing.slug = dto.slug
-        existing.subtitle = dto.subtitle
-        existing.description = dto.description
-        existing.duration_minutes = dto.duration_minutes
-        existing.price_chf = dto.price_chf
-        existing.is_health_insurance_recognized = dto.is_health_insurance_recognized
-        existing.sort_order = dto.sort_order
-        existing.is_active = dto.is_active
-
+        for name, value in form.model_dump().items():
+            setattr(existing, name, value)
+        existing.slug = await self._unique_slug(form.title, exclude_id=service_id)
         saved = await self._repository.save_service(existing)
-        dto.id = saved.id
-        return dto
+        logger.info("admin_action", action="service_updated", service_id=str(service_id))
+        return ServiceOfferingDTO.model_validate(saved, from_attributes=True)
 
     async def delete_service(self, service_id: UUID) -> bool:
         """Delete service offering."""
         deleted = await self._repository.delete_service(service_id)
         if not deleted:
             raise EntityNotFoundException("ServiceOffering", str(service_id))
+        logger.info("admin_action", action="service_deleted", service_id=str(service_id))
         return True
+
+    async def _unique_slug(self, title: str, exclude_id: UUID | None = None) -> str:
+        """URL-friendly, unique slug derived from the title (umlauts transliterated)."""
+        base = slugify(title) or "angebot"
+        taken = {
+            s.slug
+            for s in await self._repository.get_services(active_only=False)
+            if s.id != exclude_id
+        }
+        slug, counter = base, 2
+        while slug in taken:
+            slug, counter = f"{base}-{counter}", counter + 1
+        return slug
 
     async def update_practice_info(self, dto: PracticeInfoDTO) -> PracticeInfoDTO:
         """Update practice location info."""

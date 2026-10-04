@@ -34,15 +34,7 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "key": "hero.text",
         "section": "hero",
         "type": "textarea",
-        "content": (
-            "Der Atem begleitet uns durch unser ganzes Leben. Er ist die Verbindung zwischen"
-            " Körper und Psyche: Er reagiert auf das, was uns beschäftigt, auf unsere Gefühle, auf"
-            " Anspannung, Bewegung und Körperhaltung. Als einzige autonome Körperfunktion lässt"
-            " sich"
-            " der Atem jedoch willentlich aktiv beeinflussen. In der Praxis PUSTERUM nutzen wir"
-            " diese Verbindung als direkten Zugang, um Anspannung loszulassen, zur Ruhe zu kommen"
-            " und neue Kraft zu schöpfen."
-        ),
+        "content": "",
     },
     {
         "key": "hero.image",

@@ -13,7 +13,7 @@ class SaveContentBlockRequestDTO(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    content: str = Field(..., min_length=1, description="Updated text, HTML, or image path")
+    content: str = Field(..., description="Updated text, HTML, or image path")
     change_summary: str | None = Field(default=None, max_length=255)
 
 

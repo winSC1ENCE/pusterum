@@ -37,6 +37,12 @@ flowchart LR
     C -- nein --> E[unverändert lassen<br/>manuell gepflegt]
 ```
 
+**Leere Content-Blöcke:** Alle Text-Blöcke dürfen leer gespeichert werden; nur Bild-Blöcke bleiben
+Pflichtfelder (ein leerer Pfad ergäbe ein defektes Bild). Das `editable()`-Macro rendert leere Blöcke
+öffentlich nicht und zeigt Admins einen gestrichelten Platzhalter („Optionales Feld – leer …“), damit das
+Feld auffindbar bleibt.
+Migrationen `0002`/`0003` haben `hero.text` erst gekürzt und dann geleert.
+
 ## Rationale & Trade-offs
 
 * **Why this approach:** Ein rotierendes Band zeigt alle Zitate bei minimalem Platzbedarf; die Pflege bleibt

@@ -28,6 +28,10 @@
         <div x-show="!isEditing" @dblclick="startEdit()" class="relative {% if type == 'image' %}w-full h-full flex items-center justify-center{% endif %} group-hover/edit:outline-dashed group-hover/edit:outline-1 group-hover/edit:outline-slate-400/80 rounded-lg transition-all" title="Doppelklick oder Stift-Symbol zum Bearbeiten">
             {% if type == 'image' %}
                 <img src="{{ val }}" alt="{{ img_alt }}" class="{{ img_class }}" />
+            {% elif not val %}
+                <{{ tag }} class="{{ class }} !text-base italic opacity-60 border border-dashed border-slate-400 rounded-lg px-3 py-2">
+                    Optionales Feld – leer (öffentlich ausgeblendet). Doppelklick oder Stift zum Befüllen.
+                </{{ tag }}>
             {% else %}
                 <{{ tag }} class="{{ class }}">
                     {{ val | safe if type == 'rich' else val }}
@@ -159,7 +163,7 @@
         <!-- PUBLIC RENDERING (No editing overhead or controls) -->
         {% if type == 'image' %}
             <img src="{{ val }}" alt="{{ img_alt }}" class="{{ img_class }}" />
-        {% else %}
+        {% elif val %}
             <{{ tag }} class="{{ class }}">
                 {{ val | safe if type == 'rich' else val }}
             </{{ tag }}>

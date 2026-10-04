@@ -57,6 +57,10 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
   (`infrastructure/database/repositories/sqlalchemy_content_repository.py`), gerendert über das Macro
   `editable(key, fallback, ...)` aus `templates/components/editable_block.html`. Versionierung: ADR-0002.
 - Der Template-Fallback sollte dem Default entsprechen.
+- Alle Text-Blöcke dürfen leer gespeichert werden (Bild-Blöcke nicht, siehe `ContentService.save_block_content`).
+  Leere Blöcke rendert `editable()` öffentlich nicht; im Admin-Modus erscheinen sie als gestrichelter
+  Platzhalter zum Befüllen. Umgebende Deko (Badges, Icons) ggf. im Template mit `is_admin`/Inhalt prüfen
+  (Beispiel: `hero.text` in `components/hero.html`).
 - `_ensure_seed_data` fügt nur **fehlende** Keys ein. Wird ein bestehender Default-Text geändert, braucht es
   eine **Alembic-Datenmigration** (Muster: `migrations/versions/…0001_pusterum_rebranding_content.py`,
   nur exakt unveränderte Blöcke ersetzen, als neue Version schreiben). Siehe TDR-0003.

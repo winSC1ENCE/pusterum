@@ -18,10 +18,13 @@
                     {{ editable('hero.subtitle', 'Raum zum Atmen – die Brücke zwischen Körper und Psyche.', tag='span', class='text-theme-primary italic font-normal') }}
                 </h1>
 
-                <!-- Subtitle / Tagline -->
+                <!-- Optional Intro Text (hidden publicly when empty) -->
+                {% set hero_text_block = content_blocks.get('hero.text') if content_blocks else none %}
+                {% if is_admin or (hero_text_block and hero_text_block.current_content) %}
                 <div class="max-w-2xl mx-auto lg:mx-0">
-                    {{ editable('hero.text', 'Der Atem begleitet uns durch unser ganzes Leben. Er ist die Verbindung zwischen Körper und Psyche: Er reagiert auf das, was uns beschäftigt, auf unsere Gefühle, auf Anspannung, Bewegung und Körperhaltung. Als einzige autonome Körperfunktion lässt sich der Atem jedoch willentlich aktiv beeinflussen. In der Praxis PUSTERUM nutzen wir diese Verbindung als direkten Zugang, um Anspannung loszulassen, zur Ruhe zu kommen und neue Kraft zu schöpfen.', tag='p', class='text-lg sm:text-xl text-theme-text-muted leading-relaxed font-normal', type='textarea', rows=4) }}
+                    {{ editable('hero.text', '', tag='p', class='text-lg sm:text-xl text-theme-text-muted leading-relaxed font-normal', type='textarea', rows=4) }}
                 </div>
+                {% endif %}
 
                 <!-- Actions -->
                 <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">

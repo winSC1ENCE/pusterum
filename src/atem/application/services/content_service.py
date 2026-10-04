@@ -44,10 +44,15 @@ class ContentService:
     ) -> ContentBlockResponseDTO:
         """Save a new version of the specified content block."""
         clean_content = dto.content.strip()
-        if not clean_content:
+        existing_block = await self._repository.get_block(key)
+
+        # Text blocks may be emptied (hidden publicly, placeholder in admin mode);
+        # image blocks always need a path.
+        if not clean_content and (
+            existing_block is None or existing_block.block_type == ContentBlockType.IMAGE_URL
+        ):
             raise ValidationException("Content cannot be empty.")
 
-        existing_block = await self._repository.get_block(key)
         if existing_block and existing_block.current_content.strip() == clean_content:
             logger.info(
                 "content_unchanged_skipping_version",

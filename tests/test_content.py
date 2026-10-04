@@ -97,10 +97,10 @@ async def test_content_service_rollback_creates_next_version(
 async def test_content_service_validation_errors(
     content_service: ContentService,
 ) -> None:
-    """Test validation errors for empty content and unknown keys."""
+    """Test validation errors for empty image content and unknown keys."""
     with pytest.raises(ValidationException):
         await content_service.save_block_content(
-            key="hero.title",
+            key="hero.image",
             dto=SaveContentBlockRequestDTO(content="   "),
             author_name="Admin",
         )
@@ -340,3 +340,59 @@ async def test_image_upload_save_and_immediate_live_render(
     landing_resp2 = await app_client.get("/")
     assert portrait_url in landing_resp2.text
     assert uploaded_url in landing_resp2.text
+
+
+@pytest.mark.asyncio
+async def test_optional_content_block_can_be_emptied_and_refilled(
+    content_service: ContentService,
+) -> None:
+    """Text blocks accept empty content (hidden publicly); image blocks do not."""
+    filled = await content_service.save_block_content(
+        key="hero.text",
+        dto=SaveContentBlockRequestDTO(content="Kurzer Einstieg"),
+        author_name="Admin",
+    )
+    assert filled.current_content == "Kurzer Einstieg"
+
+    cleared = await content_service.save_block_content(
+        key="hero.text",
+        dto=SaveContentBlockRequestDTO(content="   "),
+        author_name="Admin",
+    )
+    assert cleared.current_content == ""
+
+    cleared_title = await content_service.save_block_content(
+        key="about.title",
+        dto=SaveContentBlockRequestDTO(content=""),
+        author_name="Admin",
+    )
+    assert cleared_title.current_content == ""
+
+    with pytest.raises(ValidationException):
+        await content_service.save_block_content(
+            key="about.portrait",
+            dto=SaveContentBlockRequestDTO(content=""),
+            author_name="Admin",
+        )
+
+
+@pytest.mark.asyncio
+async def test_empty_optional_hero_text_hidden_publicly_but_placeholder_for_admin(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    """An empty hero.text renders nothing publicly and a fillable placeholder for admins."""
+    placeholder = "Optionales Feld – leer (öffentlich ausgeblendet)"
+
+    public_resp = await app_client.get("/")
+    assert public_resp.status_code == 200
+    assert placeholder not in public_resp.text
+    assert "content-block-hero-text" not in public_resp.text
+
+    await app_client.post(
+        "/admin/login",
+        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        follow_redirects=True,
+    )
+    admin_resp = await app_client.get("/")
+    assert placeholder in admin_resp.text
+    assert 'id="content-block-hero-text"' in admin_resp.text

@@ -12,10 +12,16 @@ from atem.domain.interfaces.theme_repository import IThemeRepository
 from atem.domain.models.theme import (
     PRESET_SHAPES,
     PRESET_THEMES,
+    SEED_OPACITY_MAX,
+    SEED_OPACITY_MIN,
+    SEED_SIZE_MAX,
+    SEED_SIZE_MIN,
     ColorPresetKey,
     DandelionEffectMode,
+    FontFamily,
     ShapeType,
     ThemeConfig,
+    is_hex_color,
 )
 
 logger = structlog.get_logger(__name__)
@@ -144,27 +150,41 @@ class ThemeService:
         ]
 
     def generate_css_variables(self, theme: ThemeConfigDTO) -> str:
-        """Generate inline CSS custom variables and shape classes for Jinja2 templates."""
+        """Generate the CSS custom properties for all pages.
+
+        Every value is re-validated here (defence in depth): invalid colours or fonts that
+        might exist in the database fall back to the default theme instead of being emitted
+        into the ``<style>`` block.
+        """
+        defaults = ThemeConfig()
         shape_def = PRESET_SHAPES.get(theme.active_shape, PRESET_SHAPES[ShapeType.DANDELION_SEED])
-        opacity_dec = theme.dandelion_seed_opacity / 100.0
+        size = min(max(theme.dandelion_seed_size, SEED_SIZE_MIN), SEED_SIZE_MAX)
+        opacity = min(max(theme.dandelion_seed_opacity, SEED_OPACITY_MIN), SEED_OPACITY_MAX)
+
+        def color(name: str) -> str:
+            value = str(getattr(theme, name))
+            return value if is_hex_color(value) else str(getattr(defaults, name))
+
+        def font(value: str, fallback: FontFamily) -> str:
+            return value if value in FontFamily.__members__.values() else fallback.value
 
         return f"""
         :root {{
-            --theme-primary: {theme.primary_color};
-            --theme-primary-hover: {theme.primary_hover};
-            --theme-secondary: {theme.secondary_color};
-            --theme-accent: {theme.accent_color};
-            --theme-bg: {theme.background_color};
-            --theme-surface: {theme.surface_color};
-            --theme-surface-muted: {theme.surface_muted};
-            --theme-text-main: {theme.text_main_color};
-            --theme-text-muted: {theme.text_muted_color};
-            --theme-border: {theme.border_color};
+            --theme-primary: {color("primary_color")};
+            --theme-primary-hover: {color("primary_hover")};
+            --theme-secondary: {color("secondary_color")};
+            --theme-accent: {color("accent_color")};
+            --theme-bg: {color("background_color")};
+            --theme-surface: {color("surface_color")};
+            --theme-surface-muted: {color("surface_muted")};
+            --theme-text-main: {color("text_main_color")};
+            --theme-text-muted: {color("text_muted_color")};
+            --theme-border: {color("border_color")};
             --theme-shape-radius: {shape_def.css_border_radius};
-            --font-heading: '{theme.heading_font}', serif;
-            --font-body: '{theme.body_font}', sans-serif;
-            --dandelion-seed-size: {theme.dandelion_seed_size}px;
-            --dandelion-seed-opacity: {opacity_dec:.2f};
+            --font-heading: '{font(theme.heading_font, FontFamily.LORA)}', serif;
+            --font-body: '{font(theme.body_font, FontFamily.PLUS_JAKARTA_SANS)}', sans-serif;
+            --dandelion-seed-size: {size}px;
+            --dandelion-seed-opacity: {opacity / 100.0:.2f};
         }}
         """
 

@@ -12,7 +12,12 @@ from atem.application.dto.content import (
 )
 from atem.domain.exceptions import EntityNotFoundException, ValidationException
 from atem.domain.interfaces.content_repository import IContentRepository
-from atem.domain.models.content import ContentBlockType
+from atem.domain.models.content import (
+    CONTENT_KEY_PATTERN,
+    IMAGE_PATH_PATTERN,
+    MAX_CONTENT_LENGTH,
+    ContentBlockType,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -51,14 +56,23 @@ class ContentService:
     ) -> ContentBlockResponseDTO:
         """Save a new version of the specified content block."""
         clean_content = dto.content.strip()
+        if not CONTENT_KEY_PATTERN.fullmatch(key):
+            raise ValidationException("Ungültiger Inhalts-Schlüssel.")
         existing_block = await self._repository.get_block(key)
+        if existing_block is None:
+            # Only blocks defined in the content defaults can be edited – no new keys via URL.
+            raise EntityNotFoundException("ContentBlock", key)
+        if len(clean_content) > MAX_CONTENT_LENGTH:
+            raise ValidationException(
+                f"Der Inhalt ist zu lang (max. {MAX_CONTENT_LENGTH} Zeichen)."
+            )
 
-        # Text blocks may be emptied (hidden publicly, placeholder in admin mode);
-        # image blocks always need a path.
-        if not clean_content and (
-            existing_block is None or existing_block.block_type == ContentBlockType.IMAGE_URL
+        # Image blocks always need a path to an uploaded or bundled image.
+        if existing_block.block_type == ContentBlockType.IMAGE_URL and not (
+            IMAGE_PATH_PATTERN.fullmatch(clean_content)
         ):
-            raise ValidationException("Content cannot be empty.")
+            raise ValidationException("Ungültiger Bildpfad.")
+        # Text blocks may be emptied (hidden publicly, placeholder in admin mode).
 
         if existing_block and existing_block.current_content.strip() == clean_content:
             logger.info(

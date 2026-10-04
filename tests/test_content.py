@@ -1,5 +1,7 @@
 """Tests for Live In-Context Content Management and Versioning (ADR-0002)."""
 
+import re
+
 import pytest
 from litestar import Litestar
 from litestar.testing import AsyncTestClient
@@ -119,6 +121,7 @@ async def test_content_service_validation_errors(
 @pytest.mark.asyncio
 async def test_content_admin_endpoints_and_auth_guard(
     app_client: AsyncTestClient[Litestar],
+    sample_png: bytes,
 ) -> None:
     """Test HTMX content routes with unauthorized and authorized requests."""
     # 1. Unauthorized request without session -> 401
@@ -167,11 +170,6 @@ async def test_content_admin_endpoints_and_auth_guard(
     assert any("filename" in img and "url" in img for img in images)
 
     # 7. Test POST /admin/images/upload (with valid PNG into persistent /media/)
-    sample_png = (
-        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00"
-        b"\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4"
-        b"\x00\x00\x00\x00IEND\xaeB`\x82"
-    )
     upload_resp = await app_client.post(
         "/admin/images/upload",
         files={"data": ("test_upload.png", sample_png, "image/png")},
@@ -179,12 +177,12 @@ async def test_content_admin_endpoints_and_auth_guard(
     assert upload_resp.status_code in {200, 201}
     upload_data = upload_resp.json()
     assert "url" in upload_data
-    assert upload_data["url"].startswith("/media/test_upload")
+    assert re.fullmatch(r"/media/[0-9a-f]{32}\.png", upload_data["url"])
 
     # 8. Test GET /media/... to verify serving from persistent media router
     media_fetch_resp = await app_client.get(upload_data["url"])
     assert media_fetch_resp.status_code == 200
-    assert media_fetch_resp.content == sample_png
+    assert media_fetch_resp.content.startswith(b"\x89PNG")  # re-encoded, metadata stripped
 
     # 9. Test saving practice.interior_image with uploaded URL (multipart and form data)
     save_img_resp = await app_client.post(
@@ -282,6 +280,7 @@ async def test_impressum_and_datenschutz_public_routes(
 @pytest.mark.asyncio
 async def test_image_upload_save_and_immediate_live_render(
     app_client: AsyncTestClient[Litestar],
+    sample_png: bytes,
 ) -> None:
     """Verify that uploaded images for practice, portrait, and hero are rendered live."""
     # 1. Login as admin
@@ -289,12 +288,6 @@ async def test_image_upload_save_and_immediate_live_render(
         "/admin/login",
         data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
         follow_redirects=True,
-    )
-
-    sample_png = (
-        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00"
-        b"\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4"
-        b"\x00\x00\x00\x00IEND\xaeB`\x82"
     )
 
     # 2. Upload new practice room image

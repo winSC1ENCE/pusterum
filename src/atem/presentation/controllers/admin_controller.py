@@ -2,8 +2,7 @@
 
 import contextlib
 import re
-import time
-from pathlib import Path
+from dataclasses import asdict
 from typing import Annotated, Any
 from uuid import UUID
 
@@ -11,7 +10,6 @@ import structlog
 from litestar import Controller, Request, get, post
 from litestar.datastructures import UploadFile
 from litestar.enums import RequestEncodingType
-from litestar.exceptions import ValidationException
 from litestar.params import Body
 from litestar.response import Redirect, Response, Template
 
@@ -19,6 +17,7 @@ from atem.application.dto.content import SaveContentBlockRequestDTO
 from atem.application.dto.theme import UpdateThemeRequestDTO
 from atem.application.services.contact_service import ContactService
 from atem.application.services.content_service import ContentService
+from atem.application.services.media_service import MediaService
 from atem.application.services.profile_service import ProfileService
 from atem.application.services.theme_service import ThemeService
 from atem.domain.models.theme import (
@@ -27,14 +26,34 @@ from atem.domain.models.theme import (
     DandelionEffectMode,
     ShapeType,
 )
-from atem.infrastructure.config.settings import get_settings
 from atem.presentation.security.admin_auth import require_admin
 
 logger = structlog.get_logger(__name__)
 
-STATIC_IMAGES_DIR = Path(__file__).resolve().parent.parent / "static" / "images"
-ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".svg"}
-MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+
+# Render hints are echoed back by the inline editor; only safe values are accepted.
+ALLOWED_TAGS = frozenset({"p", "span", "div", "h1", "h2", "h3", "h4", "blockquote", "figcaption"})
+CSS_CLASS_RE = re.compile(r"^[A-Za-z0-9_:/\-\[\]\.%!#() ]{0,600}$")
+MAX_ROWS = 20
+MAX_ALT_LENGTH = 200
+
+
+def render_hints(data: dict[str, Any], key: str) -> dict[str, Any]:
+    """Sanitise the render hints (tag, classes, alt text, rows) posted by the inline editor."""
+    tag = str(data.get("tag") or "p")
+    css_class = str(data.get("css_class") or "")
+    img_class = str(data.get("img_class") or "")
+    try:
+        rows = int(str(data.get("rows", 3)))
+    except ValueError:
+        rows = 3
+    return {
+        "tag": tag if tag in ALLOWED_TAGS else "p",
+        "css_class": css_class if CSS_CLASS_RE.fullmatch(css_class) else "",
+        "img_class": img_class if CSS_CLASS_RE.fullmatch(img_class) else "",
+        "img_alt": str(data.get("img_alt") or f"{key} Bild")[:MAX_ALT_LENGTH],
+        "rows": min(max(rows, 1), MAX_ROWS),
+    }
 
 
 class AdminController(Controller):
@@ -378,33 +397,13 @@ class AdminController(Controller):
         )
         content_blocks = await content_service.get_content_map()
 
-        default_img_classes = {
-            "about.portrait": "w-full h-full aspect-square object-cover shape-organic shadow-inner",
-            "practice.interior_image": (
-                "w-full h-full aspect-square object-cover shape-organic shadow-inner"
-            ),
-            "hero.image": (
-                "relative z-10 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 object-contain"
-                " filter drop-shadow-md hover:scale-105 transition-transform duration-500"
-            ),
-        }
-        img_class = str(data.get("img_class") or default_img_classes.get(key, ""))
-        img_alt = str(data.get("img_alt") or f"{key} Bild")
-        tag = str(data.get("tag") or "p")
-        css_class = str(data.get("css_class") or "")
-        rows = int(data.get("rows", 3))
-
         return Template(
             template_name="admin/editable_block_single.html",
             context={
+                **render_hints(data, key),
                 "block": updated_block,
                 "content_blocks": content_blocks,
                 "is_admin": True,
-                "tag": tag,
-                "css_class": css_class,
-                "img_alt": img_alt,
-                "img_class": img_class,
-                "rows": rows,
             },
         )
 
@@ -460,85 +459,16 @@ class AdminController(Controller):
         )
 
     @get("/images/list")
-    async def list_images(self) -> list[dict[str, Any]]:
-        """List all available image files from persistent media directory and static assets."""
-        settings = get_settings()
-        media_dir = settings.media_storage_path
-        media_dir.mkdir(parents=True, exist_ok=True)
-        STATIC_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
-
-        images: list[dict[str, Any]] = []
-
-        # 1. User Uploads from persistent storage/uploads (Priority)
-        for file in sorted(
-            media_dir.iterdir(),
-            key=lambda p: p.stat().st_mtime if p.exists() else 0,
-            reverse=True,
-        ):
-            if file.is_file() and file.suffix.lower() in ALLOWED_IMAGE_EXTENSIONS:
-                images.append(
-                    {
-                        "filename": file.name,
-                        "url": f"/media/{file.name}",
-                        "size_kb": round(file.stat().st_size / 1024, 1),
-                        "source": "uploads",
-                    }
-                )
-
-        # 2. Stock Theme Assets from static/images
-        for file in sorted(
-            STATIC_IMAGES_DIR.iterdir(),
-            key=lambda p: p.stat().st_mtime if p.exists() else 0,
-            reverse=True,
-        ):
-            if file.is_file() and file.suffix.lower() in ALLOWED_IMAGE_EXTENSIONS:
-                images.append(
-                    {
-                        "filename": file.name,
-                        "url": f"/static/images/{file.name}",
-                        "size_kb": round(file.stat().st_size / 1024, 1),
-                        "source": "theme",
-                    }
-                )
-        return images
+    async def list_images(self, media_service: MediaService) -> list[dict[str, Any]]:
+        """List uploaded images and bundled theme images for the image picker."""
+        return [asdict(item) for item in media_service.list_images()]
 
     @post("/images/upload")
     async def upload_image(
         self,
+        media_service: MediaService,
         data: Annotated[UploadFile, Body(media_type=RequestEncodingType.MULTI_PART)],
     ) -> dict[str, Any]:
-        """Upload an image directly into the persistent media directory (storage/uploads)."""
-        settings = get_settings()
-        media_dir = settings.media_storage_path
-        media_dir.mkdir(parents=True, exist_ok=True)
-
-        filename = data.filename or "uploaded_image.png"
-        ext = Path(filename).suffix.lower()
-        if ext not in ALLOWED_IMAGE_EXTENSIONS:
-            raise ValidationException(
-                "Ungültiges Dateiformat. Erlaubt sind: PNG, JPG, JPEG, WEBP, SVG."
-            )
-
-        content = await data.read()
-        if len(content) > MAX_FILE_SIZE_BYTES:
-            raise ValidationException("Die Datei überschreitet die maximale Größe von 10 MB.")
-
-        # Sanitize base filename
-        base_name = Path(filename).stem
-        safe_base = re.sub(r"[^a-zA-Z0-9_-]", "_", base_name).strip("_") or "image"
-        final_filename = f"{safe_base}{ext}"
-        target_path = media_dir / final_filename
-
-        # If file exists, append timestamp to prevent overwriting existing files
-        if target_path.exists():
-            final_filename = f"{safe_base}_{int(time.time())}{ext}"
-            target_path = media_dir / final_filename
-
-        target_path.write_bytes(content)
-        logger.info("Uploaded image to persistent media directory", filename=final_filename)
-
-        return {
-            "filename": final_filename,
-            "url": f"/media/{final_filename}",
-            "size_kb": round(len(content) / 1024, 1),
-        }
+        """Upload an image: content is verified and re-encoded (no SVG, no metadata)."""
+        raw = await data.read()
+        return asdict(media_service.store_upload(raw))

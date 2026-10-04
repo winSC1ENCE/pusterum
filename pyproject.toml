@@ -27,6 +27,7 @@ dependencies = [
     "pyotp>=2.9.0",
     "segno>=1.6.1",
     "markupsafe>=2.1",
+    "pillow>=11.0",
 ]
 
 [dependency-groups]

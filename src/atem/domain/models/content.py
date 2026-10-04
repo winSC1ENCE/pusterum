@@ -1,11 +1,18 @@
 """Domain Models for Live In-Context Content Management and Versioning."""
 
+import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
 from uuid import UUID, uuid4
 
 from atem.domain.models.base import BaseEntity
+
+# Content keys are dotted identifiers such as "hero.title" or "quotes.3.author".
+CONTENT_KEY_PATTERN = re.compile(r"^[a-z][a-z0-9_]*(\.[a-z0-9_]+){1,4}$")
+# Image blocks may only reference uploaded media or bundled theme images.
+IMAGE_PATH_PATTERN = re.compile(r"^/(media|static/images)/[A-Za-z0-9_.-]{1,120}$")
+MAX_CONTENT_LENGTH = 10_000
 
 
 class ContentBlockType(StrEnum):

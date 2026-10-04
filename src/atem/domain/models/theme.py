@@ -1,7 +1,29 @@
+import re
 from dataclasses import dataclass, field
 from enum import StrEnum
 
 from atem.domain.models.base import BaseEntity
+
+# Only CSS hex colours (#rgb, #rgba, #rrggbb, #rrggbbaa) are accepted anywhere in the theme.
+HEX_COLOR_PATTERN = r"^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
+_HEX_COLOR_RE = re.compile(HEX_COLOR_PATTERN)
+
+SEED_SIZE_MIN, SEED_SIZE_MAX, SEED_SIZE_DEFAULT = 20, 120, 48
+SEED_OPACITY_MIN, SEED_OPACITY_MAX, SEED_OPACITY_DEFAULT = 10, 100, 80
+
+
+def is_hex_color(value: str) -> bool:
+    """Return True for a valid CSS hex colour."""
+    return bool(_HEX_COLOR_RE.fullmatch(value))
+
+
+class FontFamily(StrEnum):
+    """Allowlist of self-hosted font families selectable in the design studio."""
+
+    LORA = "Lora"
+    PLAYFAIR_DISPLAY = "Playfair Display"
+    PLUS_JAKARTA_SANS = "Plus Jakarta Sans"
+    RUBIK = "Rubik"
 
 
 class ShapeType(StrEnum):
@@ -84,8 +106,8 @@ class ThemeConfig(BaseEntity):
     dandelion_modes: list[DandelionEffectMode] = field(
         default_factory=lambda: [DandelionEffectMode.DISABLED]
     )
-    dandelion_seed_size: int = 48  # Pixel size (20 - 110px)
-    dandelion_seed_opacity: int = 80  # Opacity percentage (10 - 100%)
+    dandelion_seed_size: int = SEED_SIZE_DEFAULT  # px, SEED_SIZE_MIN..SEED_SIZE_MAX
+    dandelion_seed_opacity: int = SEED_OPACITY_DEFAULT  # %, SEED_OPACITY_MIN..SEED_OPACITY_MAX
 
     @property
     def dandelion_mode(self) -> DandelionEffectMode:

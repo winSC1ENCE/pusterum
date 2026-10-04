@@ -1,6 +1,6 @@
 {# =============================================================================
    IN-CONTEXT INLINE EDITING MACRO (ADR-0002)
-   Supports text, textarea, rich text, and image selection with flat monochrome icons,
+   Supports text, textarea and image selection with flat monochrome icons,
    Alt+S save, Esc cancel, immutable version badges, and modal audit trail.
    ============================================================================= #}
 
@@ -14,7 +14,7 @@
     {% if show_admin %}
     <div
         id="{{ dom_id }}"
-        x-data="inlineEditor('{{ key }}', '{{ type }}')"
+        x-data='inlineEditor({{ key | tojson }}, {{ type | tojson }})'
         class="editable-block-container relative group/edit {% if type == 'image' %}w-full h-full flex items-center justify-center{% else %}inline-block w-full{% endif %}"
         data-dom-id="{{ dom_id }}"
         data-tag="{{ tag }}"
@@ -33,7 +33,7 @@
                     Optionales Feld – leer (öffentlich ausgeblendet). Doppelklick oder Stift zum Befüllen.
                 </{{ tag }}>
             {% else %}
-                <{{ tag }} class="{{ class }}">{{ val | safe if type == 'rich' else val }}</{{ tag }}>
+                <{{ tag }} class="{{ class }}">{{ val }}</{{ tag }}>
             {% endif %}
 
             <!-- Admin Action Overlay Bar (Flat Monochrome Vector SVGs) -->
@@ -92,11 +92,11 @@
                         class="w-full p-2 text-xs rounded-lg border border-slate-300 text-slate-900 bg-white focus:ring-1 focus:ring-slate-800 focus:outline-none"
                     />
                     <div class="flex items-center gap-3 pt-1">
-                        <img :src="$refs.inputField ? $refs.inputField.value : '{{ val }}'" class="w-14 h-14 object-cover rounded-lg border border-slate-300 bg-slate-50" alt="Vorschau" />
+                        <img :src='$refs.inputField ? $refs.inputField.value : {{ val | tojson }}' class="w-14 h-14 object-cover rounded-lg border border-slate-300 bg-slate-50" alt="Vorschau" />
                         <span class="text-[11px] text-slate-500">Live-Vorschau</span>
                     </div>
                 </div>
-                {% elif type == 'textarea' or type == 'rich' %}
+                {% elif type == 'textarea' %}
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Inhalt bearbeiten:</label>
                     <textarea
@@ -162,7 +162,7 @@
         {% if type == 'image' %}
             <img src="{{ val }}" alt="{{ img_alt }}" class="{{ img_class }}" />
         {% elif val %}
-            <{{ tag }} class="{{ class }}">{{ val | safe if type == 'rich' else val }}</{{ tag }}>
+            <{{ tag }} class="{{ class }}">{{ val }}</{{ tag }}>
         {% endif %}
     {% endif %}
 {% endmacro %}

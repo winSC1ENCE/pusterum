@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
 from atem.application.services.content_service import ContentService
+from atem.application.services.media_service import MediaService
 from atem.application.services.profile_service import ProfileService
 from atem.application.services.theme_service import ThemeService
 from atem.domain.interfaces.contact_repository import IContactRepository
@@ -51,6 +52,7 @@ from atem.infrastructure.database.session import create_engine, create_session_f
 from atem.infrastructure.email.mock_email_service import MockEmailService
 from atem.infrastructure.email.smtp_email_service import SmtpEmailService
 from atem.infrastructure.logging.logger import get_logger, setup_logging
+from atem.infrastructure.media.pillow_image_sanitizer import PillowImageSanitizer
 from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHasher
 from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
 from atem.presentation.bootstrap import build_secret_cipher, ensure_dev_admin, seed_content
@@ -59,6 +61,7 @@ from atem.presentation.controllers.admin_controller import AdminController
 from atem.presentation.controllers.admin_security_controller import AdminSecurityController
 from atem.presentation.controllers.health_controller import HealthController
 from atem.presentation.controllers.public_controller import PublicController
+from atem.presentation.errors import EXCEPTION_HANDLERS
 from atem.presentation.security.admin_auth import unauthorized_handler
 from atem.presentation.security.proxy_headers import ProxyHeadersMiddleware
 
@@ -141,6 +144,15 @@ async def provide_contact_service(
     return ContactService(
         contact_repository=contact_repository,
         email_service=email_service,
+    )
+
+
+async def provide_media_service(settings: Settings) -> MediaService:
+    """Provide MediaService (uploads into the persistent media volume)."""
+    return MediaService(
+        sanitizer=PillowImageSanitizer(),
+        media_dir=settings.media_storage_path,
+        static_images_dir=BASE_DIR / "static" / "images",
     )
 
 
@@ -298,6 +310,7 @@ def create_app() -> Litestar:
             "profile_service": Provide(provide_profile_service),
             "contact_service": Provide(provide_contact_service),
             "auth_service": Provide(provide_auth_service),
+            "media_service": Provide(provide_media_service),
         },
         template_config=template_config,
         middleware=[
@@ -307,8 +320,9 @@ def create_app() -> Litestar:
         ],
         csrf_config=csrf_config,
         allowed_hosts=AllowedHostsConfig(allowed_hosts=settings.ALLOWED_HOSTS),
-        exception_handlers={NotAuthorizedException: unauthorized_handler},
+        exception_handlers={**EXCEPTION_HANDLERS, NotAuthorizedException: unauthorized_handler},
         lifespan=[lifespan],
         openapi_config=openapi_config,
         debug=settings.DEBUG,
+        request_max_body_size=12 * 1024 * 1024,  # uploads are capped at 10 MB by MediaService
     )

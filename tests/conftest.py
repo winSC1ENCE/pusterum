@@ -1,11 +1,13 @@
 """Pytest Configuration and Test Fixtures."""
 
+import io
 import os
 from collections.abc import AsyncGenerator
 
 import pytest
 from litestar import Litestar
 from litestar.testing import AsyncTestClient
+from PIL import Image
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -49,6 +51,19 @@ from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHa
 from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
 from atem.presentation.app import create_app
 from atem.presentation.bootstrap import build_secret_cipher
+
+
+def make_image_bytes(image_format: str = "PNG", size: tuple[int, int] = (8, 8)) -> bytes:
+    """Create a real, decodable image for upload tests."""
+    buffer = io.BytesIO()
+    Image.new("RGB", size, (74, 108, 80)).save(buffer, image_format)
+    return buffer.getvalue()
+
+
+@pytest.fixture
+def sample_png() -> bytes:
+    """A valid 8×8 PNG."""
+    return make_image_bytes("PNG")
 
 
 @pytest.fixture

@@ -204,7 +204,7 @@ async def lifespan(app: Litestar) -> AsyncGenerator[None, None]:
     """Application lifespan managing DB connection and initialization."""
     settings = get_settings()
     setup_logging(is_dev=settings.is_dev)
-    logger.info("Starting Atemtherapie Application", environment=settings.ENVIRONMENT)
+    logger.info("Starting PUSTERUM application", environment=settings.ENVIRONMENT)
 
     # Initialize Async Engine and Sessionmaker if not already provided (e.g. in test fixture)
     if not hasattr(app.state, "engine") or app.state.engine is None:
@@ -334,7 +334,7 @@ def create_app() -> Litestar:
         dependencies={
             "settings": Provide(get_settings, sync_to_thread=False),
             "db_session": Provide(provide_db_session),
-            "password_hasher": Provide(provide_password_hasher, sync_to_thread=False),
+            "password_hasher": Provide(provide_password_hasher),
             "email_service": Provide(provide_email_service),
             "theme_repository": Provide(provide_theme_repository),
             "theme_service": Provide(provide_theme_service),

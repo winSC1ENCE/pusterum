@@ -113,7 +113,7 @@ docker compose up -d db
 uv run alembic upgrade head
 
 # 5. Entwicklungs-Server starten
-uv run granian --interface asgi --reload --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
+uv run granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
 # oder
 uv run uvicorn atem.presentation.app:create_app --factory --reload --port 8000
 ```

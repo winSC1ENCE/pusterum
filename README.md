@@ -27,7 +27,7 @@ Eine moderne, leichtgewichtige und sichere Single-Page-Webapplikation für eine 
 - Astral `uv` (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
 - Docker & Docker Compose (optional für PostgreSQL)
 
-### 2. Installation & Start
+### 2. Installation & Setup
 
 ```bash
 # Repository klonen & Abhängigkeiten synchronisieren
@@ -38,13 +38,57 @@ uv run pre-commit install
 
 # Umgebungsvariablen initialisieren
 cp .env.example .env
-
-# Server im Entwicklungsmodus starten
-uv run granian --interface asgi --reload --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
 ```
 
-Öffnen Sie nun [http://localhost:8000](http://localhost:8000) im Browser.
-Das Admin-Dashboard finden Sie unter [http://localhost:8000/admin](http://localhost:8000/admin).
+### 3. Datenbank starten & migrieren
+
+Starten Sie nur den PostgreSQL-Container:
+
+```bash
+# PostgreSQL im Hintergrund starten
+docker compose up -d db
+
+# Datenbank-Migrationen anwenden
+uv run alembic upgrade head
+```
+
+### 4. Lokalen Entwicklungs-Server starten
+
+> **Wichtig:** Da `create_app` eine Application-Factory ist, muss beim Granian-Aufruf das Flag `--factory` übergeben werden.
+
+```bash
+uv run granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
+```
+
+> **Tipp (Offline / Unterwegs):**
+> Nutzen Sie `--no-sync`, um externe PyPI-Netzwerkprüfungen beim Start zu überspringen:
+> ```bash
+> uv run --no-sync granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
+> ```
+
+### ⚠️ Hinweis: Port-Konflikte (Docker vs. Lokaler Server)
+
+Falls zuvor der gesamte Compose-Stack via `docker compose up -d` gestartet wurde, belegt der Container `atem_app` bereits Port 8000. Stoppen Sie in diesem Fall den App-Container, damit der Port für Ihren lokalen Granian-Server frei wird:
+
+```bash
+# App-Container stoppen (gibt Port 8000 frei):
+docker compose stop app
+# oder direkt über den Containernamen:
+docker stop atem_app
+
+# Sicherstellen, dass die Datenbank weiterhin läuft:
+docker compose up -d db
+
+# Danach lokalen Granian-Server wie gewohnt starten:
+uv run granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
+```
+
+### 5. URLs & Endpunkte
+
+- **Website:** [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- **Admin-Login:** [http://127.0.0.1:8000/admin/login](http://127.0.0.1:8000/admin/login) (Standard: `admin` / `admin-secure-init-pass-change-me`)
+- **Health-Check:** [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
+- Ausführliche Kurzanleitung: siehe [`DEV_START.md`](DEV_START.md)
 
 ---
 

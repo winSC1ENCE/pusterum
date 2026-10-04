@@ -46,6 +46,13 @@ uv run granian --interface asgi --host 127.0.0.1 --port 8000 --reload --factory 
 > uv run --no-sync granian --interface asgi --host 127.0.0.1 --port 8000 --reload --factory atem.presentation.app:create_app
 > ```
 
+> **Hinweis bei Port-Konflikten (Port 8000 belegt):**
+> Wurde zuvor der App-Container gestartet, stoppen Sie ihn einfach (während `db` weiterläuft):
+> ```bash
+> docker compose stop app   # oder: docker stop atem_app
+> docker compose up -d db   # DB läuft weiterhin
+> ```
+
 ---
 
 ## 3. URLs & Standard-Zugangsdaten

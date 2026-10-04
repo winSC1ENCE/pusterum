@@ -33,9 +33,7 @@
                     Optionales Feld – leer (öffentlich ausgeblendet). Doppelklick oder Stift zum Befüllen.
                 </{{ tag }}>
             {% else %}
-                <{{ tag }} class="{{ class }}">
-                    {{ val | safe if type == 'rich' else val }}
-                </{{ tag }}>
+                <{{ tag }} class="{{ class }}">{{ val | safe if type == 'rich' else val }}</{{ tag }}>
             {% endif %}
 
             <!-- Admin Action Overlay Bar (Flat Monochrome Vector SVGs) -->
@@ -164,9 +162,7 @@
         {% if type == 'image' %}
             <img src="{{ val }}" alt="{{ img_alt }}" class="{{ img_class }}" />
         {% elif val %}
-            <{{ tag }} class="{{ class }}">
-                {{ val | safe if type == 'rich' else val }}
-            </{{ tag }}>
+            <{{ tag }} class="{{ class }}">{{ val | safe if type == 'rich' else val }}</{{ tag }}>
         {% endif %}
     {% endif %}
 {% endmacro %}

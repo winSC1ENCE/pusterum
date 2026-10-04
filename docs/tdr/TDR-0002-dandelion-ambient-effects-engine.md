@@ -4,7 +4,7 @@
 Akzeptiert (Accepted)
 
 ## Kontext
-Um die Markenidentität von «Atemtherapie Hā Ola» (Atem des Lebens) visuell erlebbar zu machen, soll das Leitmotiv der Pusteblume und ihrer fliegenden Samen über die gesamte Webseite hinweg dezent spürbar sein.
+Um die Markenidentität von «PUSTERUM» (dän. „Raum zum Atmen“) visuell erlebbar zu machen, soll das Leitmotiv der Pusteblume und ihrer fliegenden Samen über die gesamte Webseite hinweg dezent spürbar sein.
 Die Praxisinhaberin benötigt in der Administrationskonsole (`/admin/design`) die volle Kontrolle, um zwischen 5 kreativen, dezenten Hintergrund- und Interaktionsmodi zu wählen oder alle Effekte vollständig zu deaktivieren.
 
 ## Entscheidung

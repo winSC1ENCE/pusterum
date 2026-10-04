@@ -1,6 +1,6 @@
-# PROJECT PLAYBOOK: ATEMTHERAPIE WEBAPPLIKATION
+# PROJECT PLAYBOOK: PUSTERUM WEBAPPLIKATION
 
-> **Projektziel:** Hochwertige, performante und sichere Single-Page Webapplikation für eine Atemtherapie-Praxis (Komplementärtherapie OdA KT) mit integrierter Inhalts- und Anfragenverwaltung.
+> **Projektziel:** Hochwertige, performante und sichere Single-Page Webapplikation für **PUSTERUM** – Praxis für Atem- und Körpertherapie mit integrierter Inhalts- und Anfragenverwaltung.
 
 ---
 

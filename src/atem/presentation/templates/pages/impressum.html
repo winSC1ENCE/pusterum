@@ -1,7 +1,7 @@
 {% extends "layouts/base.html" %}
 {% from "components/editable_block.html" import editable with context %}
 
-{% block title %}Impressum | Atemtherapie Hā Ola{% endblock %}
+{% block title %}Impressum | PUSTERUM{% endblock %}
 
 {% block content %}
 <div class="py-28 bg-theme-main min-h-[70vh] transition-colors duration-300">
@@ -32,16 +32,16 @@
                 </p>
                 {% else %}
                 <p>
-                    <strong class="text-theme-text-main">Atemtherapie Hā Ola</strong><br>
+                    <strong class="text-theme-text-main">PUSTERUM – Praxis für Atem- und Körpertherapie</strong><br>
                     Kramgasse 42, 3011 Bern<br>
-                    E-Mail: kontakt@ha-ola-atem.ch
+                    E-Mail: kontakt@pusterum.ch
                 </p>
                 {% endif %}
             </div>
 
             <div>
-                {{ editable('impressum.recognition_title', 'Berufsbezeichnung & Anerkennung', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
-                {{ editable('impressum.recognition_text', 'Dipl. Komplementärtherapeutin OdA KT (Methode Atemtherapie)\nMitglied: Berufsverband für Atemtherapie Schweiz\nKrankenkassen-Anerkennung: EMR, ASCA, EGK, Visana (Zusatzversicherung).', tag='p', type='textarea', rows=3) }}
+                {{ editable('impressum.recognition_title', 'Ausbildung & Methode', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {{ editable('impressum.recognition_text', 'PUSTERUM – Praxis für Atem- und Körpertherapie\nStephanie\nAusbildung Ganzheitlich integrative Atemtherapie, IKP Institut für Körperzentrierte Psychotherapie\nEingebettet in Physiotherapie-Gemeinschaftspraxis.', tag='p', type='textarea', rows=3) }}
             </div>
 
             <div>

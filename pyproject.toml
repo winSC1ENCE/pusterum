@@ -1,7 +1,7 @@
 [project]
 name = "atem"
 version = "0.1.0"
-description = "Webapplikation für Atemtherapie-Praxis (Litestar, PostgreSQL, HTMX, Tailwind, Clean Architecture)"
+description = "Webapplikation für PUSTERUM – Praxis für Atem- und Körpertherapie (Litestar, PostgreSQL, HTMX, Tailwind, Clean Architecture)"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
@@ -76,7 +76,7 @@ ignore = [
     "TRY003",  # Avoid specifying long messages outside the exception class
     "EM101",   # Exception must not use a string literal
     "EM102",   # Exception must not use an f-string literal
-    "RUF001",  # String contains ambiguous unicode character (e.g. Hawaiian okina, dashes)
+    "RUF001",  # String contains ambiguous unicode character (e.g. typographic quotes, dashes)
     "RUF002",  # Docstring contains ambiguous unicode character
     "RUF003",  # Comment contains ambiguous unicode character
 ]

@@ -19,7 +19,7 @@ async def test_content_service_default_blocks_and_retrieval(
     assert "hero.image" in content_map
     assert "about.bio" in content_map
     assert content_map["hero.title"].current_version_number == 1
-    assert content_map["hero.title"].current_content == "Hā Ola."
+    assert content_map["hero.title"].current_content == "PUSTERUM."
 
 
 @pytest.mark.asyncio
@@ -33,7 +33,7 @@ async def test_content_service_save_version_and_history(
 
     # 2. Save new version (v2)
     save_dto = SaveContentBlockRequestDTO(
-        content="Hā Ola Atemzentrum",
+        content="PUSTERUM Atemraum",
         change_summary="Titel optimiert",
     )
     updated = await content_service.save_block_content(
@@ -42,7 +42,7 @@ async def test_content_service_save_version_and_history(
         author_name="Therapeutin",
     )
     assert updated.current_version_number == 2
-    assert updated.current_content == "Hā Ola Atemzentrum"
+    assert updated.current_content == "PUSTERUM Atemraum"
 
     # 3. Save identical content (no-op, version remains v2)
     no_op = await content_service.save_block_content(
@@ -58,7 +58,7 @@ async def test_content_service_save_version_and_history(
     assert history.current_version == 2
     assert len(history.versions) == 2
     assert history.versions[0].version_number == 2
-    assert history.versions[0].content == "Hā Ola Atemzentrum"
+    assert history.versions[0].content == "PUSTERUM Atemraum"
     assert history.versions[0].is_current is True
     assert history.versions[1].version_number == 1
     assert history.versions[1].is_current is False
@@ -83,13 +83,13 @@ async def test_content_service_rollback_creates_next_version(
         author_name="Admin",
     )
     assert restored.current_version_number == 3
-    assert restored.current_content == "Hā Ola."
+    assert restored.current_content == "PUSTERUM."
 
     # History should contain 3 versions
     history = await content_service.get_block_history("hero.title")
     assert len(history.versions) == 3
     assert history.versions[0].version_number == 3
-    assert history.versions[0].content == "Hā Ola."
+    assert history.versions[0].content == "PUSTERUM."
     assert history.versions[0].is_current is True
 
 
@@ -155,7 +155,7 @@ async def test_content_admin_endpoints_and_auth_guard(
     # 5. Restore version 1
     restore_resp = await app_client.post("/admin/content/hero.title/restore/1")
     assert restore_resp.status_code == 200
-    assert "Hā Ola." in restore_resp.text
+    assert "PUSTERUM." in restore_resp.text
     assert "v3" in restore_resp.text
 
     # 6. Test GET /admin/images/list
@@ -220,7 +220,11 @@ async def test_universal_content_blocks_seeded(
         "about.interdisciplinary",
         "competencies.badge",
         "competencies.title",
-        "competencies.1.title",
+        "competencies.bridge_p1",
+        "competencies.for_whom_1",
+        "competencies.for_whom_8",
+        "quotes.1.text",
+        "quotes.6.author",
         "services.badge",
         "services.insurance_title",
         "contact.badge",

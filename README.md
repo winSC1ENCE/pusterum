@@ -1,4 +1,4 @@
-# Praxis für Atemtherapie – Webapplikation
+# PUSTERUM – Praxis für Atem- und Körpertherapie (Webapplikation)
 
 [![CI](https://github.com/winSC1ENCE/atem/actions/workflows/ci.yml/badge.svg)](https://github.com/winSC1ENCE/atem/actions/workflows/ci.yml)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
@@ -7,13 +7,13 @@
 [![Types: Mypy Strict](https://img.shields.io/badge/types-mypy%20strict-blue.svg)](https://mypy-lang.org/)
 [![Architecture: Clean](https://img.shields.io/badge/architecture-Clean%20%2F%20Hexagonal-green.svg)](docs/adr/ADR-0001-tech-stack-and-architecture-blueprint.md)
 
-Eine moderne, leichtgewichtige und sichere Single-Page-Webapplikation für eine Atemtherapie-Praxis (Komplementärtherapie OdA KT).
+Eine moderne, leichtgewichtige und sichere Single-Page-Webapplikation für **PUSTERUM** – Praxis für Atem- und Körpertherapie (dän. *pusterum* = „Raum zum Atmen“).
 
 ---
 
 ## 🏛️ Architektur & Dokumentation
 
-- **Projekt-Playbook:** [`GEMINI.md`](GEMINI.md)
+- **Projekt-Playbook:** [`GEMINI.md`](GEMINI.md) · Claude Code: [`CLAUDE.md`](CLAUDE.md)
 - **Architekturentscheidung & UML-Diagramme:** [`ADR-0001: Tech-Stack & Architecture Blueprint`](docs/adr/ADR-0001-tech-stack-and-architecture-blueprint.md)
 - **ADR-Vorlage:** [`docs/adr/template.md`](docs/adr/template.md)
 - **TDR / Micro-ADR Vorlage:** [`docs/tdr/template.md`](docs/tdr/template.md)

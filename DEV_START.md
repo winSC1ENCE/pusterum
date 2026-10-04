@@ -1,6 +1,6 @@
 # Quickstart: Lokale Entwicklungsumgebung (DEV START)
 
-Kurzanleitung zum schnellen und sauberen Starten der lokalen Entwicklungsumgebung für **Atemtherapie Hā Ola**.
+Kurzanleitung zum schnellen und sauberen Starten der lokalen Entwicklungsumgebung für **PUSTERUM – Praxis für Atem- und Körpertherapie**.
 
 ---
 

@@ -12,7 +12,7 @@
 
                     <!-- Portrait Container -->
                     <div class="bg-theme-main border border-theme p-3 shadow-md shape-organic overflow-hidden aspect-square flex items-center justify-center">
-                        {{ editable('about.portrait', '/static/images/ste_aquarel.png', type='image', img_alt='Atemtherapie Hā Ola – Komplementärtherapie OdA KT', img_class='w-full h-full aspect-square object-cover shape-organic shadow-inner') }}
+                        {{ editable('about.portrait', '/static/images/stephanie_portrait.jpg', type='image', img_alt='Stephanie – PUSTERUM Praxis für Atem- und Körpertherapie', img_class='w-full h-full aspect-square object-cover shape-organic shadow-inner') }}
                     </div>
 
                     <!-- Floating Quality Badge (Editable) -->
@@ -23,8 +23,8 @@
                             </svg>
                         </div>
                         <div>
-                            {{ editable('about.badge_title', 'OdA KT Diplom', tag='span', class='text-xs font-bold text-theme-primary block') }}
-                            {{ editable('about.badge_subtitle', 'Branchenzertifikat KT', tag='span', class='text-[10px] text-theme-text-muted block') }}
+                            {{ editable('about.badge_title', 'Atemtherapie IKP', tag='span', class='text-xs font-bold text-theme-primary block') }}
+                            {{ editable('about.badge_subtitle', 'Ganzheitlich-Integrativ', tag='span', class='text-[10px] text-theme-text-muted block') }}
                         </div>
                     </div>
                 </div>
@@ -36,30 +36,30 @@
                     <span class="text-xs uppercase font-bold tracking-widest text-theme-primary block mb-2">
                         Philosophie &amp; Praxis
                     </span>
-                    {{ editable('about.title', 'Atemtherapie Hā Ola', tag='h2', class='font-heading text-3xl sm:text-4xl font-bold text-theme-text-main') }}
-                    {{ editable('about.subtitle', 'Dipl. Komplementärtherapeutin OdA KT • Gemeinschaftspraxis Physiotherapie', tag='p', class='text-theme-primary font-medium text-lg mt-1') }}
+                    {{ editable('about.title', 'PUSTERUM', tag='h2', class='font-heading text-3xl sm:text-4xl font-bold text-theme-text-main') }}
+                    {{ editable('about.subtitle', 'Praxis für Atem- und Körpertherapie • Stephanie', tag='p', class='text-theme-primary font-medium text-lg mt-1') }}
                 </div>
 
                 <div class="space-y-4 text-theme-text-muted leading-relaxed text-base">
-                    <!-- Hā Ola Meaning Callout Box -->
+                    <!-- PUSTERUM Meaning Callout Box -->
                     <div class="p-5 rounded-2xl bg-theme-main border border-theme shadow-sm space-y-2">
                         <h3 class="font-heading font-bold text-theme-text-main text-base flex items-center gap-2">
                             <svg class="w-4 h-4 text-theme-primary" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
                             </svg>
-                            {{ editable('about.meaning_title', 'Die Bedeutung von «Hā Ola»', tag='span') }}
+                            {{ editable('about.meaning_title', 'PUSTERUM [ˈpuːsdəʀomʔ]', tag='span') }}
                         </h3>
-                        {{ editable('about.meaning_text', '«Hā» ist das hawaiianische Wort für den lebendigen Atem, den Lebenshauch und die geistige Lebenskraft (Mana). «Ola» steht für Leben, Gesundheit und ganzheitliche Heilung. Zusammen verkörpert Hā Ola [Haa-Oh-lah] den heilsamen Lebensatem: Wenn wir lernen, dem eigenen Atem wieder Raum zu geben, entfaltet sich die natürliche Selbstheilungskraft unseres Körpers.', tag='p', class='text-xs sm:text-sm text-theme-text-muted leading-relaxed', type='textarea', rows=4) }}
+                        {{ editable('about.meaning_text', 'Pusterum ist ein dänisches Wort und bedeutet auf Deutsch „Raum zum Atmen“ oder im übertragenen Sinne „Atempause“, „Erholungspause“ bzw. „Zufluchtsort“. Setzt man das Wort wörtlich aus den dänischen Begriffen zusammen, beschreibt es einen Freiraum oder Moment, in dem man durchatmen und dem Alltagsstress entfliehen kann.', tag='p', class='text-xs sm:text-sm text-theme-text-muted leading-relaxed', type='textarea', rows=4) }}
                     </div>
 
                     {{ editable('about.bio', profile.bio, tag='p', type='textarea', rows=4) }}
 
-                    {{ editable('about.interdisciplinary', 'In der Gemeinschaftspraxis in den Räumlichkeiten der Physiotherapie schätze ich den interdisziplinären Austausch besonders. Während die Physiotherapie den Bewegungsapparat funktionell stärkt, setzt die Atemtherapie an den feinen vegetativen Regulationsprozessen an: Atemmuster vertiefen sich, Muskelverspannungen lockern sich und das Nervensystem findet zurück in die Entspannung.', tag='p', type='textarea', rows=4) }}
+                    {{ editable('about.interdisciplinary', 'Mit der Zeit wuchs in mir der Wunsch nach einer beruflichen Veränderung, die mehr Sinnhaftigkeit und persönlichen Ausgleich bietet. Den entscheidenden Impuls für diese Neuausrichtung gab schliesslich eine gesundheitlich herausfordernde Phase. Bei meiner Suche nach neuen Wegen bin ich auf die Atem- und Körpertherapie gestossen; sie hat mich von Anfang an tief begeistert. Der lebensnotwendige Atem ist so selbstverständlich und allgegenwärtig und dennoch unbeachtet, wird er jedoch bewusst wahrgenommen ist er äusserst kraftvoll. Die Arbeit mit dem Atem fasziniert mich durch ihre Direktheit und ihre ganzheitliche Wirkung auf Körper und Geist. Heute nutze ich die Erfahrungen, die ich in den bisherigen Jahren meiner Ausbildung sammeln durfte, um Menschen auf ihrem Weg zu mehr Wohlbefinden, Selbstheilung und innerer Balance kompetent zu begleiten.', tag='p', type='textarea', rows=4) }}
                 </div>
 
                 <!-- Personal Quote -->
                 <div>
-                    {{ editable('about.quote', profile.quote, tag='div', class='p-5 rounded-2xl bg-theme-muted border-l-4 border-theme-primary italic text-theme-text-main font-heading text-lg') }}
+                    {{ editable('about.quote', profile.quote, tag='div', class='p-5 rounded-2xl bg-theme-muted border-l-4 border-theme-primary whitespace-pre-line italic text-theme-text-main font-heading text-lg') }}
                 </div>
 
                 <!-- Key Credentials List -->
@@ -70,7 +70,7 @@
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
                         </div>
-                        {{ editable('about.credential_1', 'Diplomierte Komplementärtherapeutin OdA KT', tag='span', class='text-sm text-theme-text-main') }}
+                        {{ editable('about.credential_1', '2023 – heute: Ausbildung Ganzheitlich integrative Atemtherapie, IKP Institut für Körperzentrierte Psychotherapie', tag='span', class='text-sm text-theme-text-main') }}
                     </div>
 
                     <div class="flex items-start gap-3">
@@ -79,7 +79,7 @@
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
                         </div>
-                        {{ editable('about.credential_2', 'EMR • ASCA • EGK • OdA KT anerkannt', tag='span', class='text-sm text-theme-text-main') }}
+                        {{ editable('about.credential_2', '2014: Diplom Yogalehrerin, International Sivananda Yoga Vedanta Centre', tag='span', class='text-sm text-theme-text-main') }}
                     </div>
 
                     <div class="flex items-start gap-3">
@@ -88,7 +88,7 @@
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
                         </div>
-                        {{ editable('about.credential_3', 'Eingebettet in Physiotherapie-Gemeinschaftspraxis', tag='span', class='text-sm text-theme-text-main') }}
+                        {{ editable('about.credential_3', '2006 – 2007: Diplom ErnährungsCoach, Klubschule Migros', tag='span', class='text-sm text-theme-text-main') }}
                     </div>
 
                     <div class="flex items-start gap-3">
@@ -97,7 +97,7 @@
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
                         </div>
-                        {{ editable('about.credential_4', 'Abrechnung via Zusatzversicherung (VVG)', tag='span', class='text-sm text-theme-text-main') }}
+                        {{ editable('about.credential_4', 'In Gemeinschaftspraxis Physiotherapie', tag='span', class='text-sm text-theme-text-main') }}
                     </div>
                 </div>
 

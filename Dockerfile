@@ -48,7 +48,8 @@ WORKDIR /app
 # Copy virtual environment from builder
 COPY --from=builder --chown=atem:atem /app/.venv /app/.venv
 COPY --chown=atem:atem src /app/src
-COPY --chown=atem:atem pyproject.toml /app/
+COPY --chown=atem:atem pyproject.toml alembic.ini /app/
+COPY --chown=atem:atem migrations /app/migrations
 
 # Create persistent storage directories with non-root user permissions
 RUN mkdir -p /app/storage/uploads && chown -R atem:atem /app/storage

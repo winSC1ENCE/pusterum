@@ -22,7 +22,12 @@ async def test_public_pages(app_client: AsyncTestClient[Litestar]) -> None:
     # Index Landing page
     res_index = await app_client.get("/")
     assert res_index.status_code == 200
-    assert "Atemtherapie" in res_index.text
+    assert "PUSTERUM" in res_index.text
+    assert "Hā Ola" not in res_index.text
+    # Indication checklist and rotating quote band are rendered from content blocks
+    assert "Schlafproblemen" in res_index.text
+    assert 'id="zitate"' in res_index.text
+    assert "James Nestor" in res_index.text
 
     # Impressum
     res_imp = await app_client.get("/impressum")

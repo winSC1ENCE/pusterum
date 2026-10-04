@@ -1,0 +1,80 @@
+{% from "components/editable_block.html" import editable with context %}
+
+{# Rotating breath quotes band (TDR-0003). Admins see every quote stacked for inline editing. #}
+{% set quote_count = 6 %}
+
+<section id="zitate" class="py-16 bg-theme-main transition-colors duration-300" aria-label="Zitate zum Atem">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+
+        <svg class="w-10 h-10 mx-auto mb-6 text-theme-primary/60" width="40" height="40" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.748 9.571-9 10.609l-.996-2.151c2.433-.917 3.996-3.638 3.996-5.849h-3.983v-10h9.983z"/>
+        </svg>
+
+        {% if is_admin %}
+        <div class="space-y-8">
+            {% for i in range(1, quote_count + 1) %}
+            <figure class="space-y-2">
+                {{ editable('quotes.' ~ i ~ '.text', '', tag='blockquote', class='font-heading italic text-xl sm:text-2xl text-theme-text-main leading-relaxed', type='textarea', rows=3) }}
+                {{ editable('quotes.' ~ i ~ '.author', '', tag='figcaption', class='text-sm font-semibold uppercase tracking-wider text-theme-primary') }}
+            </figure>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div
+            x-data="{
+                active: 0,
+                count: {{ quote_count }},
+                paused: false,
+                timer: null,
+                start() {
+                    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                    this.timer = setInterval(() => { if (!this.paused) this.next(); }, 7000);
+                },
+                next() { this.active = (this.active + 1) % this.count; },
+                go(i) { this.active = i; },
+            }"
+            x-init="start()"
+            @mouseenter="paused = true"
+            @mouseleave="paused = false"
+            @focusin="paused = true"
+            @focusout="paused = false"
+            class="relative"
+        >
+            <div class="grid" aria-live="polite">
+                {% for i in range(1, quote_count + 1) %}
+                <figure
+                    x-show="active === {{ i - 1 }}"
+                    {% if i > 1 %}x-cloak{% endif %}
+                    x-transition:enter="transition ease-out duration-700"
+                    x-transition:enter-start="opacity-0 translate-y-2"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-300"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    class="space-y-4"
+                    style="grid-area: 1 / 1;"
+                >
+                    {{ editable('quotes.' ~ i ~ '.text', '', tag='blockquote', class='font-heading italic text-xl sm:text-2xl lg:text-3xl text-theme-text-main leading-relaxed') }}
+                    <figcaption class="text-sm font-semibold uppercase tracking-wider text-theme-primary">
+                        – {{ editable('quotes.' ~ i ~ '.author', '', tag='span') }}
+                    </figcaption>
+                </figure>
+                {% endfor %}
+            </div>
+
+            <div class="flex justify-center gap-2 mt-8">
+                {% for i in range(quote_count) %}
+                <button
+                    type="button"
+                    @click="go({{ i }})"
+                    :class="active === {{ i }} ? 'bg-theme-primary w-6' : 'bg-theme-secondary w-2.5 hover:bg-theme-primary/50'"
+                    class="h-2.5 rounded-full transition-all duration-300"
+                    aria-label="Zitat {{ i + 1 }} anzeigen"
+                ></button>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>

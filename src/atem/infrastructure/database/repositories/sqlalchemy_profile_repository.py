@@ -30,23 +30,24 @@ class SqlAlchemyProfileRepository(IProfileRepository):
         if not model:
             # Default placeholder profile for initialization
             return TherapistProfile(
-                full_name="Atemtherapie Hā Ola",
-                title="Dipl. Komplementärtherapeutin OdA KT",
-                diploma="Methode Atemtherapie",
-                tagline="Atemtherapie Hā Ola – Der heilsame Atem des Lebens.",
+                full_name="Stephanie",
+                title="Praxis für Atem- und Körpertherapie",
+                diploma="Ganzheitlich-Integrative Atemtherapie (IKP)",
+                tagline="PUSTERUM – Raum zum Atmen.",
                 bio=(
-                    "Willkommen bei Atemtherapie Hā Ola. Der Name verbindet die "
-                    "hawaiianischen Begriffe «Hā» (Atem, Lebenshauch) und «Ola» "
-                    "(Leben, Gesundheit, Heilung). In unserer Gemeinschaftspraxis "
-                    "in den Räumlichkeiten der Physiotherapie begleite ich Sie mit "
-                    "achtsamer Atem- und Körperarbeit auf Ihrem Weg zu nachhaltiger "
-                    "Genesung, Entlastung und innerer Balance."
+                    "Willkommen in meiner Praxis für Atem- und Körpertherapie. Mein Name ist "
+                    "Stephanie. Der Gesundheits- und komplementärtherapeutische Bereich "
+                    "interessierte mich schon früh. Einerseits lernte ich im Laufe der Jahre "
+                    "unterschiedliche wirksame Therapiemethoden kennen. Andererseits absolvierte "
+                    "ich in diesem Bereich zwei Ausbildungen – als Ernährungscoach und als "
+                    "Yogalehrerin. Bei meiner Suche nach neuen Wegen bin ich auf die Atem- und "
+                    "Körpertherapie gestossen; sie hat mich von Anfang an tief begeistert."
                 ),
                 quote=(
-                    "Hā Ola – Wenn der Atem frei fliesst, "
-                    "entfaltet sich das Leben in seiner ganzen Kraft."
+                    "«So wie du atmest, so geht es dir. So wie es dir geht, so atmest du.»\n"
+                    "– Ganzheitlich-Integrative Atemtherapie (IKP)"
                 ),
-                profile_image_url="/static/images/ste_aquarel.png",
+                profile_image_url="/static/images/stephanie_portrait.jpg",
                 booking_external_url=None,
             )
 
@@ -215,14 +216,14 @@ class SqlAlchemyProfileRepository(IProfileRepository):
         model = result.scalar_one_or_none()
         if not model:
             return PracticeInfo(
-                name="Atemtherapie Hā Ola (in Gemeinschaftspraxis Physiotherapie)",
+                name="PUSTERUM – Atem- und Körpertherapie (in Gemeinschaftspraxis Physiotherapie)",
                 street="Praxisgasse 10",
                 zip_code="3000",
                 city="Bern",
                 canton="BE",
                 country="Schweiz",
                 phone="+41 31 123 45 67",
-                email="kontakt@ha-ola.ch",
+                email="kontakt@pusterum.ch",
                 directions_info=(
                     "In den Praxisräumen der Physiotherapie-Gemeinschaftspraxis. "
                     "Zentral gelegen und bestens mit ÖV und Auto erreichbar."

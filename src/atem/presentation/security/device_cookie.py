@@ -2,7 +2,7 @@
 
 After a complete login (password + second factor) the browser receives a signed cookie
 ``<user_id>.<issued_at>.<device_id>.<hmac>``. It does **not** authenticate anybody – it only
-exempts that browser from the account lockout, so a third party who knows the username can
+exempts that browser from the account lockout, so a third party who knows the login address can
 lock out unknown devices but never the owner's own devices (see ADR-0004).
 """
 

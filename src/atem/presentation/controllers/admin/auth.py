@@ -19,7 +19,7 @@ from atem.presentation.security.admin_auth import (
 )
 from atem.presentation.security.device_cookie import device_claim, device_cookie
 
-LOGIN_ERROR_INVALID_INPUT = "Bitte Benutzername und Passwort eingeben."
+LOGIN_ERROR_INVALID_INPUT = "Bitte E-Mail-Adresse und Passwort eingeben."
 
 
 def client_ip(request: Request[Any, Any, Any]) -> str:
@@ -62,9 +62,9 @@ class AdminAuthController(Controller):
         data: FormData,
     ) -> Template | Redirect:
         """Verify the password; continue with the second factor if enabled."""
-        username = data.get("username", "")
+        email = data.get("email", "")
         try:
-            dto = LoginRequestDTO(username=username, password=data.get("password", ""))
+            dto = LoginRequestDTO(email=email, password=data.get("password", ""))
             result = await auth_service.authenticate(dto, client_ip(request), device_claim(request))
         except ValidationError:
             error = LOGIN_ERROR_INVALID_INPUT
@@ -76,9 +76,7 @@ class AdminAuthController(Controller):
                 return Redirect(path="/admin/login/verify")
             store_authenticated_session(request, result.user)
             return Redirect(path="/admin", cookies=[device_cookie(result.user.id)])
-        return await self._render(
-            "admin/login.html", theme_service, error=error, username=username[:100]
-        )
+        return await self._render("admin/login.html", theme_service, error=error, email=email[:150])
 
     @get("/login/verify")
     async def verify_page(

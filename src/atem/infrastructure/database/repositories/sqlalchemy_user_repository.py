@@ -21,9 +21,9 @@ class SqlAlchemyUserRepository(SqlAlchemyRepository[UserModel, User], IUserRepos
     model = UserModel
     entity = User
 
-    async def get_by_username(self, username: str) -> User | None:
-        """Find user by username."""
-        model = await self._session.scalar(select(UserModel).where(UserModel.username == username))
+    async def get_by_email(self, email: str) -> User | None:
+        """Find user by (normalized) login e-mail address."""
+        model = await self._session.scalar(select(UserModel).where(UserModel.email == email))
         return self._to_entity(model) if model else None
 
     async def get_by_id(self, user_id: UUID) -> User | None:

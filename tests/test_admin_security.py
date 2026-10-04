@@ -34,7 +34,7 @@ GUARDED_GET_ROUTES = ["/admin", "/admin/design", "/admin/security"]
 async def login(client: AsyncTestClient[Litestar], password: str = ADMIN_PASSWORD) -> str:
     response = await client.post(
         "/admin/login",
-        data={"username": "admin", "password": password},
+        data={"email": "entwicklung@pusterum.be", "password": password},
         follow_redirects=False,
     )
     return response.headers.get("location", "")
@@ -69,7 +69,7 @@ def require_2fa(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 # ---------------------------------------------------------------------- domain rules
 def test_lockout_escalates_exponentially_and_is_capped() -> None:
     now = datetime.now(UTC)
-    user = User(username="u", email="u@pusterum.be", password_hash="x")
+    user = User(email="u@pusterum.be", password_hash="x")
     for _ in range(MAX_FAILED_LOGINS - 1):
         user.register_failed_login(now)
     assert not user.is_locked(now)
@@ -88,7 +88,7 @@ def test_lockout_escalates_exponentially_and_is_capped() -> None:
 
 
 def test_revoke_sessions_increments_version() -> None:
-    user = User(username="u", email="u@pusterum.be", password_hash="x")
+    user = User(email="u@pusterum.be", password_hash="x")
     user.revoke_sessions()
     assert user.session_version == 2
 
@@ -132,7 +132,7 @@ def test_resolve_client_ip(peer: str, forwarded: str | None, expected: str) -> N
 
 # --------------------------------------------------------------------- service layer
 async def _seed_admin(auth_service: AuthService) -> None:
-    await auth_service.create_admin("admin", "admin@pusterum.be", ADMIN_PASSWORD)
+    await auth_service.create_admin("entwicklung@pusterum.be", ADMIN_PASSWORD)
 
 
 async def test_unknown_user_and_wrong_password_give_generic_error(
@@ -140,9 +140,13 @@ async def test_unknown_user_and_wrong_password_give_generic_error(
 ) -> None:
     await _seed_admin(auth_service)
     with pytest.raises(AuthenticationException) as unknown:
-        await auth_service.authenticate(LoginRequestDTO(username="nobody", password="x"), IP)
+        await auth_service.authenticate(
+            LoginRequestDTO(email="nobody@pusterum.be", password="x"), IP
+        )
     with pytest.raises(AuthenticationException) as wrong:
-        await auth_service.authenticate(LoginRequestDTO(username="admin", password="x"), IP)
+        await auth_service.authenticate(
+            LoginRequestDTO(email="entwicklung@pusterum.be", password="x"), IP
+        )
     assert unknown.value.message == wrong.value.message
 
 
@@ -150,25 +154,32 @@ async def test_account_lockout_blocks_even_correct_password(auth_service: AuthSe
     await _seed_admin(auth_service)
     for _ in range(MAX_FAILED_LOGINS):
         with pytest.raises(AuthenticationException):
-            await auth_service.authenticate(LoginRequestDTO(username="admin", password="wrong"), IP)
+            await auth_service.authenticate(
+                LoginRequestDTO(email="entwicklung@pusterum.be", password="wrong"), IP
+            )
     with pytest.raises(AuthenticationException):
         await auth_service.authenticate(
-            LoginRequestDTO(username="admin", password=ADMIN_PASSWORD), "198.51.100.2"
+            LoginRequestDTO(email="entwicklung@pusterum.be", password=ADMIN_PASSWORD),
+            "198.51.100.2",
         )
 
 
 async def test_ip_rate_limit_across_accounts(auth_service: AuthService) -> None:
     for i in range(IP_FAILURE_LIMIT):
         with pytest.raises(AuthenticationException):
-            await auth_service.authenticate(LoginRequestDTO(username=f"user{i}", password="x"), IP)
+            await auth_service.authenticate(
+                LoginRequestDTO(email=f"user{i}@pusterum.be", password="x"), IP
+            )
     with pytest.raises(RateLimitedException):
-        await auth_service.authenticate(LoginRequestDTO(username="admin", password="x"), IP)
+        await auth_service.authenticate(
+            LoginRequestDTO(email="entwicklung@pusterum.be", password="x"), IP
+        )
 
 
 async def test_totp_and_recovery_code_flow(auth_service: AuthService) -> None:
     await _seed_admin(auth_service)
     first = await auth_service.authenticate(
-        LoginRequestDTO(username="admin", password=ADMIN_PASSWORD), IP
+        LoginRequestDTO(email="entwicklung@pusterum.be", password=ADMIN_PASSWORD), IP
     )
     setup = auth_service.start_totp_setup(first.user)
     with pytest.raises(ValidationException):
@@ -182,7 +193,7 @@ async def test_totp_and_recovery_code_flow(auth_service: AuthService) -> None:
     assert await auth_service.get_session_user(first.user.id, first.user.session_version) is None
 
     second = await auth_service.authenticate(
-        LoginRequestDTO(username="admin", password=ADMIN_PASSWORD), IP
+        LoginRequestDTO(email="entwicklung@pusterum.be", password=ADMIN_PASSWORD), IP
     )
     assert second.requires_totp
 
@@ -213,22 +224,22 @@ async def test_totp_and_recovery_code_flow(auth_service: AuthService) -> None:
 async def test_operator_can_reset_totp(auth_service: AuthService) -> None:
     await _seed_admin(auth_service)
     result = await auth_service.authenticate(
-        LoginRequestDTO(username="admin", password=ADMIN_PASSWORD), IP
+        LoginRequestDTO(email="entwicklung@pusterum.be", password=ADMIN_PASSWORD), IP
     )
     setup = auth_service.start_totp_setup(result.user)
     await auth_service.confirm_totp_setup(
         result.user.id, setup.secret, pyotp.TOTP(setup.secret).now()
     )
-    await auth_service.reset_totp("admin")
+    await auth_service.reset_totp("ENTWICKLUNG@pusterum.be")
     assert not (await auth_service.get_user(result.user.id)).totp_enabled
     with pytest.raises(EntityNotFoundException):
-        await auth_service.reset_totp("ghost")
+        await auth_service.reset_totp("ghost@pusterum.be")
 
 
 async def test_change_password_policy_and_revocation(auth_service: AuthService) -> None:
     await _seed_admin(auth_service)
     result = await auth_service.authenticate(
-        LoginRequestDTO(username="admin", password=ADMIN_PASSWORD), IP
+        LoginRequestDTO(email="entwicklung@pusterum.be", password=ADMIN_PASSWORD), IP
     )
     with pytest.raises(ValidationException, match="aktuelle Passwort"):
         await auth_service.change_password(result.user.id, "wrong", "ein-neues-passwort!")
@@ -251,13 +262,13 @@ async def test_change_password_policy_and_revocation(auth_service: AuthService) 
 async def test_locked_until_from_naive_database_value(auth_service: AuthService) -> None:
     """SQLite returns naive datetimes – the lock check must still work."""
     await _seed_admin(auth_service)
-    user = await auth_service._user_repository.get_by_username("admin")
+    user = await auth_service._user_repository.get_by_email("entwicklung@pusterum.be")
     assert user is not None
     user.locked_until = (datetime.now(UTC) + timedelta(minutes=5)).replace(tzinfo=None)
     await auth_service._user_repository.update_user(user)
     with pytest.raises(AuthenticationException):
         await auth_service.authenticate(
-            LoginRequestDTO(username="admin", password=ADMIN_PASSWORD), IP
+            LoginRequestDTO(email="entwicklung@pusterum.be", password=ADMIN_PASSWORD), IP
         )
 
 
@@ -284,7 +295,7 @@ async def test_guard_answers_api_and_htmx_with_401(app_client: AsyncTestClient[L
 async def test_post_without_csrf_token_is_rejected(app_client: AsyncTestClient[Litestar]) -> None:
     del app_client.headers["x-csrftoken"]
     response = await app_client.post(
-        "/admin/login", data={"username": "admin", "password": ADMIN_PASSWORD}
+        "/admin/login", data={"email": "entwicklung@pusterum.be", "password": ADMIN_PASSWORD}
     )
     assert response.status_code == 403
 
@@ -319,15 +330,17 @@ def test_host_validation_rules(host: str, allowed: bool) -> None:
 
 
 async def test_login_input_validation_does_not_crash(app_client: AsyncTestClient[Litestar]) -> None:
-    response = await app_client.post("/admin/login", data={"username": "", "password": ""})
+    response = await app_client.post("/admin/login", data={"email": "", "password": ""})
     assert response.status_code == 200
-    assert "Bitte Benutzername und Passwort eingeben" in response.text
+    assert "Bitte E-Mail-Adresse und Passwort eingeben" in response.text
 
 
 async def test_login_rate_limit_middleware(app_client: AsyncTestClient[Litestar]) -> None:
     statuses = [
         (
-            await app_client.post("/admin/login", data={"username": "admin", "password": "wrong"})
+            await app_client.post(
+                "/admin/login", data={"email": "entwicklung@pusterum.be", "password": "wrong"}
+            )
         ).status_code
         for _ in range(get_settings().RATE_LIMIT_SENSITIVE_PER_MINUTE + 1)
     ]

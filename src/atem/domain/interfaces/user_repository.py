@@ -11,8 +11,8 @@ class IUserRepository(ABC):
     """Abstract interface defining user and authentication storage."""
 
     @abstractmethod
-    async def get_by_username(self, username: str) -> User | None:
-        """Find user by username."""
+    async def get_by_email(self, email: str) -> User | None:
+        """Find user by (normalized) login e-mail address."""
 
     @abstractmethod
     async def get_by_id(self, user_id: UUID) -> User | None:

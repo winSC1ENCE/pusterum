@@ -25,6 +25,7 @@ from sqlalchemy.pool import NullPool
 os.environ["ENVIRONMENT"] = "test"
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-chars-long-12345"
+os.environ["ADMIN_EMAIL"] = "entwicklung@pusterum.be"
 os.environ["ADMIN_INITIAL_PASSWORD"] = "admin-secure-init-pass-change-me"
 os.environ["ALLOWED_HOSTS"] = '["testserver.local", "localhost"]'
 os.environ["CONTACT_FORM_MIN_SECONDS"] = "0"

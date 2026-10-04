@@ -91,7 +91,7 @@ uv run granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 
 ### 5. URLs & Endpunkte
 
 - **Website:** [http://127.0.0.1:8000](http://127.0.0.1:8000)
-- **Admin-Login:** [http://127.0.0.1:8000/admin/login](http://127.0.0.1:8000/admin/login) (nur development: `admin` / `admin-secure-init-pass-change-me`; 2FA optional unter `/admin/security`)
+- **Admin-Login:** [http://127.0.0.1:8000/admin/login](http://127.0.0.1:8000/admin/login) (nur development: `entwicklung@pusterum.be` / `admin-secure-init-pass-change-me`; 2FA optional unter `/admin/security`)
 - **Health-Check:** [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
 - Ausführliche Kurzanleitung: siehe [`DEV_START.md`](DEV_START.md)
 
@@ -130,7 +130,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 # Migrationen + Standard-Inhalte laufen automatisch im Container-Entrypoint.
 # Einmalig: ersten Admin anlegen (Passwort wird interaktiv abgefragt)
 docker compose -f docker-compose.prod.yml exec app python -m atem.cli create-admin \
-  --username <benutzername> --email kontakt@pusterum.be
+  --email vorname.name@example.ch   # persönliche Adresse = Login
 ```
 
 Produktions-Secrets: `cp config/env.production.example .env`, `cp config/db.env.production.example db.env`,

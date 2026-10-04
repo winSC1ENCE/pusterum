@@ -77,10 +77,10 @@ sequenceDiagram
     participant AS as AuthService
     participant UR as UserRepository
 
-    A->>AC: POST /admin/login (Benutzer, Passwort, CSRF, Cookie atem_device?)
+    A->>AC: POST /admin/login (E-Mail, Passwort, CSRF, Cookie atem_device?)
     AC->>AS: authenticate(dto, ip, device_claim)
     AS->>UR: count_failed_attempts(ip, 15 min) – IP-Limit
-    AS->>UR: get_by_username()
+    AS->>UR: get_by_email(normalisiert)
     Note over AS: unbekannt → Dummy-Hash (keine Enumeration)
     alt vertrautes Gerät (signiertes Cookie dieses Benutzers)
         AS->>UR: count_failed_device_attempts(device, 15 min) – Limit pro Gerät

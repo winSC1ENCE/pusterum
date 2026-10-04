@@ -227,7 +227,10 @@ async def test_admin_design_routes_and_presets(
     assert "Atem" in pub_res.text
 
     # 3. Authenticate as Admin
-    login_data = {"username": "admin", "password": "admin-secure-init-pass-change-me"}
+    login_data = {
+        "email": "entwicklung@pusterum.be",
+        "password": "admin-secure-init-pass-change-me",
+    }
     login_res = await app_client.post("/admin/login", data=login_data, follow_redirects=False)
     assert login_res.status_code == 302
     session_cookies = login_res.cookies
@@ -284,7 +287,10 @@ async def test_admin_design_autosave_and_guards(
     app_client: AsyncTestClient[Litestar], theme_service: ThemeService
 ) -> None:
     """Verify custom theme autosave, preset preservation, HTMX responses, and guards."""
-    login_data = {"username": "admin", "password": "admin-secure-init-pass-change-me"}
+    login_data = {
+        "email": "entwicklung@pusterum.be",
+        "password": "admin-secure-init-pass-change-me",
+    }
     login_res = await app_client.post("/admin/login", data=login_data, follow_redirects=False)
     session_cookies = login_res.cookies
 
@@ -445,7 +451,7 @@ async def test_all_dandelion_mode_combinations_and_rendering(
     # 1. Login
     login_res = await app_client.post(
         "/admin/login",
-        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
         follow_redirects=True,
     )
     assert login_res.status_code == 200

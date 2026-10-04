@@ -55,22 +55,22 @@ def test_create_admin_reset_2fa_and_purge(
     cli_database: str, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     monkeypatch.setenv("ATEM_ADMIN_PASSWORD", "ein-sehr-sicheres-passwort")
-    assert main(["create-admin", "--username", "stephanie", "--email", "s@pusterum.be"]) == 0
-    assert _scalar(cli_database, select(UserModel.username)) == "stephanie"
+    assert main(["create-admin", "--email", "s@pusterum.be"]) == 0
+    assert _scalar(cli_database, select(UserModel.email)) == "s@pusterum.be"
 
     # duplicates and weak passwords are rejected with exit code 1
-    assert main(["create-admin", "--username", "stephanie", "--email", "s@pusterum.be"]) == 1
+    assert main(["create-admin", "--email", "s@pusterum.be"]) == 1
     monkeypatch.setenv("ATEM_ADMIN_PASSWORD", "kurz")
-    assert main(["create-admin", "--username", "anna", "--email", "a@pusterum.be"]) == 1
+    assert main(["create-admin", "--email", "a@pusterum.be"]) == 1
 
-    assert main(["reset-2fa", "--username", "stephanie"]) == 0
-    assert main(["reset-2fa", "--username", "ghost"]) == 1
-    assert main(["unlock", "--username", "stephanie"]) == 0
-    assert main(["unlock", "--username", "ghost"]) == 1
+    assert main(["reset-2fa", "--email", "s@pusterum.be"]) == 0
+    assert main(["reset-2fa", "--email", "ghost@pusterum.be"]) == 1
+    assert main(["unlock", "--email", "S@pusterum.be"]) == 0
+    assert main(["unlock", "--email", "ghost@pusterum.be"]) == 1
     assert main(["purge-messages"]) == 0
     output = capsys.readouterr()
-    assert "Admin «stephanie» angelegt" in output.out
-    assert "Sperre für «stephanie» aufgehoben" in output.out
+    assert "Admin «s@pusterum.be» angelegt" in output.out
+    assert "Sperre für «S@pusterum.be» aufgehoben" in output.out
     assert "existiert bereits" in output.err
 
 
@@ -80,4 +80,4 @@ def test_interactive_password_confirmation(
     monkeypatch.delenv("ATEM_ADMIN_PASSWORD", raising=False)
     answers = iter(["ein-sehr-sicheres-passwort", "anderes-passwort-123"])
     monkeypatch.setattr("getpass.getpass", lambda _prompt: next(answers))
-    assert main(["create-admin", "--username", "x", "--email", "x@pusterum.be"]) == 1
+    assert main(["create-admin", "--email", "x@pusterum.be"]) == 1

@@ -17,7 +17,8 @@ from playwright.sync_api import Page
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB_URL = "postgresql+asyncpg://atem_user:atem_secure_password@localhost:5432/atem_e2e"
-ADMIN_PASSWORD = "admin-secure-init-pass-change-me"  # dev admin seeded by the app
+ADMIN_EMAIL = "entwicklung@pusterum.be"  # dev admin seeded by the app (login = e-mail)
+ADMIN_PASSWORD = "admin-secure-init-pass-change-me"
 
 CSP_PROBE = """
 window.__cspViolations = [];
@@ -68,6 +69,7 @@ def server_url() -> Iterator[str]:
         "SECRET_KEY": "e2e-secret-key-at-least-32-characters-long",
         "DATABASE_URL": db_url,
         "ALLOWED_HOSTS": '["127.0.0.1", "localhost"]',
+        "ADMIN_EMAIL": ADMIN_EMAIL,
         "ADMIN_INITIAL_PASSWORD": ADMIN_PASSWORD,
         "CONTACT_FORM_MIN_SECONDS": "0",
         "ALTCHA_MAX_NUMBER": "5000",

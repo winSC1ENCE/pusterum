@@ -15,7 +15,6 @@ classDiagram
             +datetime updated_at
         }
         class User {
-            +str username
             +str email
             +str password_hash
             +UserRole role

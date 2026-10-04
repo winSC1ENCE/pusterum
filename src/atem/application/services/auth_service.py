@@ -18,8 +18,10 @@ from typing import NoReturn
 from uuid import UUID
 
 import structlog
+from pydantic import ValidationError
 
 from atem.application.dto.auth import (
+    CreateAdminDTO,
     LoginRequestDTO,
     LoginResultDTO,
     TotpSetupDTO,
@@ -42,6 +44,8 @@ from atem.domain.models.user import (
     DeviceClaim,
     User,
     UserRole,
+    is_reserved_login,
+    normalize_email,
 )
 
 logger = structlog.get_logger(__name__)
@@ -98,7 +102,7 @@ class AuthService:
     async def authenticate(
         self, dto: LoginRequestDTO, ip_address: str, device: DeviceClaim | None = None
     ) -> LoginResultDTO:
-        """Verify username + password (first factor).
+        """Verify e-mail + password (first factor).
 
         ``device`` is the authentic device cookie of the browser (if any). For the owner's
         trusted devices the account lockout is replaced by a per-device failure limit.
@@ -111,9 +115,9 @@ class AuthService:
             logger.warning("login_rate_limited", ip=ip_address)
             raise RateLimitedException(RATE_LIMIT_ERROR)
 
-        user = await self._user_repository.get_by_username(dto.username)
+        user = await self._user_repository.get_by_email(normalize_email(dto.email))
         if user is None or not user.is_active:
-            # Spend the same time as a real check so usernames cannot be enumerated.
+            # Spend the same time as a real check so addresses cannot be enumerated.
             self._password_hasher.verify_password(dto.password, self._get_dummy_hash())
             await self._fail(ip_address, None, now)
 
@@ -194,7 +198,7 @@ class AuthService:
 
     def totp_provisioning_uri(self, user: UserResponseDTO, secret: str) -> str:
         """Return the otpauth:// URI (QR code content) for a pending secret."""
-        return self._totp.provisioning_uri(secret, user.username)
+        return self._totp.provisioning_uri(secret, user.email)
 
     async def confirm_totp_setup(self, user_id: UUID, secret: str, code: str) -> list[str]:
         """Activate 2FA after the user proved possession; return fresh recovery codes."""
@@ -240,11 +244,9 @@ class AuthService:
         """Return the number of unused recovery codes."""
         return len(await self._user_repository.list_unused_recovery_codes(user_id))
 
-    async def reset_totp(self, username: str) -> None:
+    async def reset_totp(self, email: str) -> None:
         """Operator recovery (CLI): disable 2FA for a user who lost their device."""
-        user = await self._user_repository.get_by_username(username)
-        if user is None:
-            raise EntityNotFoundException("User", username)
+        user = await self._require_user_by_email(email)
         user.totp_enabled = False
         user.totp_secret_encrypted = None
         user.totp_last_used_step = None
@@ -253,26 +255,27 @@ class AuthService:
         await self._user_repository.update_user(user)
         logger.info("admin_action", action="totp_reset_by_operator", user_id=str(user.id))
 
-    async def unlock(self, username: str) -> None:
+    async def unlock(self, email: str) -> None:
         """Operator recovery (CLI): lift an account lockout immediately."""
-        user = await self._user_repository.get_by_username(username)
-        if user is None:
-            raise EntityNotFoundException("User", username)
+        user = await self._require_user_by_email(email)
         user.failed_login_count = 0
         user.locked_until = None
         await self._user_repository.update_user(user)
         logger.info("admin_action", action="unlocked_by_operator", user_id=str(user.id))
 
     # ---------------------------------------------------------------- accounts ---
-    async def create_admin(self, username: str, email: str, password: str) -> UserResponseDTO:
-        """Create a new administrator account (used by the CLI in production)."""
+    async def create_admin(self, email: str, password: str) -> UserResponseDTO:
+        """Create a new administrator account (used by the CLI in production).
+
+        The login is a personal e-mail address; generic mailboxes (``admin@…``) are refused.
+        """
+        login = self._validate_login_email(email)
         self._validate_new_password(password)
-        if await self._user_repository.get_by_username(username):
-            raise ValidationException(f"Benutzer «{username}» existiert bereits.")
+        if await self._user_repository.get_by_email(login):
+            raise ValidationException(f"Ein Konto für «{login}» existiert bereits.")
         user = await self._user_repository.create_user(
             User(
-                username=username,
-                email=email,
+                email=login,
                 password_hash=self._password_hasher.hash_password(password),
                 role=UserRole.ADMIN,
                 is_active=True,
@@ -282,26 +285,46 @@ class AuthService:
         logger.info("admin_created", user_id=str(user.id))
         return UserResponseDTO.model_validate(user)
 
-    async def ensure_initial_admin(self, username: str, email: str, initial_password: str) -> None:
+    async def ensure_initial_admin(self, email: str, initial_password: str) -> None:
         """Ensure the local development admin exists (development/test only)."""
-        if await self._user_repository.get_by_username(username):
+        login = self._validate_login_email(email)
+        if await self._user_repository.get_by_email(login):
             return
         await self._user_repository.create_user(
             User(
-                username=username,
-                email=email,
+                email=login,
                 password_hash=self._password_hasher.hash_password(initial_password),
                 role=UserRole.ADMIN,
                 is_active=True,
             )
         )
-        logger.info("dev_admin_created", username=username)
+        logger.info("dev_admin_created")
 
     # ---------------------------------------------------------------- helpers ---
     def _get_dummy_hash(self) -> str:
         if self._dummy_hash is None:
             self._dummy_hash = self._password_hasher.hash_password(secrets.token_hex(16))
         return self._dummy_hash
+
+    @staticmethod
+    def _validate_login_email(email: str) -> str:
+        """Return the normalized login or raise a ValidationException."""
+        try:
+            login = normalize_email(CreateAdminDTO(email=normalize_email(email)).email)
+        except ValidationError as exc:
+            raise ValidationException("Bitte eine gültige E-Mail-Adresse angeben.") from exc
+        if is_reserved_login(login):
+            raise ValidationException(
+                "Bitte eine persönliche E-Mail-Adresse verwenden – "
+                "Sammeladressen wie «admin@…» sind als Login nicht erlaubt."
+            )
+        return login
+
+    async def _require_user_by_email(self, email: str) -> User:
+        user = await self._user_repository.get_by_email(normalize_email(email))
+        if user is None:
+            raise EntityNotFoundException("User", normalize_email(email))
+        return user
 
     async def _require_user(self, user_id: UUID) -> User:
         user = await self._user_repository.get_by_id(user_id)

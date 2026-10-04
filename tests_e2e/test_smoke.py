@@ -4,7 +4,7 @@ import re
 
 from playwright.sync_api import Page, expect
 
-from tests_e2e.conftest import ADMIN_PASSWORD, assert_clean
+from tests_e2e.conftest import ADMIN_EMAIL, ADMIN_PASSWORD, assert_clean
 
 
 def test_home_renders_without_csp_violations(page: Page, server_url: str) -> None:
@@ -48,7 +48,7 @@ def test_contact_form_with_altcha(page: Page, server_url: str) -> None:
 
 def test_admin_login_and_inline_edit(page: Page, server_url: str) -> None:
     page.goto(server_url + "/admin/login")
-    page.fill("#username", "admin")
+    page.fill("#email", ADMIN_EMAIL)
     page.fill("#password", ADMIN_PASSWORD)
     page.get_by_role("button", name="Anmelden").click()
     expect(page).to_have_url(re.compile(r"/admin$"))
@@ -66,7 +66,7 @@ def test_admin_login_and_inline_edit(page: Page, server_url: str) -> None:
 
 def test_design_studio_without_violations(page: Page, server_url: str) -> None:
     page.goto(server_url + "/admin/login")
-    page.fill("#username", "admin")
+    page.fill("#email", ADMIN_EMAIL)
     page.fill("#password", ADMIN_PASSWORD)
     page.get_by_role("button", name="Anmelden").click()
     page.goto(server_url + "/admin/design")
@@ -76,7 +76,7 @@ def test_design_studio_without_violations(page: Page, server_url: str) -> None:
 
 def _login(page: Page, server_url: str) -> None:
     page.goto(server_url + "/admin/login")
-    page.fill("#username", "admin")
+    page.fill("#email", ADMIN_EMAIL)
     page.fill("#password", ADMIN_PASSWORD)
     page.get_by_role("button", name="Anmelden").click()
 

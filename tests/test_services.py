@@ -91,22 +91,23 @@ async def test_contact_service_flow(contact_service: ContactService) -> None:
 async def test_auth_service(auth_service: AuthService) -> None:
     """Test admin authentication lifecycle."""
     await auth_service.ensure_initial_admin(
-        username="admin",
-        email="admin@atem-praxis.ch",
+        email="Praxis.Leitung@Pusterum.be",
         initial_password="SecretAdminPassword123!",
     )
 
     # Valid login
     result = await auth_service.authenticate(
-        LoginRequestDTO(username="admin", password="SecretAdminPassword123!"), "198.51.100.1"
+        LoginRequestDTO(email=" praxis.leitung@PUSTERUM.be ", password="SecretAdminPassword123!"),
+        "198.51.100.1",
     )
-    assert result.user.username == "admin"
+    assert result.user.email == "praxis.leitung@pusterum.be"  # normalized
     assert result.requires_totp is False
 
     # Invalid login
     with pytest.raises(AuthenticationException):
         await auth_service.authenticate(
-            LoginRequestDTO(username="admin", password="wrong-password"), "198.51.100.1"
+            LoginRequestDTO(email="praxis.leitung@pusterum.be", password="wrong-password"),
+            "198.51.100.1",
         )
 
 

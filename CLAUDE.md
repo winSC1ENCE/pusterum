@@ -41,7 +41,7 @@ uv run granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 
 ```
 
 `--factory` ist Pflicht (`create_app` ist eine Factory). Läuft der Container `atem_app`, belegt er Port 8000 →
-`docker compose stop app`. Admin lokal: `/admin/login` (`admin` / `admin-secure-init-pass-change-me`, wird nur
+`docker compose stop app`. Admin lokal: `/admin/login` (`entwicklung@pusterum.be` / `admin-secure-init-pass-change-me`, wird nur
 in development geseedet; 2FA dort optional).
 
 Quality-Gates (alle müssen grün sein, auch via pre-commit/CI):
@@ -91,12 +91,15 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
   `tests/test_route_guards.py` erkennt ungeschützte `/admin`-Routen automatisch.
 - Jeder POST braucht CSRF: HTMX/`fetch` senden `x-csrftoken` automatisch (`hx-headers` am `<body>`,
   `csrfHeaders()` in `app.js`), klassische Formulare ein `<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">`.
+- Admin-Login ist **ausschliesslich die persönliche E-Mail-Adresse** (normalisiert, eindeutig) – keine
+  Benutzernamen, Sammeladressen wie `admin@…` werden abgelehnt (`domain/models/user.py:is_reserved_login`).
+  Mehrere Admins: je ein Konto pro Person via `python -m atem.cli create-admin --email …`.
 - Logout ist ein POST. Sessions werden über `User.session_version` widerrufen.
 - Kontosperre gilt nur für unbekannte Geräte; vertraute Geräte (`presentation/security/device_cookie.py`,
   `User.trusts_device`) haben ein eigenes Limit pro Gerät – Dritte können Admins nicht aussperren.
-  Notfall: `python -m atem.cli unlock --username …`.
+  Notfall: `python -m atem.cli unlock --email …`.
 - 2FA (TOTP + Recovery-Codes) ist in production/staging Pflicht (`ADMIN_REQUIRE_2FA`).
-  Notfall: `python -m atem.cli reset-2fa --username …`.
+  Notfall: `python -m atem.cli reset-2fa --email …`.
 - Uploads nur über `MediaService` (Pillow-Re-Encoding, kein SVG); Theme-Werte nur Hex/Font-Allowlist.
 - Keine Personendaten ins Log (keine E-Mails/Namen); Event `login_failed` mit IP ist die fail2ban-Schnittstelle.
 - Gesamtbild: ADR-0004.

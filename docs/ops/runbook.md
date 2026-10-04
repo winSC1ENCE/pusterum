@@ -76,10 +76,17 @@ sind die Backups wertlos.
 docker compose -f docker-compose.prod.yml up -d --build
 docker compose -f docker-compose.prod.yml ps          # alle Dienste "healthy"
 docker compose -f docker-compose.prod.yml exec app python -m atem.cli create-admin \
-    --username <benutzername> --email kontakt@pusterum.be  # Passwort wird abgefragt (≥ 12 Zeichen)
+    --email vorname.name@example.ch  # Passwort wird abgefragt (≥ 12 Zeichen)
 ```
-**Ein Konto pro Person** (Praxisinhaberin und Entwickler je eigenes Konto mit eigenem Passwort und
-eigener 2FA). Benutzernamen wählen, die nicht erratbar sind (nicht «admin», «stephanie», «pusterum»).
+**Ein Konto pro Person**: Praxisinhaberin und Entwickler haben je ein eigenes Konto mit eigenem Passwort
+und eigener 2FA. Weitere Admins legt man mit demselben Befehl an.
+
+**Login = persönliche E-Mail-Adresse:**
+- Es gibt keine Benutzernamen. Die Adresse wird normalisiert, Gross-/Kleinschreibung spielt also keine Rolle.
+- Sammeladressen wie `admin@`, `root@` oder `webmaster@` werden abgelehnt.
+- Empfehlung: nicht die öffentlich publizierte Kontaktadresse (`kontakt@pusterum.be`) als Login verwenden.
+  Eine nicht öffentliche Adresse erschwert das Raten und Aussperren.
+- An diese Adresse gehen auch die Sicherheitsmails, z. B. bei einer Sperre.
 
 **Aussperr-Schutz (vertraute Geräte):**
 - Nach 5 Fehlversuchen sperrt die App Anmeldungen von **unbekannten Geräten** (15 min, danach
@@ -144,8 +151,8 @@ Ein bestimmter Stand: `restic snapshots` → ID statt `latest`.
 
 | Situation | Massnahme |
 | :--- | :--- |
-| Smartphone (2FA) verloren | Wiederherstellungscode verwenden – oder: `docker compose -f docker-compose.prod.yml exec app python -m atem.cli reset-2fa --username <benutzername>` |
-| Konto gesperrt (Mail «Anmeldung vorübergehend gesperrt») | Von einem bereits genutzten Gerät anmelden – das funktioniert trotz Sperre. Neues Gerät: Sperre abwarten oder `docker compose -f docker-compose.prod.yml exec app python -m atem.cli unlock --username <benutzername>` |
+| Smartphone (2FA) verloren | Wiederherstellungscode verwenden – oder: `docker compose -f docker-compose.prod.yml exec app python -m atem.cli reset-2fa --email <login-adresse>` |
+| Konto gesperrt (Mail «Anmeldung vorübergehend gesperrt») | Von einem bereits genutzten Gerät anmelden – das funktioniert trotz Sperre. Neues Gerät: Sperre abwarten oder `docker compose -f docker-compose.prod.yml exec app python -m atem.cli unlock --email <login-adresse>` |
 | Passwort vergessen | Neuen Admin anlegen (`create-admin`), altes Konto bei Bedarf in der DB deaktivieren |
 | Verdacht auf kompromittierte Session | Im Admin «Abmelden» (widerruft alle Sessions) bzw. Passwort ändern; notfalls `SECRET_KEY` rotieren (alle Sessions ungültig) |
 | IP fälschlich gesperrt | `sudo fail2ban-client set pusterum-admin unbanip <IP>` |

@@ -150,7 +150,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 # Ersten Admin anlegen; beim ersten Login wird 2FA eingerichtet
 docker compose -f docker-compose.prod.yml exec app python -m atem.cli create-admin \
-  --username <benutzername> --email kontakt@pusterum.be
+  --email vorname.name@example.ch   # persönliche Adresse = Login
 ```
 
 Backups, Restore-Test, Rollback und Notfälle: [`docs/ops/runbook.md`](docs/ops/runbook.md).

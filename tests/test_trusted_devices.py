@@ -32,11 +32,11 @@ KEY = b"k" * 32
 
 
 def _login(password: str) -> LoginRequestDTO:
-    return LoginRequestDTO(username="stephanie", password=password)
+    return LoginRequestDTO(email="stephanie@pusterum.be", password=password)
 
 
 async def _admin(auth_service: AuthService) -> DeviceClaim:
-    user = await auth_service.create_admin("stephanie", "kontakt@pusterum.be", ADMIN_PASSWORD)
+    user = await auth_service.create_admin("stephanie@pusterum.be", ADMIN_PASSWORD)
     return DeviceClaim(user_id=user.id, device_id="owner-laptop", issued_at=datetime.now(UTC))
 
 
@@ -67,7 +67,7 @@ def test_device_token_roundtrip_and_rejections() -> None:
 
 
 def test_trusts_device_rules() -> None:
-    user = User(username="u", email="u@example.ch", password_hash="x")
+    user = User(email="u@example.ch", password_hash="x")
     issued = datetime(2026, 10, 4, 12, 0, tzinfo=UTC)
     claim = DeviceClaim(user_id=user.id, device_id="d", issued_at=issued)
     assert user.trusts_device(claim)
@@ -91,7 +91,7 @@ async def test_trusted_device_logs_in_despite_account_lockout(auth_service: Auth
 
     # The owner's trusted device is not affected
     result = await auth_service.authenticate(_login(ADMIN_PASSWORD), OWNER_IP, device)
-    assert result.user.username == "stephanie"
+    assert result.user.email == "stephanie@pusterum.be"
 
     # ...and the owner's login does not reset the lockout for the attacker
     with pytest.raises(AuthenticationException):
@@ -129,7 +129,7 @@ async def test_lockout_notice_is_sent_once_per_lockout(
     for _ in range(3):  # attempts during the lockout do not trigger further mails
         with pytest.raises(AuthenticationException):
             await auth_service.authenticate(_login("wrong"), ATTACKER_IP)
-    assert email_service.lockout_notices == ["kontakt@pusterum.be"]
+    assert email_service.lockout_notices == ["stephanie@pusterum.be"]
 
 
 async def test_lockout_notice_failure_does_not_break_login(
@@ -146,17 +146,17 @@ async def test_lockout_notice_failure_does_not_break_login(
 async def test_operator_unlock(auth_service: AuthService) -> None:
     await _admin(auth_service)
     await _lock_account(auth_service)
-    await auth_service.unlock("stephanie")
+    await auth_service.unlock("stephanie@pusterum.be")
     assert (await auth_service.authenticate(_login(ADMIN_PASSWORD), OWNER_IP)).user
     with pytest.raises(EntityNotFoundException):
-        await auth_service.unlock("ghost")
+        await auth_service.unlock("ghost@pusterum.be")
 
 
 # ---------------------------------------------------------------------------- HTTP
 async def _post_login(client: AsyncTestClient[Litestar], password: str) -> str:
     response = await client.post(
         "/admin/login",
-        data={"username": "admin", "password": password},
+        data={"email": "entwicklung@pusterum.be", "password": password},
         follow_redirects=False,
     )
     return response.headers.get("location", "")
@@ -167,7 +167,7 @@ async def test_device_cookie_protects_owner_over_http(
 ) -> None:
     first = await app_client.post(
         "/admin/login",
-        data={"username": "admin", "password": ADMIN_PASSWORD},
+        data={"email": "entwicklung@pusterum.be", "password": ADMIN_PASSWORD},
         follow_redirects=False,
     )
     cookie_header = first.headers.get("set-cookie", "")

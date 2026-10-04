@@ -134,7 +134,7 @@ async def test_content_admin_endpoints_and_auth_guard(
     # 2. Login as admin (automatically sets cookie in client)
     login_resp = await app_client.post(
         "/admin/login",
-        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
         follow_redirects=True,
     )
     assert login_resp.status_code == 200
@@ -266,7 +266,7 @@ async def test_impressum_and_datenschutz_public_routes(
     # Test editing impressum webdesign block
     await app_client.post(
         "/admin/login",
-        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
         follow_redirects=True,
     )
     edit_resp = await app_client.post(
@@ -286,7 +286,7 @@ async def test_image_upload_save_and_immediate_live_render(
     # 1. Login as admin
     await app_client.post(
         "/admin/login",
-        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
         follow_redirects=True,
     )
 
@@ -383,7 +383,7 @@ async def test_empty_optional_hero_text_hidden_publicly_but_placeholder_for_admi
 
     await app_client.post(
         "/admin/login",
-        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
         follow_redirects=True,
     )
     admin_resp = await app_client.get("/")
@@ -402,7 +402,7 @@ async def test_contact_phone_and_email_are_editable_blocks_without_links_for_adm
 
     await app_client.post(
         "/admin/login",
-        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
         follow_redirects=True,
     )
     admin_resp = await app_client.get("/")

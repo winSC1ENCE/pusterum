@@ -66,20 +66,26 @@ def test_derived_keys_are_purpose_bound() -> None:
 
 async def test_create_admin_enforces_policy(auth_service: AuthService) -> None:
     with pytest.raises(ValidationException, match="mindestens 12"):
-        await auth_service.create_admin("stephanie", "kontakt@pusterum.be", "kurz")
+        await auth_service.create_admin("stephanie@pusterum.be", "kurz")
 
-    user = await auth_service.create_admin(
-        "stephanie", "kontakt@pusterum.be", "ein-langes-passwort"
-    )
-    assert user.username == "stephanie"
+    user = await auth_service.create_admin("Stephanie@Pusterum.be", "ein-langes-passwort")
+    assert user.email == "stephanie@pusterum.be"
 
     with pytest.raises(ValidationException, match="existiert bereits"):
-        await auth_service.create_admin("stephanie", "kontakt@pusterum.be", "ein-langes-passwort")
+        await auth_service.create_admin("stephanie@pusterum.be", "ein-langes-passwort")
+    for invalid in ("stephanie", "admin", "x@localhost"):
+        with pytest.raises(ValidationException, match="gültige E-Mail-Adresse"):
+            await auth_service.create_admin(invalid, "ein-langes-passwort")
+    for generic in ("admin@pusterum.be", "Administrator@example.ch", "root@pusterum.be"):
+        with pytest.raises(ValidationException, match="persönliche E-Mail-Adresse"):
+            await auth_service.create_admin(generic, "ein-langes-passwort")
 
 
 def test_cli_parser_commands() -> None:
     parser = build_parser()
-    args = parser.parse_args(["create-admin", "--username", "s", "--email", "s@pusterum.be"])
+    args = parser.parse_args(["create-admin", "--email", "s@pusterum.be"])
     assert args.command == "create-admin"
     assert parser.parse_args(["seed-content"]).command == "seed-content"
-    assert parser.parse_args(["reset-2fa", "--username", "s"]).command == "reset-2fa"
+    assert parser.parse_args(["reset-2fa", "--email", "s@pusterum.be"]).command == "reset-2fa"
+    with pytest.raises(SystemExit):  # user names are gone
+        parser.parse_args(["create-admin", "--username", "admin", "--email", "s@pusterum.be"])

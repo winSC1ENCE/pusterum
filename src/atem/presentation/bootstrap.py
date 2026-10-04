@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactLimits, ContactService
 from atem.application.services.content_service import ContentService
+from atem.domain.exceptions import ValidationException
 from atem.domain.interfaces.contact_repository import IContactRepository
 from atem.domain.interfaces.email_service import IEmailService
 from atem.infrastructure.captcha.altcha_captcha import AltchaCaptcha
@@ -109,9 +110,12 @@ async def ensure_dev_admin(
         )
         return
     async with session_factory() as session:
-        await build_auth_service(session).ensure_initial_admin(
-            username=settings.ADMIN_USERNAME,
-            email=settings.ADMIN_EMAIL,
-            initial_password=settings.ADMIN_INITIAL_PASSWORD,
-        )
+        try:
+            await build_auth_service(session).ensure_initial_admin(
+                email=settings.ADMIN_EMAIL,
+                initial_password=settings.ADMIN_INITIAL_PASSWORD,
+            )
+        except ValidationException as exc:
+            logger.warning("dev_admin_not_seeded", reason=exc.message)
+            return
         await session.commit()

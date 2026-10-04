@@ -57,9 +57,9 @@ class Settings(BaseSettings):
     SMTP_STARTTLS: bool = False
     SMTP_TIMEOUT_SECONDS: int = 15
 
-    # Initial admin: dev/test seeding only (production: `python -m atem.cli create-admin`)
-    ADMIN_USERNAME: str = "admin"
-    ADMIN_EMAIL: str = "admin@pusterum.be"
+    # Local admin: dev/test seeding only (production: `python -m atem.cli create-admin`).
+    # The login is the e-mail address; generic mailboxes such as admin@… are refused.
+    ADMIN_EMAIL: str = "entwicklung@pusterum.be"
     ADMIN_INITIAL_PASSWORD: str | None = None
     # Two-factor authentication for the admin. None = mandatory in production/staging only.
     ADMIN_REQUIRE_2FA: bool | None = None

@@ -26,7 +26,7 @@ from atem.infrastructure.email.smtp_email_service import CONFIRMATION_BODY, Smtp
 from atem.presentation.security.form_token import issue_form_token, verify_form_token
 from tests.conftest import contact_form_payload, solve_altcha
 
-ADMIN = {"username": "admin", "password": "admin-secure-init-pass-change-me"}
+ADMIN = {"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"}
 
 
 def _dto(**overrides: Any) -> CreateContactMessageDTO:

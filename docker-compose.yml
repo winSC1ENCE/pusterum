@@ -13,6 +13,7 @@ services:
       - DATABASE_URL=postgresql+asyncpg://atem_user:atem_secure_password@db:5432/atem_db
       - SECRET_KEY=dev-secret-key-at-least-32-characters-long-12345
       - ALLOWED_HOSTS=["localhost", "127.0.0.1"]
+      - ADMIN_EMAIL=entwicklung@pusterum.be
       - ADMIN_INITIAL_PASSWORD=admin-secure-init-pass-change-me
     volumes:
       - ./src:/app/src

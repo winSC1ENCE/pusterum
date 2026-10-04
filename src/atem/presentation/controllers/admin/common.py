@@ -37,7 +37,7 @@ def current_author(request: Request[Any, Any, Any]) -> tuple[UUID | None, str]:
     """(user id, display name) of the logged-in admin for audit/version records."""
     user = request.session.get("user") or {}
     raw_id = user.get("id")
-    return (UUID(raw_id) if raw_id else None, str(user.get("username") or "Admin"))
+    return (UUID(raw_id) if raw_id else None, str(user.get("email") or "Admin"))
 
 
 async def admin_page(

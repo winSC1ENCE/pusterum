@@ -7,7 +7,7 @@ from litestar.testing import AsyncTestClient
 
 from tests.conftest import contact_form_payload
 
-ADMIN = {"username": "admin", "password": "admin-secure-init-pass-change-me"}
+ADMIN = {"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"}
 SERVICE_FORM = {
     "title": "Einzelsitzung Atem- & Körpertherapie",
     "subtitle": "Individuelle Begleitung",

@@ -105,7 +105,10 @@ async def test_admin_flow(app_client: AsyncTestClient[Litestar]) -> None:
     assert res_login_page.status_code == 200
 
     # Successful login
-    login_data = {"username": "admin", "password": "admin-secure-init-pass-change-me"}
+    login_data = {
+        "email": "entwicklung@pusterum.be",
+        "password": "admin-secure-init-pass-change-me",
+    }
     res_login = await app_client.post("/admin/login", data=login_data, follow_redirects=True)
     assert res_login.status_code == 200
     assert "Praxis Dashboard" in res_login.text

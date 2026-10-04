@@ -12,7 +12,7 @@ MAX_PASSWORD_LENGTH = 256
 class LoginRequestDTO(BaseModel):
     """Admin login request credentials."""
 
-    username: str = Field(..., min_length=1, max_length=100)
+    email: str = Field(..., min_length=3, max_length=150)
     password: str = Field(..., min_length=1, max_length=MAX_PASSWORD_LENGTH)
 
 
@@ -22,7 +22,6 @@ class UserResponseDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    username: str
     email: EmailStr
     role: UserRole
     is_active: bool
@@ -43,3 +42,9 @@ class TotpSetupDTO(BaseModel):
 
     secret: str
     provisioning_uri: str
+
+
+class CreateAdminDTO(BaseModel):
+    """New administrator account: a personal, real e-mail address is the login."""
+
+    email: EmailStr = Field(..., max_length=150)

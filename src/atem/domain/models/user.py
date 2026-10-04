@@ -30,6 +30,23 @@ class DeviceClaim:
     issued_at: datetime
 
 
+# Admin logins are personal e-mail addresses. Generic role mailboxes are refused: they are
+# guessable (lockout and password-guessing target) and not tied to one person.
+RESERVED_LOGIN_LOCAL_PARTS = frozenset(
+    {"admin", "administrator", "root", "superuser", "webmaster", "postmaster", "hostmaster"}
+)
+
+
+def normalize_email(email: str) -> str:
+    """Canonical form of a login e-mail address (trimmed, lower case)."""
+    return email.strip().lower()
+
+
+def is_reserved_login(email: str) -> bool:
+    """True for generic role mailboxes such as ``admin@…`` that must not be logins."""
+    return normalize_email(email).partition("@")[0] in RESERVED_LOGIN_LOCAL_PARTS
+
+
 class UserRole(StrEnum):
     """User authorization roles."""
 
@@ -41,8 +58,7 @@ class UserRole(StrEnum):
 class User(BaseEntity):
     """System user model for administration."""
 
-    username: str
-    email: str
+    email: str  # login (normalized, unique)
     password_hash: str
     role: UserRole = UserRole.ADMIN
     is_active: bool = True

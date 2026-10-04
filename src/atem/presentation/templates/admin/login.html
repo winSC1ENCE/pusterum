@@ -24,8 +24,8 @@
         <form method="POST" action="/admin/login" class="space-y-6">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
             <div>
-                <label for="username" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">Benutzername</label>
-                <input type="text" id="username" name="username" required value="{{ username or '' }}"
+                <label for="email" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">E-Mail-Adresse</label>
+                <input type="email" id="email" name="email" required autocomplete="username" maxlength="150" value="{{ email or '' }}"
                        class="w-full px-4 py-3 rounded-xl border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main bg-theme-main text-sm outline-none">
             </div>
 

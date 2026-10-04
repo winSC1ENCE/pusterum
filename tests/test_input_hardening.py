@@ -15,7 +15,7 @@ from atem.domain.exceptions import ValidationException
 from atem.infrastructure.media.pillow_image_sanitizer import MAX_DIMENSION, PillowImageSanitizer
 from tests.conftest import make_image_bytes
 
-ADMIN = {"username": "admin", "password": "admin-secure-init-pass-change-me"}
+ADMIN = {"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"}
 VALID_THEME = {
     "primary_color": "#112233",
     "secondary_color": "#445566",

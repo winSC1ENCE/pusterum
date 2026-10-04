@@ -2,7 +2,7 @@
 
 Session layout (encrypted cookie):
 
-* ``user``        – fully authenticated admin: ``{"id", "username", "role", "sv"}``
+* ``user``        – fully authenticated admin: ``{"id", "email", "role", "sv"}``
 * ``pending_2fa`` – password verified, waiting for the TOTP code: ``{"id", "sv", "exp"}``
 
 ``sv`` is the user's ``session_version``. Logout, password and 2FA changes increment it in
@@ -48,7 +48,7 @@ def store_authenticated_session(request: Request[Any, Any, Any], user: UserRespo
         {
             SESSION_USER_KEY: {
                 "id": str(user.id),
-                "username": user.username,
+                "email": user.email,
                 "role": user.role.value,
                 "sv": user.session_version,
             }

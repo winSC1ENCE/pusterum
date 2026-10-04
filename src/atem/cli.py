@@ -2,8 +2,9 @@
 
 Usage (inside the container or locally with `uv run`)::
 
-    python -m atem.cli create-admin --username stephanie --email kontakt@pusterum.be
-    python -m atem.cli reset-2fa --username stephanie
+    python -m atem.cli create-admin --email vorname.name@example.ch
+    python -m atem.cli reset-2fa --email vorname.name@example.ch
+    python -m atem.cli unlock --email vorname.name@example.ch
     python -m atem.cli seed-content
     python -m atem.cli purge-messages
 """
@@ -34,36 +35,36 @@ def _read_password() -> str:
     return first
 
 
-async def _create_admin(username: str, email: str) -> None:
+async def _create_admin(email: str) -> None:
     password = _read_password()
     engine = create_engine()
     try:
         async with create_session_factory(engine)() as session:
-            user = await build_auth_service(session).create_admin(username, email, password)
+            user = await build_auth_service(session).create_admin(email, password)
             await session.commit()
-        print(f"Admin «{user.username}» angelegt.")
+        print(f"Admin «{user.email}» angelegt.")
     finally:
         await engine.dispose()
 
 
-async def _reset_2fa(username: str) -> None:
+async def _reset_2fa(email: str) -> None:
     engine = create_engine()
     try:
         async with create_session_factory(engine)() as session:
-            await build_auth_service(session).reset_totp(username)
+            await build_auth_service(session).reset_totp(email)
             await session.commit()
-        print(f"Zwei-Faktor-Anmeldung für «{username}» zurückgesetzt – bitte neu einrichten.")
+        print(f"Zwei-Faktor-Anmeldung für «{email}» zurückgesetzt – bitte neu einrichten.")
     finally:
         await engine.dispose()
 
 
-async def _unlock(username: str) -> None:
+async def _unlock(email: str) -> None:
     engine = create_engine()
     try:
         async with create_session_factory(engine)() as session:
-            await build_auth_service(session).unlock(username)
+            await build_auth_service(session).unlock(email)
             await session.commit()
-        print(f"Sperre für «{username}» aufgehoben.")
+        print(f"Sperre für «{email}» aufgehoben.")
     finally:
         await engine.dispose()
 
@@ -94,14 +95,13 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     admin = sub.add_parser("create-admin", help="Administrator-Konto anlegen")
-    admin.add_argument("--username", required=True)
-    admin.add_argument("--email", required=True)
+    admin.add_argument("--email", required=True, help="persönliche E-Mail-Adresse = Login")
 
     reset = sub.add_parser("reset-2fa", help="2FA eines Kontos zurücksetzen (Gerät verloren)")
-    reset.add_argument("--username", required=True)
+    reset.add_argument("--email", required=True)
 
     unlock = sub.add_parser("unlock", help="Kontosperre nach Fehlversuchen sofort aufheben")
-    unlock.add_argument("--username", required=True)
+    unlock.add_argument("--email", required=True)
 
     sub.add_parser("seed-content", help="Fehlende Standard-Inhalte ergänzen (idempotent)")
     sub.add_parser("purge-messages", help="Aufbewahrungsfrist durchsetzen (alte Daten löschen)")
@@ -114,11 +114,11 @@ def main(argv: list[str] | None = None) -> int:
     get_settings()  # fail fast on insecure configuration
     try:
         if args.command == "create-admin":
-            asyncio.run(_create_admin(args.username, args.email))
+            asyncio.run(_create_admin(args.email))
         elif args.command == "reset-2fa":
-            asyncio.run(_reset_2fa(args.username))
+            asyncio.run(_reset_2fa(args.email))
         elif args.command == "unlock":
-            asyncio.run(_unlock(args.username))
+            asyncio.run(_unlock(args.email))
         elif args.command == "purge-messages":
             asyncio.run(_purge())
         elif args.command == "seed-content":

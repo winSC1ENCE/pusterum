@@ -67,7 +67,7 @@ uv run granian --interface asgi --host 127.0.0.1 --port 8000 --reload --factory 
 | Bereich | URL | Zugangsdaten |
 | :--- | :--- | :--- |
 | **Website (Live)** | [http://127.0.0.1:8000](http://127.0.0.1:8000) | Öffentlich zugänglich |
-| **Admin-Login** | [http://127.0.0.1:8000/admin/login](http://127.0.0.1:8000/admin/login) | **User:** `admin`<br/>**Passwort:** `admin-secure-init-pass-change-me` |
+| **Admin-Login** | [http://127.0.0.1:8000/admin/login](http://127.0.0.1:8000/admin/login) | **User:** `admin`<br/>**Passwort:** `admin-secure-init-pass-change-me`<br/>(nur development, 2FA optional) |
 | **Corporate Design Studio** | [http://127.0.0.1:8000/admin/design](http://127.0.0.1:8000/admin/design) | Nach Login im Admin-Panel |
 | **Health Check** | [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health) | Status & System-Check |
 
@@ -78,8 +78,11 @@ uv run granian --interface asgi --host 127.0.0.1 --port 8000 --reload --factory 
 Vor Commits können alle automatisierten Prüfungen lokal ausgeführt werden:
 
 ```bash
-# Tests & Coverage ausführen (Mindestens 85%)
+# Tests & Coverage ausführen (mindestens 90 %)
 uv run pytest
+
+# Browser-E2E (Playwright, einmalig: uv run playwright install chromium)
+uv run pytest tests_e2e --no-cov
 
 # Alle Linters, Type-Checks & Sicherheits-Gates prüfen
 uv run pre-commit run --all-files

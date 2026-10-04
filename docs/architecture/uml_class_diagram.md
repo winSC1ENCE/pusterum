@@ -1,346 +1,228 @@
-# UML-Klassendiagramm: Atemtherapie Webapplikation
+# UML-Klassendiagramm – PUSTERUM
 
-> **Architektur-Stil:** Clean Architecture / Hexagonal Architecture (Ports & Adapters) mit strikter OOP und Abstract Base Classes (ABCs).
-
----
-
-## 1. Gesamt-Klassendiagramm
+> Stand 2026-10-04 (nach Go-Live-Härtung). Einzige Quelle für das Diagramm ist diese Datei (Mermaid).
+> Abhängigkeiten zeigen ausschliesslich nach innen: Presentation → Application → Domain ← Infrastructure.
 
 ```mermaid
 classDiagram
-    %% =========================================================================
-    %% DOMAIN LAYER: ENTITIES & VALUE OBJECTS
-    %% =========================================================================
-    namespace Domain_Models {
+    direction LR
+
+    %% ================= DOMAIN =================
+    namespace Domain {
         class BaseEntity {
             +UUID id
             +datetime created_at
             +datetime updated_at
         }
-
-        class MessageStatus {
-            <<enumeration>>
-            NEW
-            READ
-            REPLIED
-            ARCHIVED
-        }
-
-        class UserRole {
-            <<enumeration>>
-            ADMIN
-            EDITOR
-        }
-
-        class TherapistProfile {
-            +str full_name
-            +str title
-            +str diploma
-            +str tagline
-            +str bio
-            +str quote
-            +str profile_image_url
-            +str? booking_external_url
-            +list~Competency~ competencies
-            +list~ServiceOffering~ services
-            +PracticeInfo? practice
-        }
-
-        class Competency {
-            +str title
-            +str description
-            +str icon_name
-            +int sort_order
-            +bool is_active
-        }
-
-        class ServiceOffering {
-            +str title
-            +str slug
-            +str subtitle
-            +str description
-            +int duration_minutes
-            +float price_chf
-            +bool is_health_insurance_recognized
-            +int sort_order
-            +bool is_active
-        }
-
-        class PracticeInfo {
-            +str name
-            +str street
-            +str zip_code
-            +str city
-            +str canton
-            +str country
-            +str phone
-            +str email
-            +str directions_info
-            +str accessibility_info
-            +float? latitude
-            +float? longitude
-        }
-
-        class ContactMessage {
-            +str sender_name
-            +str sender_email
-            +str? sender_phone
-            +str subject
-            +str message
-            +MessageStatus status
-            +str? notes
-            +str? ip_address
-        }
-
         class User {
             +str username
             +str email
             +str password_hash
             +UserRole role
-            +bool is_active
+            +bool totp_enabled
+            +int session_version
+            +int failed_login_count
+            +datetime locked_until
+            +is_locked(now) bool
+            +register_failed_login(now)
+            +register_successful_login(now)
+            +revoke_sessions()
         }
-
-        class ContentBlockType {
-            <<enumeration>>
-            TEXT
-            TEXTAREA
-            RICH_TEXT
-            IMAGE_URL
-            PHONE
-            EMAIL
+        class ContactMessage {
+            +str sender_name
+            +str sender_email
+            +str subject
+            +str message
+            +MessageStatus status
+            +str ip_address
+            +str email_hash
+            +bool confirmation_sent
         }
-
         class ContentBlock {
             +str key
             +ContentBlockType block_type
-            +str section
             +int current_version_number
             +str current_content
-            +datetime updated_at
         }
-
         class ContentBlockVersion {
-            +UUID id
             +str block_key
             +int version_number
             +str content
-            +UUID? author_id
             +str author_name
-            +str? change_summary
-            +datetime created_at
         }
-
+        class ServiceOffering {
+            +str title
+            +str slug
+            +int duration_minutes
+            +float price_chf
+            +bool is_active
+        }
         class ThemeConfig {
-            +str name
-            +str preset_key
-            +str shape_type
+            +ColorPresetKey preset_key
             +str primary_color
-            +str secondary_color
-            +str accent_color
-            +str bg_color
-            +str surface_color
-            +str text_main_color
-            +str font_heading
-            +str font_body
+            +str heading_font
+            +ShapeType active_shape
+            +list~DandelionEffectMode~ dandelion_modes
+            +apply_palette(preset_key)
         }
-
-        BaseEntity <|-- TherapistProfile
-        BaseEntity <|-- Competency
-        BaseEntity <|-- ServiceOffering
-        BaseEntity <|-- PracticeInfo
-        BaseEntity <|-- ContactMessage
-        BaseEntity <|-- User
-        BaseEntity <|-- ThemeConfig
-        ContentBlock *-- ContentBlockVersion : versions
+        class IUserRepository
+        class IContactRepository
+        class IContentRepository
+        class IOfferingRepository
+        class IThemeRepository
+        class IEmailService
+        class IPasswordHasher
+        class ISecretCipher
+        class ITotpProvider
+        class ICaptcha
+        class IImageSanitizer
     }
 
-    TherapistProfile *-- Competency : contains
-    TherapistProfile *-- ServiceOffering : contains
-    TherapistProfile o-- PracticeInfo : references
-    ContactMessage o-- MessageStatus : has
-    User o-- UserRole : has
+    BaseEntity <|-- User
+    BaseEntity <|-- ContactMessage
+    BaseEntity <|-- ContentBlock
+    BaseEntity <|-- ContentBlockVersion
+    BaseEntity <|-- ServiceOffering
+    BaseEntity <|-- ThemeConfig
 
-    %% =========================================================================
-    %% DOMAIN LAYER: PORTS & INTERFACES (ABCs)
-    %% =========================================================================
-    namespace Domain_Interfaces_Ports {
-        class IProfileRepository {
-            <<interface>>
-            +get_profile()* TherapistProfile
-            +save_profile(profile: TherapistProfile)* TherapistProfile
-            +get_competencies(active_only: bool)* list~Competency~
-            +get_services(active_only: bool)* list~ServiceOffering~
-            +get_service_by_id(service_id: UUID)* ServiceOffering?
-            +save_service(service: ServiceOffering)* ServiceOffering
-            +delete_service(service_id: UUID)* bool
-            +get_practice_info()* PracticeInfo?
-            +save_practice_info(practice: PracticeInfo)* PracticeInfo
-        }
-
-        class IContactRepository {
-            <<interface>>
-            +create_message(message: ContactMessage)* ContactMessage
-            +get_messages(status: MessageStatus?, limit: int, offset: int)* list~ContactMessage~
-            +get_message_by_id(message_id: UUID)* ContactMessage?
-            +update_message(message: ContactMessage)* ContactMessage
-            +delete_message(message_id: UUID)* bool
-        }
-
-        class IUserRepository {
-            <<interface>>
-            +get_by_username(username: str)* User?
-            +get_by_email(email: str)* User?
-            +get_by_id(user_id: UUID)* User?
-            +create_user(user: User)* User
-            +update_user(user: User)* User
-        }
-
-        class IEmailService {
-            <<interface>>
-            +send_contact_notification(message: ContactMessage)* bool
-            +send_contact_confirmation(message: ContactMessage)* bool
-        }
-
-        class IPasswordHasher {
-            <<interface>>
-            +hash_password(plain_password: str)* str
-            +verify_password(plain_password: str, hashed_password: str)* bool
-        }
-    }
-
-    %% =========================================================================
-    %% INFRASTRUCTURE LAYER: ADAPTERS & IMPLEMENTATIONS
-    %% =========================================================================
-    namespace Infrastructure_Adapters {
-        class SqlAlchemyProfileRepository {
-            -AsyncSession _session
-            +get_profile() TherapistProfile
-            +save_profile(profile) TherapistProfile
-            +get_competencies(active_only) list~Competency~
-            +get_services(active_only) list~ServiceOffering~
-            +get_service_by_id(service_id) ServiceOffering?
-            +save_service(service) ServiceOffering
-            +delete_service(service_id) bool
-            +get_practice_info() PracticeInfo?
-            +save_practice_info(practice) PracticeInfo
-        }
-
-        class SqlAlchemyContactRepository {
-            -AsyncSession _session
-            +create_message(message) ContactMessage
-            +get_messages(status, limit, offset) list~ContactMessage~
-            +get_message_by_id(message_id) ContactMessage?
-            +update_message(message) ContactMessage
-            +delete_message(message_id) bool
-        }
-
-        class SqlAlchemyUserRepository {
-            -AsyncSession _session
-            +get_by_username(username) User?
-            +get_by_email(email) User?
-            +get_by_id(user_id) User?
-            +create_user(user) User
-            +update_user(user) User
-        }
-
-        class SmtpEmailService {
-            -Settings _settings
-            +send_contact_notification(message) bool
-            +send_contact_confirmation(message) bool
-        }
-
-        class MockEmailService {
-            +list~ContactMessage~ sent_messages
-            +send_contact_notification(message) bool
-            +send_contact_confirmation(message) bool
-        }
-
-        class Argon2PasswordHasher {
-            -PasswordHasher _ph
-            +hash_password(plain_password) str
-            +verify_password(plain_password, hashed_password) bool
-        }
-    }
-
-    IProfileRepository <|.. SqlAlchemyProfileRepository : implements
-    IContactRepository <|.. SqlAlchemyContactRepository : implements
-    IUserRepository <|.. SqlAlchemyUserRepository : implements
-    IEmailService <|.. SmtpEmailService : implements
-    IEmailService <|.. MockEmailService : implements
-    IPasswordHasher <|.. Argon2PasswordHasher : implements
-
-    %% =========================================================================
-    %% APPLICATION LAYER: SERVICES & DTOs
-    %% =========================================================================
-    namespace Application_Services {
-        class ProfileService {
-            -IProfileRepository _repository
-            +get_public_profile() TherapistProfileDTO
-            +update_profile(dto) TherapistProfileDTO
-            +create_service(dto) ServiceOfferingDTO
-            +update_service(service_id, dto) ServiceOfferingDTO
-            +delete_service(service_id) bool
-            +update_practice_info(dto) PracticeInfoDTO
-        }
-
-        class ContactService {
-            -IContactRepository _repository
-            -IEmailService _email_service
-            +submit_contact_form(dto, client_ip) ContactMessageResponseDTO
-            +list_messages(status, limit, offset) list~ContactMessageResponseDTO~
-            +update_message_status(message_id, dto) ContactMessageResponseDTO
-        }
-
+    %% ================= APPLICATION =================
+    namespace Application {
         class AuthService {
-            -IUserRepository _user_repository
-            -IPasswordHasher _password_hasher
-            +authenticate(dto) UserResponseDTO
-            +ensure_initial_admin(username, email, initial_password) void
+            +authenticate(dto, ip) LoginResultDTO
+            +verify_second_factor(user_id, code, ip)
+            +confirm_totp_setup(user_id, secret, code) list
+            +change_password(user_id, current, new)
+            +logout(user_id)
+            +get_session_user(user_id, version)
+        }
+        class ContactService {
+            +create_captcha_challenge() dict
+            +submit_contact_form(dto, ip, captcha)
+            +update_message_status(id, status)
+            +delete_message(id)
+            +purge_expired(retention)
+        }
+        class ContentService {
+            +seed_defaults() int
+            +get_content_map()
+            +save_block_content(key, dto, author)
+            +restore_block_version(key, version, author)
+        }
+        class OfferingService {
+            +list_services(include_inactive)
+            +create_service(form)
+            +update_service(id, form)
+            +delete_service(id)
+        }
+        class ThemeService {
+            +set_preset(key)
+            +set_shape(shape)
+            +apply_dandelion_modes(modes, size, opacity)
+            +update_theme(dto)
+            +generate_css_variables(theme) str
+        }
+        class MediaService {
+            +store_upload(raw) MediaItem
+            +list_images() list
         }
     }
 
-    ProfileService o-- IProfileRepository : depends on ABC
-    ContactService o-- IContactRepository : depends on ABC
-    ContactService o-- IEmailService : depends on ABC
-    AuthService o-- IUserRepository : depends on ABC
-    AuthService o-- IPasswordHasher : depends on ABC
+    AuthService --> IUserRepository
+    AuthService --> IPasswordHasher
+    AuthService --> ISecretCipher
+    AuthService --> ITotpProvider
+    ContactService --> IContactRepository
+    ContactService --> IEmailService
+    ContactService --> ICaptcha
+    ContentService --> IContentRepository
+    OfferingService --> IOfferingRepository
+    ThemeService --> IThemeRepository
+    MediaService --> IImageSanitizer
 
-    %% =========================================================================
-    %% PRESENTATION LAYER: CONTROLLERS
-    %% =========================================================================
-    namespace Presentation_Controllers {
-        class PublicController {
-            +index(profile_service: ProfileService) Template
-            +handle_contact_form(request, contact_service, data) Template
-            +impressum(profile_service: ProfileService) Template
-            +datenschutz(profile_service: ProfileService) Template
+    %% ================= INFRASTRUCTURE =================
+    namespace Infrastructure {
+        class SqlAlchemyRepository~ModelT, EntityT~ {
+            #_get(id)
+            #_add(entity)
+            #_save(entity)
+            #_delete(id)
+            #_list(where, order_by)
         }
-
-        class AdminController {
-            +login_page(request) Template
-            +process_login(request, auth_service, data) Redirect
-            +logout(request) Redirect
-            +dashboard(request, profile_service, contact_service) Template
-        }
-
-        class HealthController {
-            +check_health() dict
-            +check_readiness() Response
-        }
+        class SqlAlchemyUserRepository
+        class SqlAlchemyContactRepository
+        class SqlAlchemyOfferingRepository
+        class SqlAlchemyThemeRepository
+        class SqlAlchemyContentRepository
+        class SmtpEmailService
+        class Argon2PasswordHasher
+        class FernetSecretCipher
+        class PyotpTotpProvider
+        class AltchaCaptcha
+        class PillowImageSanitizer
     }
 
-    PublicController ..> ProfileService : injected via DI
-    PublicController ..> ContactService : injected via DI
-    AdminController ..> AuthService : injected via DI
-    AdminController ..> ProfileService : injected via DI
-    AdminController ..> ContactService : injected via DI
+    SqlAlchemyRepository <|-- SqlAlchemyUserRepository
+    SqlAlchemyRepository <|-- SqlAlchemyContactRepository
+    SqlAlchemyRepository <|-- SqlAlchemyOfferingRepository
+    SqlAlchemyRepository <|-- SqlAlchemyThemeRepository
+    IUserRepository <|.. SqlAlchemyUserRepository
+    IContactRepository <|.. SqlAlchemyContactRepository
+    IOfferingRepository <|.. SqlAlchemyOfferingRepository
+    IThemeRepository <|.. SqlAlchemyThemeRepository
+    IContentRepository <|.. SqlAlchemyContentRepository
+    IEmailService <|.. SmtpEmailService
+    IPasswordHasher <|.. Argon2PasswordHasher
+    ISecretCipher <|.. FernetSecretCipher
+    ITotpProvider <|.. PyotpTotpProvider
+    ICaptcha <|.. AltchaCaptcha
+    IImageSanitizer <|.. PillowImageSanitizer
+
+    %% ================= PRESENTATION =================
+    namespace Presentation {
+        class PublicController
+        class HealthController
+        class AdminAuthController
+        class AdminSecurityController
+        class AdminDashboardController
+        class AdminDesignController
+        class AdminContentController
+        class AdminMediaController
+        class AdminServicesController
+        class require_admin {
+            <<guard>>
+        }
+        class SecurityHeadersMiddleware
+        class HostValidationMiddleware
+        class ProxyHeadersMiddleware
+    }
+
+    PublicController --> ContactService
+    PublicController --> ContentService
+    PublicController --> OfferingService
+    AdminAuthController --> AuthService
+    AdminSecurityController --> AuthService
+    AdminDashboardController --> ContactService
+    AdminDesignController --> ThemeService
+    AdminContentController --> ContentService
+    AdminMediaController --> MediaService
+    AdminServicesController --> OfferingService
+    AdminDashboardController ..> require_admin
+    AdminDesignController ..> require_admin
+    AdminContentController ..> require_admin
+    AdminMediaController ..> require_admin
+    AdminServicesController ..> require_admin
+    AdminSecurityController ..> require_admin
 ```
 
----
+## Erläuterungen
 
-## 2. Schichten-Erklärung & Entkopplung
-
-1. **Domain Layer:** Enthält die reinen Dataclasses/Entities (`TherapistProfile`, `ContactMessage`, `User`) und Ports (Abstract Base Classes `IProfileRepository`, `IContactRepository`, etc.). Es existieren **keinerlei Abhängigkeiten** zu externen Frameworks oder Datenbanken.
-2. **Application Layer:** Orchestriert Use-Cases über Services (`ProfileService`, `ContactService`, `AuthService`) und validiert Ein-/Ausgaben mit Pydantic DTOs.
-3. **Infrastructure Layer:** Konkrete Adapter (`SqlAlchemyProfileRepository`, `SmtpEmailService`, `Argon2PasswordHasher`), welche die Interfaces des Domain-Layers implementieren.
-4. **Presentation Layer:** Litestar-Controller, Dependency-Injection-Container, Jinja2-Template-Engine, HTMX-Endpunkte und Client-Side-Sessions.
+* **Domain** enthält Entitäten mit Verhalten (Sperrlogik, Session-Widerruf, Paletten) und die Ports
+  (ABCs). Sie kennt weder Litestar noch SQLAlchemy.
+* **Application** orchestriert Anwendungsfälle und spricht nur Ports an. Sicherheitsregeln (Sperre,
+  IP-Limits, 2FA, Captcha-Replay, Rate-Limits) liegen hier – getestet ohne HTTP.
+* **Infrastructure** implementiert die Ports. Das generische `SqlAlchemyRepository` mappt Dataclass-Felder
+  per Name auf ORM-Spalten; Repositories committen nie (Transaktion gehört dem Request bzw. der CLI).
+* **Presentation**: Alle Admin-Controller ausser dem Login-Ablauf tragen den Guard `require_admin`
+  (Regressionstest `tests/test_route_guards.py`). Middleware-Kette: Security-Header → Host-Prüfung →
+  Proxy-IP → Rate-Limit → Session; CSRF über Litestar `CSRFConfig`.
+* Standardtexte: `infrastructure/database/seed/content_defaults.py` (Seed + Template-Fallback).

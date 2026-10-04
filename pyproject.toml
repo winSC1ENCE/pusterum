@@ -162,7 +162,7 @@ minversion = "8.0"
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-addopts = "-v --cov=src/atem --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
+addopts = "-v --cov=src/atem --cov-report=term-missing --cov-report=xml --cov-fail-under=90"
 
 [tool.coverage.run]
 source = ["src/atem"]

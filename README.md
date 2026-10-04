@@ -14,7 +14,9 @@ Eine moderne, leichtgewichtige und sichere Single-Page-Webapplikation für **PUS
 ## 🏛️ Architektur & Dokumentation
 
 - **Projekt-Playbook:** [`GEMINI.md`](GEMINI.md) · Claude Code: [`CLAUDE.md`](CLAUDE.md)
-- **Architekturentscheidung & UML-Diagramme:** [`ADR-0001: Tech-Stack & Architecture Blueprint`](docs/adr/ADR-0001-tech-stack-and-architecture-blueprint.md)
+- **Architektur-Übersicht (Klassen- & Sequenzdiagramme, alle ADRs/TDRs):** [`docs/architecture/`](docs/architecture/README.md)
+- **Tech-Stack:** [`ADR-0001`](docs/adr/ADR-0001-tech-stack-and-architecture-blueprint.md) · **Security-Architektur:** [`ADR-0004`](docs/adr/ADR-0004-security-architecture.md)
+- **Betrieb (Deployment, Backups, Restore, Notfälle):** [`docs/ops/runbook.md`](docs/ops/runbook.md)
 - **ADR-Vorlage:** [`docs/adr/template.md`](docs/adr/template.md)
 - **TDR / Micro-ADR Vorlage:** [`docs/tdr/template.md`](docs/tdr/template.md)
 
@@ -89,7 +91,7 @@ uv run granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 
 ### 5. URLs & Endpunkte
 
 - **Website:** [http://127.0.0.1:8000](http://127.0.0.1:8000)
-- **Admin-Login:** [http://127.0.0.1:8000/admin/login](http://127.0.0.1:8000/admin/login) (Standard: `admin` / `admin-secure-init-pass-change-me`)
+- **Admin-Login:** [http://127.0.0.1:8000/admin/login](http://127.0.0.1:8000/admin/login) (nur development: `admin` / `admin-secure-init-pass-change-me`; 2FA optional unter `/admin/security`)
 - **Health-Check:** [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
 - Ausführliche Kurzanleitung: siehe [`DEV_START.md`](DEV_START.md)
 
@@ -98,17 +100,22 @@ uv run granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 
 ## 🧪 Tests & Qualitätssicherung
 
 ```bash
-# Alle Tests mit Code Coverage ausführen
+# Unit-/Integrationstests mit Coverage (SQLite, Schwelle 90 %)
 uv run pytest
 
-# Linters & Typprüfung
-uv run ruff check src tests
-uv run ruff format --check src tests
-uv run mypy src
-uv run bandit -c pyproject.toml -r src
-uv run deptry .
-uv run vulture src
+# Dieselbe Suite gegen PostgreSQL (wie in CI)
+TEST_DATABASE_URL=postgresql+asyncpg://atem:<pw>@localhost:5432/atem_test uv run pytest
+
+# Browser-E2E (Playwright; CSP-Verletzungen und JS-Fehler lassen Tests scheitern)
+uv run playwright install chromium   # einmalig
+uv run pytest tests_e2e --no-cov
+
+# Alle Gates (ruff, mypy strict, bandit, deptry, vulture, gitleaks, …)
+uv run pre-commit run --all-files
 ```
+
+Die CI (`.github/workflows/ci.yml`) führt zusätzlich `pip-audit`, Lizenzprüfung, Alembic-Up/Down-Checks
+gegen PostgreSQL, einen Trivy-Image-Scan und einen Smoke-Start im Produktionsmodus aus.
 
 ---
 
@@ -126,5 +133,7 @@ docker compose -f docker-compose.prod.yml exec app python -m atem.cli create-adm
   --username stephanie --email kontakt@pusterum.be
 ```
 
-Produktions-`.env`: `cp config/env.production.example .env` und alle `CHANGE_ME` ersetzen – die App
-verweigert den Start mit unsicheren Werten.
+Produktions-Secrets: `cp config/env.production.example .env`, `cp config/db.env.production.example db.env`,
+`cp config/backup.env.production.example backup.env` und alle `CHANGE_ME` ersetzen – die App verweigert den
+Start mit unsicheren Werten. Beim ersten Login wird die Zwei-Faktor-Anmeldung (TOTP) erzwungen.
+Server-Härtung (`ops/server/cloud-init.yaml`), Backups/Restore und Notfälle: [`docs/ops/runbook.md`](docs/ops/runbook.md).

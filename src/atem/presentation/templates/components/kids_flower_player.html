@@ -1,59 +1,71 @@
 {# =============================================================================
    «Atmende Blume» player (static/js/components/kids-flower.js).
-   Expects `kids_variants` (list of {title, text}) – only the first three are guided
-   (variant 4 is the group exercise). `compact` = smaller layout for the floating widget.
+   Expects `kids_variants` (list of {title, text, photo_closed, photo_open}).
+   `compact` = smaller layout for the floating widget (no variant cards next to it).
 
    Layout: three fixed slots (visual · text · controls) that every stage fills, so the
-   player keeps the same height while switching between intro, flower, blow game and end.
-   The full variant instructions stay in the cards next to the player (the active card is
-   highlighted via the `kids-flower-variant` event).
+   player keeps the same height while switching stages. Real photos of the exercise
+   (closed / open) cross-fade subtly behind the flower in the breathing rhythm.
    ============================================================================= #}
-{% set player_variants = kids_variants[:3] %}
 {% set visual_size = 'w-36 h-36' if compact else 'w-44 h-44' %}
+{% set visual_height = 'h-36' if compact else 'h-44' %}
 <div
     x-data="kidsFlower"
-    data-variants='{{ player_variants | tojson }}'
+    data-variants='{{ kids_variants | tojson }}'
     data-scope="{{ 'widget' if compact else 'section' }}"
     @kids-flower-stop.window="stopFrom($event)"
+    @kids-flower-start.window="startFrom($event)"
     class="kids-flower-player flex flex-col items-center text-center w-full"
 >
-    <!-- Slot 1: visual (fixed size) -->
-    <div class="relative {{ visual_size }} flex-shrink-0 flex items-center justify-center">
-        <svg
-            x-show="!isBlow && !isDone"
-            :class="flowerClass"
-            class="kids-flower w-full h-full"
-            viewBox="0 0 120 120"
-            role="img"
-            aria-label="Blüte, die sich mit dem Atem öffnet und schliesst"
-        >
-            {% for angle in [0, 60, 120, 180, 240, 300] %}
-            <g transform="rotate({{ angle }} 60 60)"><ellipse class="kids-petal" cx="60" cy="34" rx="13" ry="24"/></g>
-            {% endfor %}
-            <circle class="kids-flower-center" cx="60" cy="60" r="12"/>
-        </svg>
-
-        <template x-if="isBlow">
-            <div :class="headClass" class="kids-dandelion relative w-full h-full" aria-hidden="true">
-                <span class="kids-dandelion-stem"></span>
-                <template x-for="seed in seeds" :key="seed.id">
-                    <span class="kids-seed-anchor" :style="seedStyle(seed)">
-                        <img src="/static/images/dandelion_seed_single.png" alt="" :class="seedClass(seed)" />
-                    </span>
-                </template>
-                <span class="kids-dandelion-center"></span>
+    <!-- Slot 1: visual (fixed size) – photos in the background, flower in front -->
+    <div class="relative w-full {{ visual_height }} flex-shrink-0 flex items-center justify-center">
+        <template x-if="hasPhotos">
+            <div class="kids-photos" aria-hidden="true">
+                <img :src="photoClosed" :class="photoClosedClass" alt="" />
+                <img :src="photoOpen" :class="photoOpenClass" alt="" />
             </div>
         </template>
 
-        <template x-if="isDone">
-            <img src="/static/images/dandelion_seed_single.png" alt="" class="w-14 h-auto kids-seed-float" />
-        </template>
+        <div class="relative {{ visual_size }} flex items-center justify-center">
+            <svg
+                x-show="showsFlower"
+                :class="flowerClass"
+                class="kids-flower w-full h-full"
+                viewBox="0 0 120 120"
+                role="img"
+                aria-label="Blüte, die sich mit dem Atem öffnet und schliesst"
+            >
+                {% for angle in [0, 60, 120, 180, 240, 300] %}
+                <g transform="rotate({{ angle }} 60 60)"><ellipse class="kids-petal" cx="60" cy="34" rx="13" ry="24"/></g>
+                {% endfor %}
+                <circle class="kids-flower-center" cx="60" cy="60" r="12"/>
+            </svg>
+
+            <template x-if="isBlow">
+                <div :class="headClass" class="kids-dandelion relative w-full h-full" aria-hidden="true">
+                    <span class="kids-dandelion-stem"></span>
+                    <template x-for="seed in seeds" :key="seed.id">
+                        <span class="kids-seed-anchor" :style="seedStyle(seed)">
+                            <img src="/static/images/dandelion_seed_single.png" alt="" :class="seedClass(seed)" />
+                        </span>
+                    </template>
+                    <span class="kids-dandelion-center"></span>
+                </div>
+            </template>
+
+            <template x-if="isDone">
+                <img src="/static/images/dandelion_seed_single.png" alt="" class="w-14 h-auto kids-seed-float" />
+            </template>
+        </div>
     </div>
 
     <!-- Slot 2: text (fixed minimum height) -->
     <div class="w-full {{ 'min-h-[6rem]' if compact else 'min-h-[7rem]' }} flex flex-col items-center justify-center gap-1 px-2" aria-live="polite">
         <template x-if="isIntro">
-            <p class="text-sm text-theme-text-muted max-w-xs">Deine Hände werden zur Blüte. Atme ruhig ein und aus – die Blume macht es dir vor.</p>
+            <p class="text-sm text-theme-text-muted max-w-xs">
+                {%- if compact %}Deine Hände werden zur Blüte. Atme ruhig ein und aus – die Blume macht es dir vor.
+                {%- else %}Wähle eine Blume und klicke auf «Mitmachen» – oder beginne gleich mit Blume 1.{% endif -%}
+            </p>
         </template>
         <template x-if="isFlower">
             <div class="flex flex-col items-center gap-0.5">
@@ -61,6 +73,12 @@
                 <p class="font-heading text-lg font-bold text-theme-text-main leading-snug" x-text="currentVariant.title"></p>
                 <p class="text-sm font-semibold text-theme-text-main pt-1" x-text="phaseLabel"></p>
                 <p class="text-xs text-theme-text-muted" x-text="breathLabel"></p>
+            </div>
+        </template>
+        <template x-if="isVariantDone">
+            <div class="flex flex-col items-center gap-1">
+                <p class="font-heading text-lg font-bold text-theme-text-main" x-text="variantDoneLabel"></p>
+                <p class="text-sm text-theme-text-muted max-w-xs">Spüre kurz nach: Wie fühlt sich dein Atem jetzt an?</p>
             </div>
         </template>
         <template x-if="isBlow">
@@ -78,11 +96,11 @@
     </div>
 
     <!-- Slot 3: controls (fixed minimum height) -->
-    <div class="w-full min-h-[5.5rem] flex flex-col items-center justify-center gap-2">
+    <div class="w-full min-h-[6.25rem] flex flex-col items-center justify-center gap-2">
         <template x-if="isIntro">
             <div class="flex flex-wrap justify-center gap-2">
                 <button type="button" @click="startFlower()" class="px-5 py-2.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary text-sm font-medium shadow-sm transition-colors">
-                    Blume starten
+                    Mit Blume 1 beginnen
                 </button>
                 <button type="button" @click="startBlow()" class="px-5 py-2.5 rounded-full border border-theme text-theme-primary hover:bg-theme-secondary/30 text-sm font-medium transition-colors">
                     Direkt zum Pusten
@@ -91,8 +109,15 @@
         </template>
         <template x-if="isFlower">
             <div class="flex justify-center gap-2">
-                <button type="button" @click="startBlow()" class="px-4 py-1.5 rounded-full border border-theme text-theme-primary hover:bg-theme-secondary/30 text-xs font-medium transition-colors">Weiter zum Pusten</button>
+                <button type="button" @click="startBlow()" class="px-4 py-1.5 rounded-full border border-theme text-theme-primary hover:bg-theme-secondary/30 text-xs font-medium transition-colors">Zum Pusten</button>
                 <button type="button" @click="stop()" class="px-4 py-1.5 rounded-full border border-theme text-theme-text-muted hover:bg-theme-secondary/30 text-xs font-medium transition-colors">Stopp</button>
+            </div>
+        </template>
+        <template x-if="isVariantDone">
+            <div class="flex flex-wrap justify-center gap-2">
+                <button type="button" x-show="hasNextVariant" @click="nextVariant()" class="px-4 py-2 rounded-full bg-theme-primary text-white hover-bg-theme-primary text-sm font-medium shadow-sm transition-colors">Nächste Blume</button>
+                <button type="button" @click="repeatVariant()" class="px-4 py-2 rounded-full border border-theme text-theme-primary hover:bg-theme-secondary/30 text-sm font-medium transition-colors">Nochmals</button>
+                <button type="button" @click="startBlow()" class="px-4 py-2 rounded-full border border-theme text-theme-primary hover:bg-theme-secondary/30 text-sm font-medium transition-colors">Zum Pusten</button>
             </div>
         </template>
         <template x-if="isBlow">

@@ -160,6 +160,30 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 .kids-flower.is-inhale .kids-petal { transition-duration: 3s; transition-timing-function: ease-out; }
 .kids-flower-center { fill: var(--theme-accent, #7FA485); }
 
+/* Each flower moves like its exercise (kids-flower.js → flowerClass) */
+.kids-flower { transition: transform 4s ease-in-out; transform-origin: 50% 50%; }
+.kids-flower.is-inhale { transition-duration: 3s; transition-timing-function: ease-out; }
+/* 1 Knospe: only the fingertips part – petals open halfway */
+.kids-flower.v1.is-open .kids-petal { transform: scale(0.62, 0.68); }
+/* 3 Grosse Blume: arms far out – the blossom grows and turns a little */
+.kids-flower.v3.is-open { transform: scale(1.14) rotate(14deg); }
+/* 4 Blumenwiese: hands up over the head – the blossom rises while opening */
+.kids-flower.v4.is-open { transform: translateY(-9%) scale(1.05); }
+
+/* Real photos of the exercise, cross-fading subtly behind the flower */
+.kids-photos {
+    position: absolute; inset: 0; overflow: hidden; border-radius: 1.25rem;
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 40%, transparent 75%);
+    mask-image: radial-gradient(ellipse at center, #000 40%, transparent 75%);
+}
+.kids-photo {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; transition: opacity 4s ease-in-out;
+}
+.kids-photo.is-inhale { transition-duration: 3s; }
+/* Opacity is set in the Design Studio (slider «Foto-Deckkraft», via /theme.css) */
+.kids-photo.is-visible { opacity: var(--kids-photo-opacity, 0.3); }
+
 .kids-dandelion { transition: transform 3s ease-out; }
 .kids-dandelion.is-growing { transform: scale(1.12); }
 .kids-dandelion-stem {
@@ -187,7 +211,8 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     100% { opacity: 0; transform: translate3d(18px, -120px, 0) rotate(25deg); }
 }
 @media (prefers-reduced-motion: reduce) {
-    .kids-petal, .kids-dandelion { transition: none; }
+    .kids-petal, .kids-dandelion, .kids-flower, .kids-photo { transition: none; }
+    .kids-flower.v3.is-open, .kids-flower.v4.is-open { transform: none; }
     .kids-seed.is-flying { animation: none; opacity: 0; }
     .kids-seed-float { animation: none; }
 }

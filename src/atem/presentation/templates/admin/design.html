@@ -29,6 +29,7 @@
     data-modes="{{ theme.dandelion_modes_list | tojson | forceescape }}"
     data-seed-size="{{ theme.dandelion_seed_size }}"
     data-seed-opacity="{{ theme.dandelion_seed_opacity }}"
+    data-kids-photo-opacity="{{ theme.kids_photo_opacity }}"
     @htmx:before-request="startSaving()"
     @htmx:after-request="flashSaved()"
 >
@@ -309,6 +310,43 @@
                                 <span>10 % (Hauchfein)</span>
                                 <span>80 % (Standard)</span>
                                 <span>100 % (Voll sichtbar)</span>
+                            </div>
+                        </div>
+
+                        <!-- Slider 3: background photos of the children's exercise «Atmende Blume» -->
+                        <div class="sm:col-span-2 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row gap-4 items-stretch">
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label for="kids_photo_opacity_input" class="text-xs font-bold text-slate-800 uppercase tracking-wider">Foto-Deckkraft «Atmende Blume»</label>
+                                    <span class="text-xs font-bold font-mono px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md" x-text="kidsPhotoOpacity + ' %'">{{ theme.kids_photo_opacity }} %</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="80"
+                                    step="5"
+                                    id="kids_photo_opacity_input"
+                                    name="kids_photo_opacity"
+                                    value="{{ theme.kids_photo_opacity }}"
+                                    x-model.number="kidsPhotoOpacity"
+                                    class="w-full accent-emerald-600 cursor-pointer h-2.5 bg-slate-200 rounded-lg appearance-none"
+                                />
+                                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                                    <span>0 % (Aus)</span>
+                                    <span>30 % (Standard)</span>
+                                    <span>80 % (Deutlich)</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-2">Wie stark die Übungsfotos hinter der Blume durchscheinen (Kinder-Übung, Sektion «Atmen mit Kindern»).</p>
+                            </div>
+                            <div class="relative w-full sm:w-36 h-24 rounded-xl overflow-hidden bg-white border border-slate-200 flex-shrink-0" title="Vorschau mit Beispielbild">
+                                <img src="/static/images/practice_interior.png" alt="" class="absolute inset-0 w-full h-full object-cover" :style="photoPreviewStyle" style="opacity: {{ theme.kids_photo_opacity / 100 }};" />
+                                <svg class="kids-flower is-open relative w-16 h-16 mx-auto mt-4" viewBox="0 0 120 120" aria-hidden="true">
+                                    {% for angle in [0, 60, 120, 180, 240, 300] %}
+                                    <g transform="rotate({{ angle }} 60 60)"><ellipse class="kids-petal" cx="60" cy="34" rx="13" ry="24"/></g>
+                                    {% endfor %}
+                                    <circle class="kids-flower-center" cx="60" cy="60" r="12"/>
+                                </svg>
+                                <span class="absolute bottom-1 left-2 text-[9px] uppercase font-bold text-slate-500">Vorschau</span>
                             </div>
                         </div>
                     </div>

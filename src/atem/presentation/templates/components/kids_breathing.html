@@ -1,6 +1,6 @@
 {% from "components/editable_block.html" import editable with context %}
 {% from "components/ui_macros.html" import section_header with context %}
-{% set kids_variants = numbered_content(content_blocks, 'kids.variant_', 'title', 'text') %}
+{% set kids_variants = numbered_content(content_blocks, 'kids.variant_', 'title', 'text', 'photo_closed', 'photo_open') %}
 
 {# Small line pictograms per variant (bud, open blossom, big flower, group circle) #}
 {% macro variant_icon(n) %}
@@ -27,7 +27,7 @@
             <!-- Variants -->
             <ol x-data="kidsVariantList" @kids-flower-variant.window="onVariant($event)" class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {% for i in range(1, kids_variants | length + 1) %}
-                <li :class="cardClass({{ loop.index0 }})" class="kids-variant-card bg-theme-card border border-theme rounded-3xl p-6 shadow-sm space-y-2">
+                <li :class="cardClass({{ loop.index0 }})" class="kids-variant-card bg-theme-card border border-theme rounded-3xl p-6 shadow-sm flex flex-col gap-2">
                     <div class="flex items-center gap-3">
                         <span class="w-10 h-10 rounded-xl bg-theme-secondary/40 flex items-center justify-center text-theme-primary flex-shrink-0">
                             {{ variant_icon(i) }}
@@ -36,6 +36,25 @@
                     </div>
                     {{ editable('kids.variant_' ~ i ~ '.title', tag='h3', class='font-heading text-lg font-bold text-theme-text-main') }}
                     {{ editable('kids.variant_' ~ i ~ '.text', tag='p', class='text-sm text-theme-text-muted leading-relaxed', type='textarea', rows=4) }}
+                    {% if is_admin %}
+                    {# Real photos of the exercise – shown subtly behind the flower in the player #}
+                    <div class="grid grid-cols-2 gap-2 pt-2 text-[11px] text-slate-500">
+                        <div class="space-y-1">
+                            <span class="block font-semibold">Foto Ausatmen (geschlossen)</span>
+                            {{ editable('kids.variant_' ~ i ~ '.photo_closed', type='image', img_alt='Übung Blume ' ~ i ~ ', Hände geschlossen', img_class='w-full h-20 object-cover rounded-lg') }}
+                        </div>
+                        <div class="space-y-1">
+                            <span class="block font-semibold">Foto Einatmen (geöffnet)</span>
+                            {{ editable('kids.variant_' ~ i ~ '.photo_open', type='image', img_alt='Übung Blume ' ~ i ~ ', Hände geöffnet', img_class='w-full h-20 object-cover rounded-lg') }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="mt-auto pt-2">
+                        <button type="button" @click="start({{ loop.index0 }})" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-theme text-theme-primary hover:bg-theme-secondary/30 text-sm font-medium transition-colors">
+                            <svg class="w-3.5 h-3.5" width="14" height="14" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5v11a.5.5 0 00.77.42l8.5-5.5a.5.5 0 000-.84l-8.5-5.5A.5.5 0 006 4.5z"/></svg>
+                            <span x-text="isActive({{ loop.index0 }}) ? 'Läuft gerade' : 'Mitmachen'">Mitmachen</span>
+                        </button>
+                    </div>
                 </li>
                 {% endfor %}
             </ol>

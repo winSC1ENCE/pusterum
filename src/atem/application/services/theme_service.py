@@ -11,6 +11,8 @@ from atem.application.dto.theme import (
 from atem.domain.interfaces.theme_repository import IThemeRepository
 from atem.domain.models.theme import (
     DANDELION_MODE_DEFINITIONS,
+    KIDS_PHOTO_OPACITY_MAX,
+    KIDS_PHOTO_OPACITY_MIN,
     PRESET_SHAPES,
     PRESET_THEMES,
     SEED_OPACITY_MAX,
@@ -79,6 +81,7 @@ class ThemeService:
         theme.dandelion_modes = DandelionEffectMode.parse_many(dto.dandelion_modes)
         theme.dandelion_seed_size = dto.dandelion_seed_size
         theme.dandelion_seed_opacity = dto.dandelion_seed_opacity
+        theme.kids_photo_opacity = dto.kids_photo_opacity
         logger.info("admin_action", action="theme_custom", preset=dto.preset_key.value)
         return self._to_dto(await self._repository.save_theme(theme))
 
@@ -126,6 +129,9 @@ class ThemeService:
         shape_def = PRESET_SHAPES.get(theme.active_shape, PRESET_SHAPES[ShapeType.DANDELION_SEED])
         size = min(max(theme.dandelion_seed_size, SEED_SIZE_MIN), SEED_SIZE_MAX)
         opacity = min(max(theme.dandelion_seed_opacity, SEED_OPACITY_MIN), SEED_OPACITY_MAX)
+        photo_opacity = min(
+            max(theme.kids_photo_opacity, KIDS_PHOTO_OPACITY_MIN), KIDS_PHOTO_OPACITY_MAX
+        )
 
         def color(name: str) -> str:
             value = str(getattr(theme, name))
@@ -151,6 +157,7 @@ class ThemeService:
             --font-body: '{font(theme.body_font, FontFamily.PLUS_JAKARTA_SANS)}', sans-serif;
             --dandelion-seed-size: {size}px;
             --dandelion-seed-opacity: {opacity / 100.0:.2f};
+            --kids-photo-opacity: {photo_opacity / 100.0:.2f};
         }}
         """
 
@@ -159,8 +166,9 @@ class ThemeService:
         modes: list[DandelionEffectMode],
         seed_size: int | None = None,
         seed_opacity: int | None = None,
+        kids_photo_opacity: int | None = None,
     ) -> ThemeConfigDTO:
-        """Apply multi-select ambient modes and (optionally) seed size/opacity."""
+        """Apply multi-select ambient modes and (optionally) seed and photo sliders."""
         theme = await self._repository.get_active_theme()
         theme.dandelion_modes = DandelionEffectMode.parse_many(modes)
         if seed_size is not None:
@@ -168,6 +176,10 @@ class ThemeService:
         if seed_opacity is not None:
             theme.dandelion_seed_opacity = min(
                 max(seed_opacity, SEED_OPACITY_MIN), SEED_OPACITY_MAX
+            )
+        if kids_photo_opacity is not None:
+            theme.kids_photo_opacity = min(
+                max(kids_photo_opacity, KIDS_PHOTO_OPACITY_MIN), KIDS_PHOTO_OPACITY_MAX
             )
         logger.info(
             "admin_action",

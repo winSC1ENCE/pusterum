@@ -36,19 +36,19 @@ def test_section_player_guides_and_blow_game_finishes(page: Page, server_url: st
     page.goto(server_url + "/")
     player = page.locator('[data-scope="section"]')
     player.scroll_into_view_if_needed()
-    player.get_by_role("button", name="Blume starten").click()
-    expect(player.get_by_text("Blume 1 von 3")).to_be_visible()
+    player.get_by_role("button", name="Mit Blume 1 beginnen").click()
+    expect(player.get_by_text("Blume 1", exact=True)).to_be_visible()
     expect(player.get_by_text("Einatmen – die Blüte öffnet sich")).to_be_visible()
     expect(player.locator("svg.kids-flower")).to_have_class(re.compile(r"\bis-open\b"))
     expect(player.get_by_text("Ausatmen – die Blüte schliesst sich")).to_be_visible(timeout=5000)
 
-    player.get_by_role("button", name="Weiter zum Pusten").click()
+    player.get_by_role("button", name="Zum Pusten").click()
     expect(player.get_by_text("10 Samen sind noch auf der Pusteblume")).to_be_visible()
     for _ in range(5):
         _blow(page, '[data-scope="section"] .kids-blow-button')
     expect(player.get_by_text("Alle Samen fliegen!")).to_be_visible(timeout=5000)
     player.get_by_role("button", name="Nochmals").click()
-    expect(player.get_by_role("button", name="Blume starten")).to_be_visible()
+    expect(player.get_by_role("button", name="Mit Blume 1 beginnen")).to_be_visible()
     assert_clean(page)
 
 
@@ -74,14 +74,14 @@ def test_widget_tabs_with_breath_pause(page: Page, server_url: str) -> None:
     page.get_by_role("tab", name="Atmende Blume").click()
     widget = page.locator('[data-scope="widget"]')
     expect(page.get_by_role("heading", name="Geführte Atem-Pause")).to_be_hidden()
-    widget.get_by_role("button", name="Blume starten").click()
-    expect(widget.get_by_text("Blume 1 von 3")).to_be_visible()
+    widget.get_by_role("button", name="Mit Blume 1 beginnen").click()
+    expect(widget.get_by_text("Blume 1", exact=True)).to_be_visible()
 
     # Switching back stops the flower; the adult exercise runs again
     page.get_by_role("tab", name="Atem-Pause").click()
     expect(page.get_by_text("EINATMEN", exact=True)).to_be_visible()
     page.get_by_role("tab", name="Atmende Blume").click()
-    expect(widget.get_by_role("button", name="Blume starten")).to_be_visible()
+    expect(widget.get_by_role("button", name="Mit Blume 1 beginnen")).to_be_visible()
     assert_clean(page)
 
 
@@ -91,8 +91,8 @@ def test_widget_kids_only_on_mobile(page: Page, server_url: str) -> None:
     page.goto(server_url + "/")
     page.get_by_title("Atmende Blume für Kinder starten").click()
     widget = page.locator('[data-scope="widget"]')
-    widget.get_by_role("button", name="Blume starten").click()
-    expect(widget.get_by_text("Blume 1 von 3")).to_be_visible()
+    widget.get_by_role("button", name="Mit Blume 1 beginnen").click()
+    expect(widget.get_by_text("Blume 1", exact=True)).to_be_visible()
     box = page.locator('[data-scope="widget"]').bounding_box()
     assert box is not None and box["x"] >= 0 and box["x"] + box["width"] <= MOBILE_WIDTH
     assert_clean(page)
@@ -131,14 +131,14 @@ def test_player_keeps_its_size_and_aligns_with_cards(page: Page, server_url: str
         return round(box["height"])
 
     heights = [height()]
-    player.get_by_role("button", name="Blume starten").click()
-    expect(player.get_by_text("Blume 1 von 3")).to_be_visible()
+    player.get_by_role("button", name="Mit Blume 1 beginnen").click()
+    expect(player.get_by_text("Blume 1", exact=True)).to_be_visible()
     # The guided flower is highlighted in the card grid
     expect(cards.locator("li").nth(0)).to_have_class(re.compile(r"\bkids-card-active\b"))
     heights.append(height())
     page.wait_for_timeout(3500)  # inhale → exhale
     heights.append(height())
-    player.get_by_role("button", name="Weiter zum Pusten").click()
+    player.get_by_role("button", name="Zum Pusten").click()
     expect(cards.locator("li.kids-card-active")).to_have_count(0)
     heights.append(height())
     for _ in range(5):
@@ -161,9 +161,82 @@ def test_player_size_is_stable_on_mobile(page: Page, server_url: str) -> None:
     player = page.locator('[data-scope="section"]')
     player.scroll_into_view_if_needed()
     sizes = [player.bounding_box()["height"]]  # type: ignore[index]
-    player.get_by_role("button", name="Blume starten").click()
+    player.get_by_role("button", name="Mit Blume 1 beginnen").click()
     sizes.append(player.bounding_box()["height"])  # type: ignore[index]
-    player.get_by_role("button", name="Weiter zum Pusten").click()
+    player.get_by_role("button", name="Zum Pusten").click()
     sizes.append(player.bounding_box()["height"])  # type: ignore[index]
     assert max(sizes) - min(sizes) <= 1, sizes
     assert_clean(page)
+
+
+def test_card_starts_its_own_flower(page: Page, server_url: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto(server_url + "/")
+    cards = page.locator("#kinder ol li")
+    player = page.locator('[data-scope="section"]')
+    cards.nth(2).scroll_into_view_if_needed()
+    cards.nth(2).get_by_role("button", name="Mitmachen").click()
+    expect(player.get_by_text("Blume 3", exact=True)).to_be_visible()
+    expect(player.get_by_text("Die grosse Blume")).to_be_visible()
+    expect(cards.nth(2)).to_have_class(re.compile(r"\bkids-card-active\b"))
+    expect(cards.nth(2).get_by_role("button", name="Läuft gerade")).to_be_visible()
+    expect(player.locator("svg.kids-flower")).to_have_class(re.compile(r"\bv3\b"))
+
+    # The group meadow (Blume 4) is a live exercise as well
+    cards.nth(3).get_by_role("button", name="Mitmachen").click()
+    expect(player.get_by_text("Blume 4", exact=True)).to_be_visible()
+    expect(cards.nth(2)).not_to_have_class(re.compile(r"\bkids-card-active\b"))
+    expect(player.locator("svg.kids-flower")).to_have_class(re.compile(r"\bv4\b"))
+    assert_clean(page)
+
+
+def test_variant_done_offers_next_flower(page: Page, server_url: str) -> None:
+    page.clock.install()
+    page.goto(server_url + "/")
+    player = page.locator('[data-scope="section"]')
+    player.scroll_into_view_if_needed()
+    player.get_by_role("button", name="Mit Blume 1 beginnen").click()
+    page.clock.run_for(5 * 7000 + 500)  # five breaths of 3 s + 4 s
+    expect(player.get_by_text("Blume 1 geschafft!")).to_be_visible()
+    player.get_by_role("button", name="Nächste Blume").click()
+    expect(player.get_by_text("Blume 2", exact=True)).to_be_visible()
+    assert_clean(page)
+
+
+def test_photos_fade_behind_the_flower(page: Page, server_url: str) -> None:
+    _set_modes(page, server_url, "disabled")  # logged in as admin now
+    token = page.locator('meta[name="csrf-token"]').get_attribute("content") or ""
+    for kind in ("photo_closed", "photo_open"):
+        response = page.request.post(
+            server_url + f"/admin/content/kids.variant_1.{kind}/save",
+            form={"content": "/static/images/practice_interior.png", "tag": "p"},
+            headers={"x-csrftoken": token},
+        )
+        assert response.ok
+    page.context.clear_cookies()
+    page.goto(server_url + "/")
+    player = page.locator('[data-scope="section"]')
+    player.scroll_into_view_if_needed()
+    expect(player.locator(".kids-photo")).to_have_count(0)  # no photos before the exercise
+    player.get_by_role("button", name="Mit Blume 1 beginnen").click()
+    photos = player.locator(".kids-photos img")
+    expect(photos).to_have_count(2)
+    expect(photos.nth(1)).to_have_class(re.compile(r"\bis-visible\b"))  # inhale → open photo
+    expect(photos.nth(0)).to_have_class(re.compile(r"\bis-visible\b"), timeout=5000)  # exhale
+    assert_clean(page)
+
+
+def test_design_studio_photo_opacity_slider(page: Page, server_url: str) -> None:
+    _set_modes(page, server_url, "kids_flower")  # logged in, on /admin/design
+    page.goto(server_url + "/admin/design")
+    slider = page.locator("#kids_photo_opacity_input")
+    with page.expect_response(lambda r: "/admin/design/dandelion" in r.url):
+        slider.fill("60")
+    expect(page.get_by_text("60 %", exact=True)).to_be_visible()
+    assert_clean(page)
+
+    page.goto(server_url + "/")
+    value = page.evaluate(
+        "getComputedStyle(document.documentElement).getPropertyValue('--kids-photo-opacity')"
+    )
+    assert value.strip() == "0.60"

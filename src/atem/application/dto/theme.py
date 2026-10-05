@@ -7,6 +7,9 @@ from pydantic import BaseModel, Field
 
 from atem.domain.models.theme import (
     HEX_COLOR_PATTERN,
+    KIDS_PHOTO_OPACITY_DEFAULT,
+    KIDS_PHOTO_OPACITY_MAX,
+    KIDS_PHOTO_OPACITY_MIN,
     SEED_OPACITY_MAX,
     SEED_OPACITY_MIN,
     SEED_SIZE_MAX,
@@ -20,6 +23,7 @@ from atem.domain.models.theme import (
 HexColor = Annotated[str, Field(pattern=HEX_COLOR_PATTERN, max_length=9)]
 SeedSize = Annotated[int, Field(ge=SEED_SIZE_MIN, le=SEED_SIZE_MAX)]
 SeedOpacity = Annotated[int, Field(ge=SEED_OPACITY_MIN, le=SEED_OPACITY_MAX)]
+KidsPhotoOpacity = Annotated[int, Field(ge=KIDS_PHOTO_OPACITY_MIN, le=KIDS_PHOTO_OPACITY_MAX)]
 
 
 class ColorPaletteDTO(BaseModel):
@@ -75,6 +79,7 @@ class ThemeConfigDTO(BaseModel):
     )
     dandelion_seed_size: int = Field(default=48, ge=20, le=120)
     dandelion_seed_opacity: int = Field(default=80, ge=10, le=100)
+    kids_photo_opacity: KidsPhotoOpacity = KIDS_PHOTO_OPACITY_DEFAULT
 
     def has_dandelion_mode(self, mode: DandelionEffectMode | str) -> bool:
         """Check if a specific dandelion mode is active (used by templates)."""
@@ -108,3 +113,4 @@ class UpdateThemeRequestDTO(BaseModel):
     )
     dandelion_seed_size: SeedSize = 48
     dandelion_seed_opacity: SeedOpacity = 80
+    kids_photo_opacity: KidsPhotoOpacity = KIDS_PHOTO_OPACITY_DEFAULT

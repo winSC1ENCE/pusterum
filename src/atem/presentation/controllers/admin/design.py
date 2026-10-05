@@ -92,6 +92,7 @@ class AdminDesignController(Controller):
             ),
             seed_size=parse_int(data, "dandelion_seed_size", current.dandelion_seed_size),
             seed_opacity=parse_int(data, "dandelion_seed_opacity", current.dandelion_seed_opacity),
+            kids_photo_opacity=parse_int(data, "kids_photo_opacity", current.kids_photo_opacity),
         )
         return htmx_or_redirect(request, DESIGN_PATH)
 
@@ -123,6 +124,9 @@ class AdminDesignController(Controller):
                 ),
                 "dandelion_seed_opacity": parse_int(
                     data, "dandelion_seed_opacity", current.dandelion_seed_opacity
+                ),
+                "kids_photo_opacity": parse_int(
+                    data, "kids_photo_opacity", current.kids_photo_opacity
                 ),
             }
         )

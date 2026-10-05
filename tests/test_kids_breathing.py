@@ -87,3 +87,65 @@ async def test_edited_variant_appears_in_section_and_card(
     app_client.cookies.delete("atem_session")
     assert "Die kleine Tulpe" in (await app_client.get("/")).text
     assert "Die kleine Tulpe" in (await app_client.get("/atmende-blume/karte")).text
+
+
+async def test_every_variant_card_can_be_started(app_client: AsyncTestClient[Litestar]) -> None:
+    page = (await app_client.get("/")).text
+    for index in range(4):
+        assert f'@click="start({index})"' in page
+    # All four flowers (including the group meadow) are passed to the player
+    assert (
+        "Die Blumenwiese (in der Gruppe)"
+        in page.split('data-scope="section"')[0].rsplit("data-variants", 1)[1]
+    )
+    assert '@kids-flower-start.window="startFrom($event)"' in page
+
+
+async def test_photos_are_admin_only_until_uploaded(app_client: AsyncTestClient[Litestar]) -> None:
+    public = (await app_client.get("/")).text
+    assert "Bild hinzufügen" not in public
+    assert "Foto Ausatmen" not in public
+    assert "photo_closed" in public  # key exists, value empty → no photo layer
+
+    await app_client.post("/admin/login", data=ADMIN)
+    admin = (await app_client.get("/")).text
+    assert admin.count("Foto Ausatmen (geschlossen)") == 4
+    assert "Bild hinzufügen" in admin
+
+    saved = await app_client.post(
+        "/admin/content/kids.variant_2.photo_open/save",
+        data={"content": "/media/blume2-offen.jpg", "tag": "p"},
+    )
+    assert saved.status_code == 200
+    app_client.cookies.delete("atem_session")
+    page = (await app_client.get("/")).text
+    assert "/media/blume2-offen.jpg" in page
+    assert '<img src="/media/blume2-offen.jpg"' not in page  # only inside the player data
+
+
+async def test_photo_opacity_slider_is_saved_clamped_and_kept(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    theme_css = (await app_client.get("/theme.css")).text
+    assert "--kids-photo-opacity: 0.30;" in theme_css  # default 30 %
+
+    await app_client.post("/admin/login", data=ADMIN)
+    design = (await app_client.get("/admin/design")).text
+    assert 'name="kids_photo_opacity"' in design
+
+    await app_client.post(
+        "/admin/design/dandelion",
+        data={"dandelion_modes": "kids_flower", "kids_photo_opacity": "55"},
+    )
+    assert "--kids-photo-opacity: 0.55;" in (await app_client.get("/theme.css")).text
+
+    # Out-of-range values are clamped (never fully opaque)
+    await app_client.post(
+        "/admin/design/dandelion",
+        data={"dandelion_modes": "kids_flower", "kids_photo_opacity": "100"},
+    )
+    assert "--kids-photo-opacity: 0.80;" in (await app_client.get("/theme.css")).text
+
+    # Saving colours (custom form without the slider field) keeps the value
+    await app_client.post("/admin/design/custom", data={"primary_color": "#4A6C50"})
+    assert "--kids-photo-opacity: 0.80;" in (await app_client.get("/theme.css")).text

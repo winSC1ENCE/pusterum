@@ -524,6 +524,62 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         ),
     },
     {
+        "key": "kids.variant_1.photo_closed",
+        "section": "kids",
+        "type": "image",
+        # Optional real photo of the exercise, uploaded by the practice owner (empty = none)
+        "content": "",
+    },
+    {
+        "key": "kids.variant_1.photo_open",
+        "section": "kids",
+        "type": "image",
+        # Optional real photo of the exercise, uploaded by the practice owner (empty = none)
+        "content": "",
+    },
+    {
+        "key": "kids.variant_2.photo_closed",
+        "section": "kids",
+        "type": "image",
+        # Optional real photo of the exercise, uploaded by the practice owner (empty = none)
+        "content": "",
+    },
+    {
+        "key": "kids.variant_2.photo_open",
+        "section": "kids",
+        "type": "image",
+        # Optional real photo of the exercise, uploaded by the practice owner (empty = none)
+        "content": "",
+    },
+    {
+        "key": "kids.variant_3.photo_closed",
+        "section": "kids",
+        "type": "image",
+        # Optional real photo of the exercise, uploaded by the practice owner (empty = none)
+        "content": "",
+    },
+    {
+        "key": "kids.variant_3.photo_open",
+        "section": "kids",
+        "type": "image",
+        # Optional real photo of the exercise, uploaded by the practice owner (empty = none)
+        "content": "",
+    },
+    {
+        "key": "kids.variant_4.photo_closed",
+        "section": "kids",
+        "type": "image",
+        # Optional real photo of the exercise, uploaded by the practice owner (empty = none)
+        "content": "",
+    },
+    {
+        "key": "kids.variant_4.photo_open",
+        "section": "kids",
+        "type": "image",
+        # Optional real photo of the exercise, uploaded by the practice owner (empty = none)
+        "content": "",
+    },
+    {
         "key": "kids.player_hint",
         "section": "kids",
         "type": "textarea",

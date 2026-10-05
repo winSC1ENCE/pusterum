@@ -174,7 +174,7 @@
             {% if show_kids_flower %}
             <div x-show="isKidsTab" class="w-full">
                 <h4 class="text-base font-bold text-slate-900 mb-2">Atmende Blume</h4>
-                {% set kids_variants = numbered_content(content_blocks, 'kids.variant_', 'title', 'text') %}
+                {% set kids_variants = numbered_content(content_blocks, 'kids.variant_', 'title', 'text', 'photo_closed', 'photo_open') %}
                 {% set compact = true %}
                 {% include "components/kids_flower_player.html" %}
             </div>

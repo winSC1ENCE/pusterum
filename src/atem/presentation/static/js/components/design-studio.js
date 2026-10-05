@@ -9,6 +9,7 @@ document.addEventListener("alpine:init", () => {
         activeModes: ["disabled"],
         seedSize: 48,
         seedOpacity: 80,
+        kidsPhotoOpacity: 30,
         saveStatus: "Gespeichert",
         isSaving: false,
         init() {
@@ -18,6 +19,7 @@ document.addEventListener("alpine:init", () => {
             this.activeModes = JSON.parse(data.modes || '["disabled"]');
             this.seedSize = Number(data.seedSize || 48);
             this.seedOpacity = Number(data.seedOpacity || 80);
+            this.kidsPhotoOpacity = Number(data.kidsPhotoOpacity ?? 30);
         },
         isModeActive(key) {
             return this.activeModes.includes(key);
@@ -42,6 +44,9 @@ document.addEventListener("alpine:init", () => {
         },
         get activeModesValue() {
             return this.activeModes.join(",");
+        },
+        get photoPreviewStyle() {
+            return { opacity: this.kidsPhotoOpacity / 100 };
         },
         seedPreviewStyle(factor) {
             return { opacity: (this.seedOpacity / 100) * factor };

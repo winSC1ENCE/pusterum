@@ -74,6 +74,8 @@ def server_url() -> Iterator[str]:
         "CONTACT_FORM_MIN_SECONDS": "0",
         "ALTCHA_MAX_NUMBER": "5000",
         "MAIL_ENABLED": "false",
+        # Many tests log in within one minute; the limit itself is covered by tests/.
+        "RATE_LIMIT_SENSITIVE_PER_MINUTE": "1000",
     }
     subprocess.run(["uv", "run", "alembic", "upgrade", "head"], cwd=ROOT, env=env, check=True)
     proc = subprocess.Popen(

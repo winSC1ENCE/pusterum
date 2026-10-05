@@ -37,7 +37,7 @@ docker compose up -d db                     # nur PostgreSQL
 cp config/env.development.example .env      # einmalig; Default-ENVIRONMENT ist production!
 uv run alembic upgrade head                 # Schema (Baseline 0000) + Datenmigrationen
 scripts/build-css.sh                        # Tailwind kompilieren (--watch beim Entwickeln)
-uv run granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
+uv run granian --interface asgi --factory --reload --reload-paths src --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
 ```
 
 `--factory` ist Pflicht (`create_app` ist eine Factory). Läuft der Container `atem_app`, belegt er Port 8000 →

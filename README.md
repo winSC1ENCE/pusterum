@@ -62,13 +62,13 @@ uv run alembic upgrade head   # Schema + Datenmigrationen (Pflicht, kein create_
 > **Wichtig:** Da `create_app` eine Application-Factory ist, muss beim Granian-Aufruf das Flag `--factory` übergeben werden.
 
 ```bash
-uv run granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
+uv run granian --interface asgi --factory --reload --reload-paths src --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
 ```
 
 > **Tipp (Offline / Unterwegs):**
 > Nutzen Sie `--no-sync`, um externe PyPI-Netzwerkprüfungen beim Start zu überspringen:
 > ```bash
-> uv run --no-sync granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
+> uv run --no-sync granian --interface asgi --factory --reload --reload-paths src --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
 > ```
 
 ### ⚠️ Hinweis: Port-Konflikte (Docker vs. Lokaler Server)
@@ -85,7 +85,7 @@ docker stop atem_app
 docker compose up -d db
 
 # Danach lokalen Granian-Server wie gewohnt starten:
-uv run granian --interface asgi --factory --reload --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
+uv run granian --interface asgi --factory --reload --reload-paths src --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
 ```
 
 ### 5. URLs & Endpunkte

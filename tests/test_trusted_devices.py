@@ -57,7 +57,9 @@ def test_device_token_roundtrip_and_rejections() -> None:
     assert claim.issued_at == datetime.fromtimestamp(int(now), UTC)
 
     assert read_device_token(b"x" * 32, token, now=now) is None  # other key
-    assert read_device_token(KEY, token[:-1] + "0", now=now) is None  # tampered
+    assert (
+        read_device_token(KEY, token[:-1] + ("1" if token.endswith("0") else "0"), now=now) is None
+    )  # tampered
     assert read_device_token(KEY, token, now=now + DEVICE_COOKIE_MAX_AGE + 1) is None  # expired
     assert read_device_token(KEY, token, now=now - 60) is None  # from the future
     assert read_device_token(KEY, "", now=now) is None

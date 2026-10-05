@@ -14,6 +14,7 @@ from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.datastructures import State
 from litestar.di import Provide
 from litestar.exceptions import NotAuthorizedException
+from litestar.logging.config import LoggingConfig
 from litestar.middleware import DefineMiddleware
 from litestar.middleware.rate_limit import RateLimitConfig
 from litestar.middleware.session.client_side import CookieBackendConfig
@@ -237,7 +238,7 @@ async def lifespan(app: Litestar) -> AsyncGenerator[None, None]:
         with contextlib.suppress(asyncio.CancelledError):
             await retention_task
 
-    logger.info("Shutting down Atemtherapie Application")
+    logger.info("Shutting down PUSTERUM application")
     await engine.dispose()
 
 
@@ -363,5 +364,9 @@ def create_app() -> Litestar:
         lifespan=[lifespan],
         openapi_config=openapi_config,
         debug=settings.DEBUG,
+        # Debug mode logs every exception with traceback. Expected outcomes – 401 (anonymous
+        # /admin → login redirect) and 404 (unknown URLs, e.g. Chrome DevTools probes) – are
+        # handled by the exception handlers and only clutter the log.
+        logging_config=LoggingConfig(disable_stack_trace={401, 404}),
         request_max_body_size=12 * 1024 * 1024,  # uploads are capped at 10 MB by MediaService
     )

@@ -57,7 +57,9 @@ def test_form_token_window_and_signature() -> None:
     assert not verify_form_token(key, issue_form_token(key, now=now), now=now)  # too fast
     assert not verify_form_token(key, issue_form_token(key, now=now - 3 * 3600), now=now)
     assert not verify_form_token(b"x" * 32, token, now=now)  # wrong key
-    assert not verify_form_token(key, token[:-1] + "0", now=now)  # tampered
+    assert not verify_form_token(
+        key, token[:-1] + ("1" if token.endswith("0") else "0"), now=now
+    )  # tampered
     assert not verify_form_token(key, "garbage", now=now)
 
 

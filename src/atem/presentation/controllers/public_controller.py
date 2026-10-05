@@ -179,6 +179,22 @@ class PublicController(Controller):
             },
         )
 
+    @get("/atmende-blume/karte")
+    async def kids_breathing_card(
+        self, theme_service: ThemeService, content_service: ContentService
+    ) -> Template:
+        """Printable A5 card of the children's breathing exercise «Atmende Blume»."""
+        theme = await theme_service.get_active_theme()
+        return Template(
+            template_name="pages/kids_card.html",
+            context={
+                "theme": theme,
+                "theme_css": theme_service.generate_css_variables(theme),
+                "content_blocks": await content_service.get_content_map(),
+                "is_admin": False,
+            },
+        )
+
     @get("/datenschutz")
     async def datenschutz(
         self,

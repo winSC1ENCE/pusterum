@@ -106,10 +106,15 @@
        MODE 4: DIE INTERAKTIVE ATEM-PAUSE (Zen-Widget)
        ACTIVE ON ALL DEVICES: Mobile, Tablet & Desktop!
        Features an ultra-clear, visual 4-4-6 guided breathing circle with countdown.
+       MODE 6 (Atmende Blume für Kinder) shares the same floating button; with both
+       modes active the popover shows two tabs and only the visible exercise runs.
        ========================================================================= #}
-    {% if 'breath_widget' in active_modes %}
+    {% set show_breath_pause = 'breath_widget' in active_modes %}
+    {% set show_kids_flower = 'kids_flower' in active_modes %}
+    {% if show_breath_pause or show_kids_flower %}
     <div
         x-data="breathWidget"
+        data-tab="{{ 'adult' if show_breath_pause else 'kids' }}"
         class="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 font-sans pointer-events-auto block"
     >
         <!-- Floating Trigger Button -->
@@ -118,14 +123,16 @@
             x-show="!isOpen"
             @click="openWidget()"
             class="group bg-white/95 hover:bg-white border-2 border-emerald-600/30 text-emerald-800 hover:text-emerald-900 px-4 py-2.5 rounded-full shadow-xl backdrop-blur-md flex items-center gap-2.5 transition-all duration-300 transform hover:scale-105"
-            title="Geführte Atem-Pause starten"
+            title="{{ 'Geführte Atem-Pause starten' if show_breath_pause else 'Atmende Blume für Kinder starten' }}"
         >
             <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                 <img src="/static/images/dandelion_seed_single.png" alt="Samen" class="w-4 h-auto animate-pulse" />
             </div>
             <div class="flex flex-col text-left">
-                <span class="text-xs font-bold leading-tight text-slate-800 group-hover:text-slate-950">Atem-Pause</span>
-                <span class="text-[9px] text-emerald-700 font-medium leading-none">4-4-6 Rhythmus</span>
+                <span class="text-xs font-bold leading-tight text-slate-800 group-hover:text-slate-950">{{ 'Atem-Pause' if show_breath_pause else 'Atmende Blume' }}</span>
+                <span class="text-[9px] text-emerald-700 font-medium leading-none">
+                    {%- if show_breath_pause and show_kids_flower %}4-4-6 &bull; Für Kinder{% elif show_breath_pause %}4-4-6 Rhythmus{% else %}Für Kinder{% endif -%}
+                </span>
             </div>
         </button>
 
@@ -155,6 +162,26 @@
 
             <!-- Brand Header -->
             <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-theme-primary mb-1">PUSTERUM</span>
+
+            {% if show_breath_pause and show_kids_flower %}
+            <!-- Tabs: adult breathing pause | children's breathing flower -->
+            <div class="grid grid-cols-2 gap-1 w-full p-1 mb-3 rounded-xl bg-slate-100 text-xs font-semibold" role="tablist" aria-label="Atemübung wählen">
+                <button type="button" role="tab" @click="selectTab('adult')" :aria-selected="isAdultTab" :class="isAdultTab ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-800'" class="py-1.5 rounded-lg transition-colors">Atem-Pause</button>
+                <button type="button" role="tab" @click="selectTab('kids')" :aria-selected="isKidsTab" :class="isKidsTab ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-800'" class="py-1.5 rounded-lg transition-colors">Atmende Blume</button>
+            </div>
+            {% endif %}
+
+            {% if show_kids_flower %}
+            <div x-show="isKidsTab" class="w-full">
+                <h4 class="text-base font-bold text-slate-900 mb-2">Atmende Blume</h4>
+                {% set kids_variants = numbered_content(content_blocks, 'kids.variant_', 'title', 'text') %}
+                {% set compact = true %}
+                {% include "components/kids_flower_player.html" %}
+            </div>
+            {% endif %}
+
+            {% if show_breath_pause %}
+            <div x-show="isAdultTab" class="w-full flex flex-col items-center">
             <h4 class="text-base font-bold text-slate-900 mb-3">Geführte Atem-Pause</h4>
 
             <!-- 3-Phase Step Indicators -->
@@ -286,6 +313,8 @@
                 <span>•</span>
                 <span>6s Ausatmen</span>
             </div>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endif %}

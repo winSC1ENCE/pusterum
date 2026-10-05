@@ -117,7 +117,7 @@ def test_all_dandelion_effects_run_under_csp(page: Page, server_url: str) -> Non
         server_url + "/admin/design/dandelion",
         form={
             "dandelion_modes": "breathing_flow,scroll_journey,watermark_accents,"
-            "breath_widget,whisper_trail"
+            "breath_widget,whisper_trail,kids_flower"
         },
         headers={"x-csrftoken": token or "", "hx-request": "true"},
     )

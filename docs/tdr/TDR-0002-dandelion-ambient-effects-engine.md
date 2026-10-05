@@ -15,6 +15,7 @@ Die Praxisinhaberin benötigt in der Administrationskonsole (`/admin/design`) di
    - `watermark_accents` (**3. Wasserzeichen-Akzente**): 100% statische, hochauflösende Vektor-Wasserzeichen an Sektionsrändern und beim Zitat, farblich synchronisiert mit dem Pastell-Theme.
    - `breath_widget` (**4. Interaktive Atem-Pause**): Schwebendes Zen-Widget unten rechts zum gemeinsamen Durchatmen im geführten 4-4-6 Atemrhythmus (Einatmen 4s, Halten 4s, Ausatmen 6s).
    - `whisper_trail` (**5. Sanfter Hauch bei Bewegung**): Ephemere, hauchdünne Samenpartikel entstehen bei sanfter Mausbewegung und verfliegen lautlos nach 1.2s.
+   - `kids_flower` (**6. Atmende Blume für Kinder**, Ergänzung 2026-10): Geführte Kinder-Atemübung ohne Atemanhalten (3 s ein / 4 s aus, je 4 Atemzüge für Blume 1–3) mit sich öffnender SVG-Blüte und abschliessendem Pusten-Spiel (gedrückt halten = einatmen, loslassen = Samen fliegen). Teilt sich mit Modus 4 **einen** schwebenden Button: Sind beide aktiv, zeigt das Fenster Tabs («Atem-Pause» | «Atmende Blume»); es läuft immer nur die sichtbare Übung. Der Player (`components/kids_flower_player.html`, `js/components/kids-flower.js`) wird auch in der Sektion «Atmen mit Kindern» (`#kinder`) verwendet; Texte sind Content-Blöcke `kids.*`, druckbare A5-Karte unter `/atmende-blume/karte`.
 
 2. **Technische Umsetzung & Performance-Garantien:**
    - **Reine Vektor-SVGs:** Keine externen Bild-Requests, gestochen scharfe Vektordarstellung bei minimaler DOM-Größe.

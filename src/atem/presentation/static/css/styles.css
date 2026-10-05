@@ -145,3 +145,52 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 .rich-text li + li { margin-top: 0.25rem; }
 .rich-text strong { font-weight: 600; color: var(--theme-text-main, #1E293B); }
 .rich-text u { text-underline-offset: 2px; }
+
+/* «Atmende Blume» for children (components/kids_flower_player.html, js/components/kids-flower.js) */
+.kids-petal {
+    fill: var(--theme-secondary, #CEDECF);
+    stroke: var(--theme-primary, #4A6C50);
+    stroke-width: 1.5;
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    transform: scale(0.35, 0.4);
+    transition: transform 4s ease-in-out;
+}
+.kids-flower.is-open .kids-petal { transform: scale(1); }
+.kids-flower.is-inhale .kids-petal { transition-duration: 3s; transition-timing-function: ease-out; }
+.kids-flower-center { fill: var(--theme-accent, #7FA485); }
+
+.kids-dandelion { transition: transform 3s ease-out; }
+.kids-dandelion.is-growing { transform: scale(1.12); }
+.kids-dandelion-stem {
+    position: absolute; left: 50%; top: 50%; width: 3px; height: 50%;
+    margin-left: -1.5px; border-radius: 2px; background: var(--theme-primary, #4A6C50); opacity: 0.6;
+}
+.kids-dandelion-center {
+    position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+    border-radius: 9999px; background: var(--theme-accent, #7FA485);
+}
+.kids-seed-anchor {
+    position: absolute; left: 50%; top: 50%; width: 30px; margin: -22px 0 0 -15px;
+    transform-origin: 50% 100%;
+}
+.kids-seed { width: 100%; height: auto; transition: opacity 0.3s; }
+.kids-seed.is-flying { animation: kidsSeedFly 1.6s ease-out forwards; }
+.kids-seed.is-gone { opacity: 0; }
+.kids-seed-float { animation: seedBreathFloat1 6s ease-in-out infinite; }
+@keyframes kidsSeedFly {
+    0% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg); }
+    100% { opacity: 0; transform: translate3d(18px, -120px, 0) rotate(25deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .kids-petal, .kids-dandelion { transition: none; }
+    .kids-seed.is-flying { animation: none; opacity: 0; }
+    .kids-seed-float { animation: none; }
+}
+
+/* Printable exercise card (pages/kids_card.html) */
+.kids-card { page: kidscard; }
+@page kidscard { size: A5; margin: 12mm; }
+@media print {
+    .kids-card { box-shadow: none !important; border: none !important; padding: 0 !important; }
+}

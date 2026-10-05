@@ -439,6 +439,124 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "content": "Gemeinschaftspraxis Physiotherapie",
     },
     {
+        "key": "kids.badge",
+        "section": "kids",
+        "type": "text",
+        "content": "Für Kinder",
+    },
+    {
+        "key": "kids.title",
+        "section": "kids",
+        "type": "text",
+        "content": "Die atmende Blume",
+    },
+    {
+        "key": "kids.subtitle",
+        "section": "kids",
+        "type": "textarea",
+        "content": (
+            "Eine spielerische Atemübung für Ruhe und Konzentration: Die Hände werden zur"
+            " Blüte, die sich mit dem Atem öffnet und wieder schliesst – im Stehen oder im"
+            " Sitzen."
+        ),
+    },
+    {
+        "key": "kids.variant_1.title",
+        "section": "kids",
+        "type": "text",
+        "content": "Die Knospe öffnet sich",
+    },
+    {
+        "key": "kids.variant_1.text",
+        "section": "kids",
+        "type": "textarea",
+        "content": (
+            "Lege deine Handflächen vor der Brust aneinander, die Daumen zeigen zu dir."
+            " Beim Einatmen gehen nur die Fingerspitzen auseinander – die Handballen bleiben"
+            " zusammen. Beim Ausatmen schliesst sich die Knospe wieder."
+        ),
+    },
+    {
+        "key": "kids.variant_2.title",
+        "section": "kids",
+        "type": "text",
+        "content": "Die Blüte geht auf",
+    },
+    {
+        "key": "kids.variant_2.text",
+        "section": "kids",
+        "type": "textarea",
+        "content": (
+            "Jetzt öffnen sich beim Einatmen deine ganzen Hände nach links und nach rechts."
+            " Beim Ausatmen kommen sie vor der Brust wieder zusammen."
+        ),
+    },
+    {
+        "key": "kids.variant_3.title",
+        "section": "kids",
+        "type": "text",
+        "content": "Die grosse Blume",
+    },
+    {
+        "key": "kids.variant_3.text",
+        "section": "kids",
+        "type": "textarea",
+        "content": (
+            "Beim Einatmen streckst du die Hände nach vorne und öffnest sie weit zur Seite."
+            " Beim Ausatmen führst du sie in einem grossen Bogen zurück vor die Brust – fast"
+            " wie beim Brustschwimmen."
+        ),
+    },
+    {
+        "key": "kids.variant_4.title",
+        "section": "kids",
+        "type": "text",
+        "content": "Die Blumenwiese (in der Gruppe)",
+    },
+    {
+        "key": "kids.variant_4.text",
+        "section": "kids",
+        "type": "textarea",
+        "content": (
+            "Ihr sitzt im Kreis und haltet euch an den Händen. Beim Einatmen hebt ihr die"
+            " Hände gemeinsam hoch über den Kopf, beim Ausatmen lasst ihr sie langsam wieder"
+            " sinken."
+        ),
+    },
+    {
+        "key": "kids.player_hint",
+        "section": "kids",
+        "type": "textarea",
+        "content": (
+            "Probiere es gleich aus: Die Blume zeigt dir den Rhythmus. Zum Schluss darfst"
+            " du die Pusteblume auspusten."
+        ),
+    },
+    {
+        "key": "kids.tips_title",
+        "section": "kids",
+        "type": "text",
+        "content": "Gut zu wissen",
+    },
+    {
+        "key": "kids.tips",
+        "section": "kids",
+        "type": "rich_text",
+        "content": (
+            "- **Mit Freude:** spielerisch und mit Bildern üben – nichts muss perfekt sein.\n"
+            "- **Ohne Anstrengung:** Die Bewegung folgt immer dem eigenen Atem.\n"
+            "- **Ankommen:** Vorher ein paar Atemzüge lang spüren, wie der Atem kommt und geht.\n"
+            "- **Nachspüren:** Danach die Hände sinken lassen und noch kurz dem Atem lauschen.\n"
+            "- **Als Ritual:** Am schönsten jeden Tag zur gleichen Zeit, z. B. vor dem Einschlafen."
+        ),
+    },
+    {
+        "key": "kids.source",
+        "section": "kids",
+        "type": "text",
+        "content": "Nach einer Übungsidee aus dem Kinderyoga von Volker Friebel.",
+    },
+    {
         "key": "practice.name",
         "section": "practice",
         "type": "text",

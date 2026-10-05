@@ -11,6 +11,11 @@ document.addEventListener("htmx:afterSwap", (evt) => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Print buttons (e.g. the «Atmende Blume» exercise card) – no inline JS under the CSP
+    document.querySelectorAll("[data-print]").forEach((button) => {
+        button.addEventListener("click", () => window.print());
+    });
+
     // Preserve scroll position before full page navigation
     window.addEventListener("beforeunload", () => {
         sessionStorage.setItem("atem_scroll_y", String(window.scrollY));

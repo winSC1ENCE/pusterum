@@ -61,6 +61,7 @@ class DandelionEffectMode(StrEnum):
     WATERMARK_ACCENTS = "watermark_accents"  # 3. Wasserzeichen-Akzente (Statisch)
     BREATH_WIDGET = "breath_widget"  # 4. Die interaktive Atem-Pause (Zen-Widget)
     WHISPER_TRAIL = "whisper_trail"  # 5. Sanfter Hauch bei Mausbewegung (Seed Whisper)
+    KIDS_FLOWER = "kids_flower"  # 6. Atmende Blume für Kinder (Widget, teilt Button mit 4)
 
     @classmethod
     def parse_many(cls, raw: "str | Iterable[str] | None") -> list["DandelionEffectMode"]:
@@ -373,5 +374,15 @@ DANDELION_MODE_DEFINITIONS: tuple[DandelionModeDefinition, ...] = (
         name="Sanfter Hauch bei Bewegung",
         badge="Seed Whisper",
         description="Feine Samen entstehen bei Mausbewegung und verfliegen nach 1.2 s.",
+    ),
+    DandelionModeDefinition(
+        key=DandelionEffectMode.KIDS_FLOWER.value,
+        number="6",
+        name="Atmende Blume (Kinder)",
+        badge="Kinder-Widget",
+        description=(
+            "Geführte Kinder-Atemübung mit Blüte und Pusten-Spiel; mit der Atem-Pause"
+            " kombiniert teilen sich beide einen Button."
+        ),
     ),
 )

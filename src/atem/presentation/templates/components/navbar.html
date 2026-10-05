@@ -80,11 +80,13 @@
             </a>
 
             <!-- Desktop Navigation (lg:flex for >= 1024px screens) -->
-            <nav class="hidden lg:flex items-center gap-3.5 xl:gap-6 text-xs xl:text-sm font-medium text-theme-text-main flex-shrink-0">
+            <nav class="hidden lg:flex items-center gap-3.5 xl:gap-5 text-xs xl:text-sm font-medium text-theme-text-main flex-shrink-0">
                 <a href="/#start" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Start</a>
                 <a href="/#ueber-mich" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Über mich</a>
                 <a href="/#kompetenzen" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Kompetenzen</a>
                 <a href="/#angebote" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Angebote &amp; Tarife</a>
+                {# Only from xl: at lg widths the bar would overflow (footer + mobile menu link it too) #}
+                <a href="/#kinder" class="hidden xl:inline hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Für Kinder</a>
                 <a href="/#praxis" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Praxis</a>
                 <a href="/#kontakt" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Kontakt</a>
 
@@ -132,6 +134,7 @@
         <a @click="mobileOpen = false" href="/#ueber-mich" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Über mich &amp; PUSTERUM</a>
         <a @click="mobileOpen = false" href="/#kompetenzen" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Kompetenzen</a>
         <a @click="mobileOpen = false" href="/#angebote" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Angebote &amp; Tarife</a>
+        <a @click="mobileOpen = false" href="/#kinder" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Atmen mit Kindern</a>
         <a @click="mobileOpen = false" href="/#praxis" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Praxis</a>
         <a @click="mobileOpen = false" href="/#kontakt" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Kontakt &amp; Standort</a>
         <div class="pt-3">

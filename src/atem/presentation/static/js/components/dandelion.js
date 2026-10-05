@@ -80,13 +80,36 @@ document.addEventListener("alpine:init", () => {
     }));
 
     // MODE 4: Die interaktive Atem-Pause – guided 4-4-6 breathing widget.
+    // MODE 6 (Atmende Blume, kids-flower.js) shares this floating button as a second tab.
     Alpine.data("breathWidget", () => ({
         isOpen: false,
+        tab: "adult",
         phase: "inhale",
         totalSeconds: 4,
         currentSecond: 1,
         phaseProgress: 0,
         intervalId: null,
+        init() {
+            this.tab = this.$el.dataset.tab || "adult";
+        },
+        get isAdultTab() {
+            return this.tab === "adult";
+        },
+        get isKidsTab() {
+            return this.tab === "kids";
+        },
+        selectTab(tab) {
+            this.tab = tab;
+            if (tab === "adult") {
+                this.stopKidsFlower();
+                this.startBreathCycle();
+            } else {
+                this.clearIntervals();
+            }
+        },
+        stopKidsFlower() {
+            window.dispatchEvent(new CustomEvent("kids-flower-stop", { detail: { scope: "widget" } }));
+        },
         get phaseLabel() {
             if (this.phase === "inhale") return "EINATMEN";
             if (this.phase === "hold") return "HALTEN & SPÜREN";
@@ -118,7 +141,7 @@ document.addEventListener("alpine:init", () => {
             this.runPhase("inhale", 4);
         },
         runPhase(phaseName, durationSec) {
-            if (!this.isOpen) return;
+            if (!this.isOpen || !this.isAdultTab) return;
             this.phase = phaseName;
             this.totalSeconds = durationSec;
             this.currentSecond = 1;
@@ -126,7 +149,7 @@ document.addEventListener("alpine:init", () => {
             const startTime = Date.now();
             const totalMs = durationSec * 1000;
             this.intervalId = setInterval(() => {
-                if (!this.isOpen) {
+                if (!this.isOpen || !this.isAdultTab) {
                     this.clearIntervals();
                     return;
                 }
@@ -146,11 +169,12 @@ document.addEventListener("alpine:init", () => {
         },
         openWidget() {
             this.isOpen = true;
-            this.startBreathCycle();
+            if (this.isAdultTab) this.startBreathCycle();
         },
         closeWidget() {
             this.isOpen = false;
             this.clearIntervals();
+            this.stopKidsFlower();
         },
     }));
 

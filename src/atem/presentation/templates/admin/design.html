@@ -394,6 +394,11 @@
                                     <img src="/static/images/dandelion_seed_single.png" alt="Zen-Samen" class="w-4 h-auto animate-pulse" />
                                     <span>Atem-Pause 4-4-6</span>
                                 </div>
+                            {% elif mode.key == 'kids_flower' %}
+                                <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm text-xs font-semibold text-slate-800">
+                                    <svg class="w-4 h-4 text-emerald-600" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><path d="M12 9.5V3M12 14.5V21M9.5 12H3M14.5 12H21"/></svg>
+                                    <span>Atmende Blume &bull; Kinder</span>
+                                </div>
                             {% elif mode.key == 'whisper_trail' %}
                                 <div class="flex items-center gap-1.5 text-[11px] text-slate-600 font-medium">
                                     <img src="/static/images/dandelion_seed_single.png" alt="Hauch" class="w-4 h-auto" :style="seedPreviewStyle(1)" />

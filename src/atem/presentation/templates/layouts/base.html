@@ -29,6 +29,9 @@
     <script defer src="/static/js/app.js?v={{ asset_version }}"></script>
     <script defer src="/static/js/components/dandelion.js?v={{ asset_version }}"></script>
     <script defer src="/static/js/components/quotes.js?v={{ asset_version }}"></script>
+    {% if is_admin %}
+    <script defer src="/static/js/admin/live-editor.js?v={{ asset_version }}"></script>
+    {% endif %}
     {% block head_extra %}{% endblock %}
     <script defer src="/static/vendor/alpinejs-csp/cdn.min.js"></script>
 </head>

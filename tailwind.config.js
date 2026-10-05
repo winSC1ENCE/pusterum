@@ -7,6 +7,7 @@ module.exports = {
     "./src/atem/presentation/templates/**/*.html",
     "./src/atem/presentation/static/js/app.js",
     "./src/atem/presentation/static/js/components/**/*.js",
+    "./src/atem/presentation/static/js/admin/**/*.js",
   ],
   theme: {
     extend: {

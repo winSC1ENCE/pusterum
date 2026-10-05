@@ -49,6 +49,15 @@ def build_csp(*, upgrade_insecure_requests: bool) -> str:
     return "; ".join(directives)
 
 
+# The admin area is never linked publicly; keep search engines from indexing it should the URL leak.
+ADMIN_ROBOTS_TAG = "noindex, nofollow"
+
+
+def is_admin_path(path: str) -> bool:
+    """True for ``/admin`` and everything below it (but not e.g. ``/administration``)."""
+    return path == "/admin" or path.startswith("/admin/")
+
+
 class SecurityHeadersMiddleware:
     """Add security headers to every HTTP response (unless the handler already set them)."""
 
@@ -61,6 +70,7 @@ class SecurityHeadersMiddleware:
             await self.app(scope, receive, send)
             return
         csp = MEDIA_CSP if scope["path"].startswith("/media/") else self.page_csp
+        admin_area = is_admin_path(scope["path"])
 
         async def send_with_headers(message: Message) -> None:
             if message["type"] == "http.response.start":
@@ -68,6 +78,8 @@ class SecurityHeadersMiddleware:
                 for name, value in STATIC_HEADERS.items():
                     headers.setdefault(name, value)
                 headers.setdefault("content-security-policy", csp)
+                if admin_area:
+                    headers.setdefault("x-robots-tag", ADMIN_ROBOTS_TAG)
             await send(message)
 
         await self.app(scope, receive, send_with_headers)

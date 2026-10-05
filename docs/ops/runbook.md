@@ -100,6 +100,10 @@ Danach unter `https://www.pusterum.be/admin/login` anmelden – die App verlangt
 Einrichtung der **Zwei-Faktor-Anmeldung** (Authenticator-App). Die angezeigten
 **Wiederherstellungscodes** sicher aufbewahren.
 
+**Admin-Zugang ist bewusst nirgends verlinkt:** Die öffentliche Website enthält keinen Link und kein
+Admin-JavaScript, `/admin` ist per `X-Robots-Tag: noindex` von Suchmaschinen ausgeschlossen. Die
+Login-Adresse `https://www.pusterum.be/admin/login` deshalb als Lesezeichen speichern.
+
 ---
 
 ## 2. Deployment (Update)

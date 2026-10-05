@@ -22,12 +22,12 @@
 
         {{ section_header('kids', subtitle_rows=3) }}
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
 
             <!-- Variants -->
-            <ol class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <ol x-data="kidsVariantList" @kids-flower-variant.window="onVariant($event)" class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {% for i in range(1, kids_variants | length + 1) %}
-                <li class="bg-theme-card border border-theme rounded-3xl p-6 shadow-sm space-y-2">
+                <li :class="cardClass({{ loop.index0 }})" class="kids-variant-card bg-theme-card border border-theme rounded-3xl p-6 shadow-sm space-y-2">
                     <div class="flex items-center gap-3">
                         <span class="w-10 h-10 rounded-xl bg-theme-secondary/40 flex items-center justify-center text-theme-primary flex-shrink-0">
                             {{ variant_icon(i) }}
@@ -41,7 +41,8 @@
             </ol>
 
             <!-- Interactive player -->
-            <div class="lg:col-span-5 bg-theme-card border border-theme rounded-3xl p-6 sm:p-8 shadow-sm space-y-4 lg:sticky lg:top-24">
+            <!-- Same height as the variant grid; content centred, slots keep it steady -->
+            <div class="lg:col-span-5 bg-theme-card border border-theme rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col justify-center gap-4">
                 {{ editable('kids.player_hint', tag='p', class='text-sm text-theme-text-muted text-center', type='textarea', rows=3) }}
                 {% set compact = false %}
                 {% include "components/kids_flower_player.html" %}

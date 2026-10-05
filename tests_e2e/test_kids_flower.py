@@ -115,3 +115,55 @@ def test_print_card_renders_under_csp(page: Page, server_url: str) -> None:
     page.emulate_media(media="print")
     expect(page.get_by_role("button", name="Karte drucken")).to_be_hidden()
     assert_clean(page)
+
+
+def test_player_keeps_its_size_and_aligns_with_cards(page: Page, server_url: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto(server_url + "/")
+    player = page.locator('[data-scope="section"]')
+    player.scroll_into_view_if_needed()
+    card = player.locator("xpath=..")
+    cards = page.locator("#kinder ol")
+
+    def height() -> float:
+        box = card.bounding_box()
+        assert box is not None
+        return round(box["height"])
+
+    heights = [height()]
+    player.get_by_role("button", name="Blume starten").click()
+    expect(player.get_by_text("Blume 1 von 3")).to_be_visible()
+    # The guided flower is highlighted in the card grid
+    expect(cards.locator("li").nth(0)).to_have_class(re.compile(r"\bkids-card-active\b"))
+    heights.append(height())
+    page.wait_for_timeout(3500)  # inhale → exhale
+    heights.append(height())
+    player.get_by_role("button", name="Weiter zum Pusten").click()
+    expect(cards.locator("li.kids-card-active")).to_have_count(0)
+    heights.append(height())
+    for _ in range(5):
+        _blow(page, '[data-scope="section"] .kids-blow-button')
+    expect(player.get_by_text("Alle Samen fliegen!")).to_be_visible(timeout=5000)
+    heights.append(height())
+    assert len(set(heights)) == 1, heights
+
+    # Top and bottom flush with the variant cards on the left
+    card_box, grid_box = card.bounding_box(), cards.bounding_box()
+    assert card_box is not None and grid_box is not None
+    assert abs(card_box["y"] - grid_box["y"]) <= 1
+    assert abs((card_box["y"] + card_box["height"]) - (grid_box["y"] + grid_box["height"])) <= 1
+    assert_clean(page)
+
+
+def test_player_size_is_stable_on_mobile(page: Page, server_url: str) -> None:
+    page.set_viewport_size({"width": MOBILE_WIDTH, "height": 844})
+    page.goto(server_url + "/")
+    player = page.locator('[data-scope="section"]')
+    player.scroll_into_view_if_needed()
+    sizes = [player.bounding_box()["height"]]  # type: ignore[index]
+    player.get_by_role("button", name="Blume starten").click()
+    sizes.append(player.bounding_box()["height"])  # type: ignore[index]
+    player.get_by_role("button", name="Weiter zum Pusten").click()
+    sizes.append(player.bounding_box()["height"])  # type: ignore[index]
+    assert max(sizes) - min(sizes) <= 1, sizes
+    assert_clean(page)

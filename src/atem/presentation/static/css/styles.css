@@ -171,10 +171,14 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     border-radius: 9999px; background: var(--theme-accent, #7FA485);
 }
 .kids-seed-anchor {
-    position: absolute; left: 50%; top: 50%; width: 30px; margin: -22px 0 0 -15px;
+    position: absolute; left: 50%; top: 50%; width: 40px; margin: -30px 0 0 -20px;
     transform-origin: 50% 100%;
 }
-.kids-seed { width: 100%; height: auto; transition: opacity 0.3s; }
+/* The seed PNG is white – a soft outline keeps it visible on light cards */
+.kids-seed {
+    width: 100%; height: auto; transition: opacity 0.3s;
+    filter: drop-shadow(0 0 1px rgba(60, 50, 30, 0.55)) drop-shadow(0 1px 2px rgba(60, 50, 30, 0.25));
+}
 .kids-seed.is-flying { animation: kidsSeedFly 1.6s ease-out forwards; }
 .kids-seed.is-gone { opacity: 0; }
 .kids-seed-float { animation: seedBreathFloat1 6s ease-in-out infinite; }
@@ -194,3 +198,12 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 @media print {
     .kids-card { box-shadow: none !important; border: none !important; padding: 0 !important; }
 }
+
+/* Variant card currently guided by the «Atmende Blume» player */
+.kids-variant-card { transition: box-shadow 0.4s ease, border-color 0.4s ease, transform 0.4s ease; }
+.kids-variant-card.kids-card-active {
+    border-color: var(--theme-primary, #4A6C50);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary, #4A6C50) 25%, transparent);
+    transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) { .kids-variant-card { transition: none; } .kids-variant-card.kids-card-active { transform: none; } }

@@ -32,8 +32,10 @@ document.addEventListener("alpine:init", () => {
         blowBreaths: 0,
         pressed: false,
         pressStartedAt: 0,
+        scope: "",
 
         init() {
+            this.scope = this.$el.dataset.scope || "";
             try {
                 this.variants = JSON.parse(this.$el.dataset.variants || "[]");
             } catch (e) {
@@ -76,7 +78,7 @@ document.addEventListener("alpine:init", () => {
             return this.pressed ? "kids-dandelion is-growing" : "kids-dandelion";
         },
         seedStyle(seed) {
-            return { transform: "rotate(" + seed.angle + "deg) translateY(-46px)" };
+            return { transform: "rotate(" + seed.angle + "deg) translateY(-48px)" };
         },
         seedClass(seed) {
             if (seed.gone) return "kids-seed is-gone";
@@ -93,6 +95,7 @@ document.addEventListener("alpine:init", () => {
             this.stage = "flower";
             this.variantIndex = 0;
             this.breath = 1;
+            this.announceVariant();
             this.runPhase("inhale");
         },
         runPhase(phase) {
@@ -111,6 +114,7 @@ document.addEventListener("alpine:init", () => {
             } else if (this.variantIndex < this.variants.length - 1) {
                 this.variantIndex += 1;
                 this.breath = 1;
+                this.announceVariant();
             } else {
                 this.startBlow();
                 return;
@@ -121,6 +125,7 @@ document.addEventListener("alpine:init", () => {
         // ------------------------------------------------------------- blow game
         startBlow() {
             this.clearTimer();
+            this.announceVariant(-1);
             this.stage = "blow";
             this.phase = "exhale";
             this.seeds = buildSeeds();
@@ -157,17 +162,37 @@ document.addEventListener("alpine:init", () => {
         // Widget tab switch / close: only the player in the matching scope stops.
         stopFrom(event) {
             const scope = event && event.detail ? event.detail.scope : "";
-            if (!scope || scope === this.$el.dataset.scope) this.stop();
+            if (!scope || scope === this.scope) this.stop();
         },
         stop() {
             this.clearTimer();
+            this.announceVariant(-1);
             this.stage = "intro";
             this.phase = "exhale";
             this.pressed = false;
         },
+        // Lets the variant cards next to the player highlight the active flower (-1 = none).
+        announceVariant(index) {
+            const active = index === undefined ? this.variantIndex : index;
+            window.dispatchEvent(new CustomEvent("kids-flower-variant", {
+                detail: { scope: this.scope, index: active },
+            }));
+        },
         clearTimer() {
             if (this.timerId) clearTimeout(this.timerId);
             this.timerId = null;
+        },
+    }));
+
+    // Variant cards in the «Atmen mit Kindern» section: highlight the flower being guided.
+    Alpine.data("kidsVariantList", () => ({
+        activeIndex: -1,
+        onVariant(event) {
+            const detail = event && event.detail ? event.detail : {};
+            if (detail.scope === "section") this.activeIndex = Number(detail.index);
+        },
+        cardClass(index) {
+            return index === this.activeIndex ? "kids-card-active" : "";
         },
     }));
 });

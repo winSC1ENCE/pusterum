@@ -60,6 +60,33 @@ document.addEventListener("alpine:init", () => {
         cancelEdit() {
             this.isEditing = false;
         },
+        // Rich-text toolbar: wrap the selection in markup (bold/italic/underline) or turn the
+        // selected lines into a bullet list. Rendered server-side by presentation/rich_text.py.
+        format(kind) {
+            const rootEl = this.$root || (this.$el ? this.$el.closest(".editable-block-container") : null);
+            const field = rootEl ? rootEl.querySelector("textarea[name='content']") : null;
+            if (!field) return;
+            const value = field.value;
+            const start = field.selectionStart;
+            const end = field.selectionEnd;
+
+            if (kind === "list") {
+                const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+                const lines = value.slice(lineStart, end).split("\n");
+                const listed = lines.map((line) => (line.startsWith("- ") || line === "" ? line : "- " + line)).join("\n");
+                field.value = value.slice(0, lineStart) + listed + value.slice(end);
+                field.setSelectionRange(lineStart, lineStart + listed.length);
+            } else {
+                const markers = { bold: "**", italic: "*", underline: "__" };
+                const marker = markers[kind];
+                if (!marker) return;
+                const selected = value.slice(start, end);
+                const text = selected || "Text";
+                field.value = value.slice(0, start) + marker + text + marker + value.slice(end);
+                field.setSelectionRange(start + marker.length, start + marker.length + text.length);
+            }
+            field.focus();
+        },
         submitForm(formEl) {
             if (typeof htmx !== "undefined" && formEl) {
                 htmx.trigger(formEl, "submit");

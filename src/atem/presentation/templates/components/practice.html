@@ -1,4 +1,13 @@
 {% from "components/editable_block.html" import editable with context %}
+{# Location (partner physiotherapy practice) – PUSTERUM's own name/address stay in the Impressum #}
+{% set address_block = content_blocks.get('practice.location_address') if content_blocks else none %}
+{% set website_block = content_blocks.get('practice.location_website') if content_blocks else none %}
+{% set location_address = address_block.current_content if address_block else content_default('practice.location_address') %}
+{% set location_website = website_block.current_content if website_block else content_default('practice.location_website') %}
+{% set directions_block = content_blocks.get('practice.directions') if content_blocks else none %}
+{% set accessibility_block = content_blocks.get('practice.accessibility') if content_blocks else none %}
+{% set directions = directions_block.current_content if directions_block else content_default('practice.directions') %}
+{% set has_directions = directions or (accessibility_block and accessibility_block.current_content) %}
 
 <section id="praxis" class="py-20 bg-theme-main transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -30,11 +39,25 @@
                         </div>
                         <div>
                             <h4 class="font-bold text-theme-text-main text-sm">Standort &amp; Gemeinschaftspraxis</h4>
-                            {{ editable('practice.name', tag='p', class='text-sm text-theme-text-muted font-semibold') }}
-                            {{ editable('practice.address', tag='p', class='text-sm text-theme-text-muted whitespace-pre-line', type='textarea', rows=3) }}
+                            {{ editable('practice.location_name', tag='p', class='text-sm text-theme-text-muted font-semibold') }}
+                            {% if is_admin %}
+                            {# Plain editable fields in admin mode (no links while editing) #}
+                            {{ editable('practice.location_address', tag='p', class='text-sm text-theme-text-muted') }}
+                            {{ editable('practice.location_website', tag='p', class='text-sm text-theme-text-muted') }}
+                            {% else %}
+                            {% if location_address %}
+                            <p class="text-sm"><a href="https://www.google.com/maps/search/?api=1&amp;query={{ location_address | urlencode }}" target="_blank" rel="noopener noreferrer" class="text-theme-text-muted hover:text-theme-primary hover:underline" title="In Google Maps öffnen">{{ location_address }}</a></p>
+                            {% endif %}
+                            {% if location_website %}
+                            {# Always an https link – the stored value is only the host name #}
+                            <p class="text-sm"><a href="https://{{ location_website | replace('https://', '') | replace('http://', '') }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-theme-primary hover:underline">{{ location_website }}</a></p>
+                            {% endif %}
+                            {% endif %}
                         </div>
                     </div>
 
+                    <!-- Directions (hidden publicly while both texts are empty) -->
+                    {% if is_admin or has_directions %}
                     <div class="flex items-start gap-4 pt-3 border-t border-theme/50">
                         <div class="w-10 h-10 rounded-xl bg-theme-secondary/40 flex items-center justify-center text-theme-primary flex-shrink-0">
                             <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,10 +66,11 @@
                         </div>
                         <div class="space-y-1 w-full">
                             <h4 class="font-bold text-theme-text-main text-sm">Infrastruktur &amp; Anreise</h4>
-                            {{ editable('practice.directions', tag='p', class='text-sm text-theme-text-muted', type='textarea', rows=3) }}
+                            {{ editable('practice.directions', tag='div', class='text-sm text-theme-text-muted', type='rich_text', rows=10) }}
                             {{ editable('practice.accessibility', tag='p', class='text-sm text-theme-text-muted mt-1', type='textarea', rows=2) }}
                         </div>
                     </div>
+                    {% endif %}
                 </div>
             </div>
 

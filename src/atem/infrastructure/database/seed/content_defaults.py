@@ -486,23 +486,46 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "content": "kontakt@pusterum.be",
     },
     {
+        "key": "practice.location_name",
+        "section": "practice",
+        "type": "text",
+        "content": "Physio La Fontaine",
+    },
+    {
+        "key": "practice.location_address",
+        "section": "practice",
+        "type": "text",
+        "content": "Rüschlistrasse 9, 2502 Biel",
+    },
+    {
+        "key": "practice.location_website",
+        "section": "practice",
+        "type": "text",
+        "content": "physio-lafontaine.ch",
+    },
+    {
         "key": "practice.directions",
         "section": "practice",
-        "type": "textarea",
+        "type": "rich_text",
+        # Markup: **fett**, *kursiv*, __unterstrichen__, "- " Liste (presentation/rich_text.py)
         "content": (
-            "Zentral in der Berner Altstadt gelegen, ca. 8 Gehminuten vom Hauptbahnhof Bern"
-            " entfernt. Tram 6, 7, 8 oder 9 bis Haltestelle Zytglogge. Parkmöglichkeiten im"
-            " Parkhaus Rathaus (3 Min. Fussweg)."
+            "**Anreise mit dem ÖV ab Bahnhof Biel**\n"
+            "Die Anreise vom Hauptbahnhof Biel/Bienne dauert nur ca. 5 bis 7 Minuten.\n\n"
+            "- **Bus nehmen:** Am Bahnhofplatz Biel in den Bus (Linie 1, 5, 6 oder 8) Richtung"
+            " Innenstadt / Altstadt einsteigen.\n"
+            "- **Aussteigen:** An der Haltestelle Biel/Bienne, Altstadt (Vieille Ville) oder"
+            " Zentralplatz aussteigen.\n"
+            "- **Fussweg (ca. 2 Minuten):** Von der Haltestelle sind es nur wenige Schritte in die"
+            " Rüschlistrasse 9.\n\n"
+            "*Alternativ ist die Praxis vom Bahnhof aus auch zu Fuss in ca. 10 bis 12 Minuten"
+            " bequem erreichbar.*"
         ),
     },
     {
         "key": "practice.accessibility",
         "section": "practice",
         "type": "textarea",
-        "content": (
-            "Die Praxisräume befinden sich im 1. Stock eines historischen Altstadthauses. Ein"
-            " rollstuhlgängiger Lift und ein barrierefreier Zugang sind vorhanden."
-        ),
+        "content": "",
     },
     {
         "key": "practice.interior_image",

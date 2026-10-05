@@ -138,3 +138,10 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 @media (prefers-reduced-motion: reduce) {
     .ambient-png-seed, .whisper-seed { animation: none !important; }
 }
+
+/* Rich-text content blocks (presentation/rich_text.py): paragraphs, lists, underline */
+.rich-text > * + * { margin-top: 0.5rem; }
+.rich-text ul { list-style: disc; padding-left: 1.25rem; }
+.rich-text li + li { margin-top: 0.25rem; }
+.rich-text strong { font-weight: 600; color: var(--theme-text-main, #1E293B); }
+.rich-text u { text-underline-offset: 2px; }

@@ -31,9 +31,9 @@ async def test_practice_address_is_an_editable_block(app_client: AsyncTestClient
     )
     assert saved.status_code == 200
     app_client.cookies.delete("atem_session")
-    for path in ("/", "/impressum"):
-        page = await app_client.get(path)
-        assert "Musterweg 7" in page.text
+    # PUSTERUM's own address is shown in the Impressum, not in the location card
+    assert "Musterweg 7" in (await app_client.get("/impressum")).text
+    assert "Musterweg 7" not in (await app_client.get("/")).text
 
 
 async def test_services_admin_crud_and_public_rendering(
@@ -149,3 +149,59 @@ async def test_offerings_become_contact_subjects(app_client: AsyncTestClient[Lit
         ),
     )
     assert f'<option value="{subject}" selected>' in retry.text
+
+
+async def test_location_links_to_google_maps_and_website(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    page = (await app_client.get("/")).text
+    assert "Physio La Fontaine" in page
+    assert (
+        'href="https://www.google.com/maps/search/?api=1&amp;query='
+        'R%C3%BCschlistrasse%209%2C%202502%20Biel"'
+    ) in page
+    assert 'href="https://physio-lafontaine.ch" target="_blank"' in page
+    # Formatted directions: bold heading and bullet list
+    assert "<strong>Anreise mit dem ÖV ab Bahnhof Biel</strong>" in page
+    assert "<ul><li><strong>Bus nehmen:</strong>" in page
+
+
+async def test_location_website_link_is_always_https(app_client: AsyncTestClient[Litestar]) -> None:
+    await _login(app_client)
+    saved = await app_client.post(
+        "/admin/content/practice.location_website/save",
+        data={"content": "javascript:alert(1)", "tag": "p"},
+    )
+    assert saved.status_code == 200
+    app_client.cookies.delete("atem_session")
+    page = (await app_client.get("/")).text
+    assert 'href="https://javascript:alert(1)"' in page
+    assert 'href="javascript:' not in page
+
+
+async def test_directions_are_saved_and_rendered_as_rich_text(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    await _login(app_client)
+    saved = await app_client.post(
+        "/admin/content/practice.directions/save",
+        data={"content": "**Bus** <script>x</script>\n- Linie 1", "tag": "div"},
+    )
+    assert saved.status_code == 200
+    assert 'role="toolbar"' in saved.text  # re-rendered with the formatting toolbar
+    app_client.cookies.delete("atem_session")
+    page = (await app_client.get("/")).text
+    assert (
+        "<p><strong>Bus</strong> &lt;script&gt;x&lt;/script&gt;</p><ul><li>Linie 1</li></ul>"
+        in page
+    )
+
+
+async def test_empty_directions_hide_the_row(app_client: AsyncTestClient[Litestar]) -> None:
+    await _login(app_client)
+    await app_client.post(
+        "/admin/content/practice.directions/save", data={"content": "", "tag": "div"}
+    )
+    assert "Infrastruktur &amp; Anreise" in (await app_client.get("/")).text
+    app_client.cookies.delete("atem_session")
+    assert "Infrastruktur &amp; Anreise" not in (await app_client.get("/")).text

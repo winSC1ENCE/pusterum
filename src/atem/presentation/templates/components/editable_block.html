@@ -33,6 +33,8 @@
                 <{{ tag }} class="{{ class }} !text-base italic opacity-60 border border-dashed border-slate-400 rounded-lg px-3 py-2">
                     Optionales Feld – leer (öffentlich ausgeblendet). Doppelklick oder Stift zum Befüllen.
                 </{{ tag }}>
+            {% elif type == 'rich_text' %}
+                <{{ tag }} class="rich-text {{ class }}">{{ val | rich_text }}</{{ tag }}>
             {% else %}
                 <{{ tag }} class="{{ class }}">{{ val }}</{{ tag }}>
             {% endif %}
@@ -96,6 +98,27 @@
                         <img :src='$refs.inputField ? $refs.inputField.value : {{ val | tojson }}' class="w-14 h-14 object-cover rounded-lg border border-slate-300 bg-slate-50" alt="Vorschau" />
                         <span class="text-[11px] text-slate-500">Live-Vorschau</span>
                     </div>
+                </div>
+                {% elif type == 'rich_text' %}
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Inhalt bearbeiten:</label>
+                    <!-- Formatting toolbar: inserts the markup rendered by presentation/rich_text.py -->
+                    <div class="flex flex-wrap items-center gap-1 mb-1.5 text-xs" role="toolbar" aria-label="Formatierung">
+                        <button type="button" @click="format('bold')" class="px-2 py-0.5 rounded border border-slate-300 text-slate-800 hover:bg-slate-100 transition-colors font-bold" title="Fett (Strg+B)">B</button>
+                        <button type="button" @click="format('italic')" class="px-2 py-0.5 rounded border border-slate-300 text-slate-800 hover:bg-slate-100 transition-colors italic" title="Kursiv (Strg+I)">I</button>
+                        <button type="button" @click="format('underline')" class="px-2 py-0.5 rounded border border-slate-300 text-slate-800 hover:bg-slate-100 transition-colors underline" title="Unterstrichen (Strg+U)">U</button>
+                        <button type="button" @click="format('list')" class="px-2 py-0.5 rounded border border-slate-300 text-slate-800 hover:bg-slate-100 transition-colors" title="Aufzählung">&bull; Liste</button>
+                        <span class="text-[10px] text-slate-500 ml-1">Leerzeile = neuer Absatz</span>
+                    </div>
+                    <textarea
+                        name="content"
+                        x-ref="inputField"
+                        rows="{{ rows }}"
+                        @keydown.ctrl.b.prevent="format('bold')"
+                        @keydown.ctrl.i.prevent="format('italic')"
+                        @keydown.ctrl.u.prevent="format('underline')"
+                        class="w-full p-2.5 text-sm font-mono rounded-xl border border-slate-300 text-slate-900 bg-white focus:ring-1 focus:ring-slate-800 focus:outline-none"
+                    >{{ val }}</textarea>
                 </div>
                 {% elif type == 'textarea' %}
                 <div>
@@ -162,6 +185,8 @@
         <!-- PUBLIC RENDERING (No editing overhead or controls) -->
         {% if type == 'image' %}
             <img src="{{ val }}" alt="{{ img_alt }}" class="{{ img_class }}" />
+        {% elif val and type == 'rich_text' %}
+            <{{ tag }} class="rich-text {{ class }}">{{ val | rich_text }}</{{ tag }}>
         {% elif val %}
             <{{ tag }} class="{{ class }}">{{ val }}</{{ tag }}>
         {% endif %}

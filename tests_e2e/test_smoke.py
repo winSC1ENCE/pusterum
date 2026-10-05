@@ -64,6 +64,34 @@ def test_admin_login_and_inline_edit(page: Page, server_url: str) -> None:
     assert_clean(page)
 
 
+def test_rich_text_toolbar_formats_directions(page: Page, server_url: str) -> None:
+    page.goto(server_url + "/admin/login")
+    page.fill("#email", ADMIN_EMAIL)
+    page.fill("#password", ADMIN_PASSWORD)
+    page.get_by_role("button", name="Anmelden").click()
+    expect(page).to_have_url(re.compile(r"/admin$"))
+
+    page.goto(server_url + "/#praxis")
+    block = page.locator("#content-block-practice-directions")
+    block.dblclick()
+    field = block.locator("textarea[name=content]")
+    field.fill("Bus")
+    field.select_text()
+    block.get_by_role("button", name="B", exact=True).click()
+    expect(field).to_have_value("**Bus**")
+    field.press("End")
+    field.press("Enter")
+    field.press_sequentially("Linie 1")
+    block.get_by_role("button", name="• Liste").click()
+    expect(field).to_have_value("**Bus**\n- Linie 1")
+    field.press("Alt+s")
+    saved = page.locator("#content-block-practice-directions")
+    expect(saved.locator("li")).to_have_count(1)  # waits for the HTMX swap
+    expect(saved.locator("strong")).to_have_text("Bus")
+    expect(saved.locator("li")).to_have_text("Linie 1")
+    assert_clean(page)
+
+
 def test_design_studio_without_violations(page: Page, server_url: str) -> None:
     page.goto(server_url + "/admin/login")
     page.fill("#email", ADMIN_EMAIL)

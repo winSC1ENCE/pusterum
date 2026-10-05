@@ -7,6 +7,7 @@ from typing import Any
 from litestar.contrib.jinja import JinjaTemplateEngine
 
 from atem.infrastructure.database.seed.content_defaults import content_default, count_numbered_keys
+from atem.presentation.rich_text import render_rich_text
 
 STATIC_DIR = Path(__file__).parent / "static"
 _VERSIONED_ASSETS = ("css", "js")
@@ -36,3 +37,4 @@ def configure_jinja(engine: JinjaTemplateEngine) -> None:
     engine.engine.globals["content_default"] = content_default
     engine.engine.globals["count_numbered_keys"] = count_numbered_keys
     engine.engine.filters["content_hash"] = content_hash
+    engine.engine.filters["rich_text"] = render_rich_text

@@ -645,7 +645,7 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "key": "practice.address",
         "section": "practice",
         "type": "text",
-        "content": "Kramgasse 42, 3011 Bern",
+        "content": "Beispielweg 0, 3000 Bern",
     },
     {
         "key": "practice.phone",

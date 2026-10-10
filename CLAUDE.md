@@ -129,8 +129,10 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
 ## Deployment
 
 Domain: **www.pusterum.be** (`.be` = Bern, nicht Belgien); `pusterum.be` leitet per Caddy auf `www` um.
-Kontakt-Mail: `kontakt@pusterum.be`. Hosting, `docker compose -f docker-compose.prod.yml up -d --build` (Caddy mit Auto-TLS, `.env` aus
+Kontakt-Mail: `info@pusterum.be`. Cloud-Server, `docker compose -f docker-compose.prod.yml up -d --build` (Caddy mit Auto-TLS, `.env` aus
 `config/env.production.example`). Der Container-Entrypoint (`docker/entrypoint.sh`) führt `alembic upgrade head`
 und `python -m atem.cli seed-content` aus; den ersten Admin legt `python -m atem.cli create-admin` an.
-Secrets in `.env`, `db.env`, `backup.env` (Vorlagen in `config/`); Backups per restic auf die Storage Box.
-Ablauf, Restore und Notfälle: [`docs/ops/runbook.md`](docs/ops/runbook.md).
+Secrets in `.env`, `db.env`, `backup.env` (Vorlagen in `config/`); Backups per restic auf einen externen SFTP-Backup-Speicher.
+Anbieter-Namen und konkrete Zugangsschritte stehen nur im **git-crypt-verschlüsselten** Runbook – in allen
+anderen (öffentlichen) Dateien Anbieter neutral benennen («Cloud-Server», «Backup-Speicher», «Mail-Provider»).
+Ablauf, Restore und Notfälle: [`docs/ops/runbook.md`](docs/ops/runbook.md) (verschlüsselt, `git-crypt unlock`).

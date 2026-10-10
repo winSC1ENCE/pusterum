@@ -1,12 +1,12 @@
 # ==============================================================================
-# Production stack (Hosting): Caddy (TLS, rate limits) → app (granian) → PostgreSQL,
+# Production stack: Caddy (TLS, rate limits) → app (granian) → PostgreSQL,
 # plus a restic backup sidecar. Only Caddy publishes ports.
 #
 # Files next to this compose file (see config/*.example and docs/ops/runbook.md):
 #   .env         app configuration + DOMAIN / ACME_EMAIL for Caddy
 #   db.env       POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB
 #   backup.env   RESTIC_REPOSITORY / RESTIC_PASSWORD / HEALTHCHECK_PING_URL
-#   secrets/backup_ssh/   SSH key + config for the SFTP-Backup-Speicher (chmod 600)
+#   secrets/backup_ssh/   SSH key + config for the SFTP backup target (chmod 600)
 # ==============================================================================
 
 x-logging: &default-logging

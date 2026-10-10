@@ -651,13 +651,13 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "key": "practice.phone",
         "section": "practice",
         "type": "phone",
-        "content": "+41 31 310 00 00",
+        "content": "+41 31 000 00 00",
     },
     {
         "key": "practice.email",
         "section": "practice",
         "type": "email",
-        "content": "kontakt@pusterum.be",
+        "content": "info@pusterum.be",
     },
     {
         "key": "practice.location_name",

@@ -47,8 +47,8 @@ class Settings(BaseSettings):
 
     # Email
     MAIL_ENABLED: bool = False
-    MAIL_FROM: str = "kontakt@pusterum.be"
-    MAIL_TO: str = "kontakt@pusterum.be"
+    MAIL_FROM: str = "info@pusterum.be"
+    MAIL_TO: str = "info@pusterum.be"
     SMTP_HOST: str = "localhost"
     SMTP_PORT: int = 1025
     SMTP_USER: str = ""

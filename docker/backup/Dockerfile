@@ -1,4 +1,4 @@
-# Backup sidecar: pg_dump (matching PostgreSQL major version) + restic → SFTP-Backup-Speicher.
+# Backup sidecar: pg_dump (matching PostgreSQL major version) + restic → SFTP backup target.
 ARG POSTGRES_IMAGE=postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
 FROM ${POSTGRES_IMAGE}
 

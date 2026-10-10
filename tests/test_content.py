@@ -397,8 +397,8 @@ async def test_contact_phone_and_email_are_editable_blocks_without_links_for_adm
 ) -> None:
     """Phone/e-mail render from content blocks; admins get edit fields instead of links."""
     public_resp = await app_client.get("/")
-    assert 'href="tel:+41313100000"' in public_resp.text
-    assert 'href="mailto:kontakt@pusterum.be"' in public_resp.text
+    assert 'href="tel:+41310000000"' in public_resp.text
+    assert 'href="mailto:info@pusterum.be"' in public_resp.text
 
     await app_client.post(
         "/admin/login",
@@ -409,8 +409,8 @@ async def test_contact_phone_and_email_are_editable_blocks_without_links_for_adm
     assert 'id="content-block-practice-phone"' in admin_resp.text
     assert 'id="content-block-practice-email"' in admin_resp.text
     assert 'href="tel:' not in admin_resp.text
-    assert 'href="mailto:kontakt@pusterum.be"' not in admin_resp.text
+    assert 'href="mailto:info@pusterum.be"' not in admin_resp.text
 
     impressum_resp = await app_client.get("/impressum")
     assert 'id="content-block-practice-email"' in impressum_resp.text
-    assert "mailto:kontakt@pusterum.be" not in impressum_resp.text
+    assert "mailto:info@pusterum.be" not in impressum_resp.text

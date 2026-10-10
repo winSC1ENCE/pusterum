@@ -1,4 +1,4 @@
-"""Privacy policy update: hosting (Hosting), contact form, ALTCHA, cookies, fonts.
+"""Privacy policy update: hosting, contact form, ALTCHA, cookies, fonts.
 
 Replaces only untouched default texts (see migrations/_helpers.py). The new sections
 5 (Cookies/Schriftarten) and 6 (Rechte) are seeded automatically at startup.

@@ -137,7 +137,7 @@ sequenceDiagram
     participant CLI as atem.cli
     participant G as granian (2 Worker)
     participant BK as backup (cron)
-    participant SB as Storage Box
+    participant SB as Backup-Speicher (SFTP)
 
     D->>E: Container start
     E->>AL: alembic upgrade head (Advisory-Lock)

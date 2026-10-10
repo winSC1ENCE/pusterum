@@ -1,6 +1,6 @@
 #cloud-config
 # ==============================================================================
-# Cloud – base hardening for the PUSTERUM server (Ubuntu 24.04 LTS)
+# Cloud server – base hardening for the PUSTERUM server (Ubuntu 24.04 LTS)
 # Paste into "Cloud config" when creating the server. Replace the SSH key below.
 # Afterwards follow docs/ops/runbook.md (deploy, secrets, backups).
 # ==============================================================================
@@ -75,7 +75,7 @@ runcmd:
   - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
   - apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
   - usermod -aG docker deploy
-  # Host firewall (the Cloud-Firewall in front is the primary filter)
+  # Host firewall (the provider's cloud firewall in front is the primary filter)
   - ufw default deny incoming
   - ufw default allow outgoing
   - ufw limit 22/tcp

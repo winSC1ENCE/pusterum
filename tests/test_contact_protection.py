@@ -172,7 +172,7 @@ async def test_notification_mail_sets_reply_to(
     assert await service.send_contact_notification(message)
     sent, _ = smtp_capture[0]
     assert "maria@muster.ch" in sent["Reply-To"]
-    assert sent["To"] == "kontakt@pusterum.be"
+    assert sent["To"] == "info@pusterum.be"
 
 
 async def test_lockout_notice_mail(
@@ -180,9 +180,9 @@ async def test_lockout_notice_mail(
 ) -> None:
     service = SmtpEmailService(_smtp_settings())
     until = datetime(2026, 10, 4, 12, 30, tzinfo=UTC)
-    assert await service.send_lockout_notice("kontakt@pusterum.be", "203.0.113.66", until)
+    assert await service.send_lockout_notice("info@pusterum.be", "203.0.113.66", until)
     sent, _ = smtp_capture[0]
-    assert sent["To"] == "kontakt@pusterum.be"
+    assert sent["To"] == "info@pusterum.be"
     body = sent.get_content()
     assert "203.0.113.66" in body
     assert "04.10.2026 14:30" in body  # Swiss local time (CEST)

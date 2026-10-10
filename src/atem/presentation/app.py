@@ -321,7 +321,7 @@ def create_app() -> Litestar:
             version="0.1.0",
             description="Clean Architecture API für PUSTERUM – Praxis für Atem- und Körpertherapie",
             contact=Contact(
-                name="PUSTERUM", email="kontakt@pusterum.be", url="https://www.pusterum.be"
+                name="PUSTERUM", email="info@pusterum.be", url="https://www.pusterum.be"
             ),
         )
     )

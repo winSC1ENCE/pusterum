@@ -119,9 +119,9 @@ gegen PostgreSQL, einen Trivy-Image-Scan und einen Smoke-Start im Produktionsmod
 
 ---
 
-## 🚢 Deployment (Hosting Server)
+## 🚢 Deployment (Cloud-Server)
 
-Produktions-Domain: **https://www.pusterum.be** (`.be` = Bern). In `.env` `DOMAIN=www.pusterum.be` setzen; die Apex-Domain `pusterum.be` wird im `Caddyfile` permanent auf `www` umgeleitet. DNS: A/AAAA-Records für `pusterum.be` **und** `www.pusterum.be` auf den Cloud-Server.
+Produktions-Domain: **https://www.pusterum.be** (`.be` = Bern). In `.env` `DOMAIN=www.pusterum.be` setzen; die Apex-Domain `pusterum.be` wird im `Caddyfile` permanent auf `www` umgeleitet. DNS: A/AAAA-Records für `pusterum.be` **und** `www.pusterum.be` auf den Server.
 
 ```bash
 # Docker Compose mit Caddy Reverse Proxy & automatischem TLS
@@ -137,3 +137,6 @@ Produktions-Secrets: `cp config/env.production.example .env`, `cp config/db.env.
 `cp config/backup.env.production.example backup.env` und alle `CHANGE_ME` ersetzen – die App verweigert den
 Start mit unsicheren Werten. Beim ersten Login wird die Zwei-Faktor-Anmeldung (TOTP) erzwungen.
 Server-Härtung (`ops/server/cloud-init.yaml`), Backups/Restore und Notfälle: [`docs/ops/runbook.md`](docs/ops/runbook.md).
+
+> **Hinweis:** `docs/ops/runbook.md` ist mit [git-crypt](https://github.com/AGWA/git-crypt) verschlüsselt und
+> auf GitHub nur als Binärdatei sichtbar. Mit dem Schlüssel entsperren: `git-crypt unlock /pfad/zum/pusterum.key`.

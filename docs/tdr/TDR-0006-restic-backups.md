@@ -1,4 +1,4 @@
-# TDR-0006: Backups mit restic auf eine SFTP-Backup-Speicher
+# TDR-0006: Backups mit restic auf einen externen SFTP-Speicher
 
 * **Status:** accepted
 * **Date:** 2026-10-04
@@ -13,7 +13,7 @@ und Anfragen vernichtet (ADR-0003 forderte Backups, umgesetzt waren sie nicht).
 ## Technical Decision
 
 * Sidecar-Container auf Basis `postgres:16-alpine` (passender `pg_dump`) mit `restic`, Cron:
-  täglich 02:30 Dump + `/media` → restic-Repository per SFTP (Port 23) auf der Storage Box,
+  täglich 02:30 Dump + `/media` → restic-Repository per SFTP auf den externen Backup-Speicher,
   Aufbewahrung 7 täglich / 4 wöchentlich / 6 monatlich, sonntags `restic check --read-data-subset=5%`.
 * Clientseitige Verschlüsselung (restic, `RESTIC_PASSWORD` zusätzlich offline aufbewahrt),
   optionaler Healthcheck-Ping (Start/Erfolg/Fehler).

@@ -66,7 +66,7 @@ Querschnitt Sicherheit: siehe [ADR-0004](docs/adr/ADR-0004-security-architecture
 | **Passwort-Sicherheit** | `Argon2id` (`argon2-cffi`) | Aktueller State-of-the-Art Standard für Passwort-Hashing |
 | **Reverse Proxy** | `Caddy 2` + `caddy-ratelimit` | Automatisches HTTPS, HSTS, Rate-Limits, Security-Header |
 | **Backups** | `restic` → SFTP-Backup-Speicher | Verschlüsselte, tägliche Datenbank- & Medien-Backups |
-| **Container** | Docker & Docker Compose | Lokales Development & Produktionsbetrieb |
+| **Container** | Docker & Docker Compose | Lokales Development & Produktionsbetrieb auf einem Cloud-Server |
 
 ---
 
@@ -137,7 +137,7 @@ scripts/build-css.sh
 uv run granian --interface asgi --factory --reload --reload-paths src --host 127.0.0.1 --port 8000 atem.presentation.app:create_app
 ```
 
-### 5.2 Produktions-Deployment auf Hosting
+### 5.2 Produktions-Deployment (Cloud-Server)
 
 ```bash
 # Auf dem gehärteten Server (ops/server/cloud-init.yaml):

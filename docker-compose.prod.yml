@@ -56,6 +56,12 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: atem_app
+    # App logs go to the systemd journal (stable name instead of per-container files), so the
+    # fail2ban jail "pusterum-admin" keeps working across rebuilds. `docker compose logs` still works.
+    logging:
+      driver: journald
+      options:
+        tag: atem_app
     env_file:
       - .env
     volumes:

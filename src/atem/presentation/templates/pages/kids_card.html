@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Übungskarte «{{ content_value(content_blocks, 'kids.title') }}» | PUSTERUM</title>
+    <meta name="description" content="Druckbare Übungskarte: {{ content_value(content_blocks, 'kids.title') }} – Atemübung für Kinder.">
+    <link rel="icon" type="image/png" sizes="64x64" href="/static/images/favicon.png">
+    <link rel="stylesheet" href="/static/css/fonts.css?v={{ asset_version }}">
+    <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}">
+    <link rel="stylesheet" href="/static/css/styles.css?v={{ asset_version }}">
+    <link rel="stylesheet" href="/theme.css?v={{ theme_css | content_hash }}">
+    <script defer src="/static/js/app.js?v={{ asset_version }}"></script>
+</head>
+<body class="bg-theme-main text-theme-text-main antialiased print:bg-white">
+    {% set kids_variants = numbered_content(content_blocks, 'kids.variant_', 'title', 'text') %}
+
+    <div class="max-w-2xl mx-auto px-4 py-6 flex items-center justify-between gap-3 print:hidden">
+        <a href="/#kinder" class="text-sm text-theme-text-muted hover:text-theme-primary">&larr; Zurück zur Website</a>
+        <button type="button" data-print class="px-5 py-2.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary text-sm font-medium shadow-sm">
+            Karte drucken
+        </button>
+    </div>
+
+    <article class="kids-card max-w-2xl mx-auto mb-10 bg-theme-card border border-theme rounded-3xl p-8 sm:p-10 shadow-sm space-y-5">
+        <header class="flex items-center gap-4">
+            <svg class="kids-flower is-open w-16 h-16 flex-shrink-0" viewBox="0 0 120 120" aria-hidden="true">
+                {% for angle in [0, 60, 120, 180, 240, 300] %}
+                <g transform="rotate({{ angle }} 60 60)"><ellipse class="kids-petal" cx="60" cy="34" rx="13" ry="24"/></g>
+                {% endfor %}
+                <circle class="kids-flower-center" cx="60" cy="60" r="12"/>
+            </svg>
+            <div>
+                <p class="text-xs uppercase font-bold tracking-widest text-theme-primary">{{ content_value(content_blocks, 'kids.badge') }}</p>
+                <h1 class="font-heading text-2xl sm:text-3xl font-bold">{{ content_value(content_blocks, 'kids.title') }}</h1>
+            </div>
+        </header>
+
+        <p class="text-sm text-theme-text-muted leading-relaxed">{{ content_value(content_blocks, 'kids.subtitle') }}</p>
+
+        <ol class="space-y-3">
+            {% for variant in kids_variants %}
+            <li class="flex gap-3 break-inside-avoid">
+                <span class="w-7 h-7 rounded-full bg-theme-secondary/50 text-theme-primary text-sm font-bold flex items-center justify-center flex-shrink-0">{{ loop.index }}</span>
+                <div>
+                    <h2 class="font-bold text-sm">{{ variant.title }}</h2>
+                    <p class="text-sm text-theme-text-muted leading-relaxed">{{ variant.text }}</p>
+                </div>
+            </li>
+            {% endfor %}
+        </ol>
+
+        <section class="pt-4 border-t border-theme break-inside-avoid">
+            <h2 class="font-bold text-sm mb-2">{{ content_value(content_blocks, 'kids.tips_title') }}</h2>
+            <div class="rich-text text-sm text-theme-text-muted leading-relaxed">{{ content_value(content_blocks, 'kids.tips') | rich_text }}</div>
+        </section>
+
+        <footer class="pt-4 border-t border-theme flex flex-wrap justify-between gap-2 text-xs text-theme-text-muted">
+            <span class="italic">{{ content_value(content_blocks, 'kids.source') }}</span>
+            <span>PUSTERUM &bull; www.pusterum.be</span>
+        </footer>
+    </article>
+</body>
+</html>

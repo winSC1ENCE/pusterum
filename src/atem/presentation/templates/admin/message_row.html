@@ -1,0 +1,29 @@
+{# One contact message row in the admin dashboard (re-rendered after status changes). #}
+<tr id="message-{{ msg.id }}" class="hover:bg-theme-muted/40 transition-colors align-top">
+    <td class="py-4 px-6 text-xs text-theme-text-muted whitespace-nowrap">{{ msg.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+    <td class="py-4 px-6 font-bold text-theme-text-main">{{ msg.sender_name }}</td>
+    <td class="py-4 px-6 text-xs">
+        <a href="mailto:{{ msg.sender_email }}" class="text-theme-primary font-semibold hover:underline block">{{ msg.sender_email }}</a>
+        {% if msg.sender_phone %}<span class="text-theme-text-muted block">{{ msg.sender_phone }}</span>{% endif %}
+    </td>
+    <td class="py-4 px-6 max-w-md">
+        <span class="font-bold text-theme-text-main block text-xs">{{ msg.subject }}</span>
+        <p class="text-xs text-theme-text-muted mt-1 whitespace-pre-line">{{ msg.message }}</p>
+    </td>
+    <td class="py-4 px-6 whitespace-nowrap space-y-2">
+        <form hx-post="/admin/messages/{{ msg.id }}/status" hx-target="#message-{{ msg.id }}" hx-swap="outerHTML" hx-trigger="change">
+            <label class="sr-only" for="status-{{ msg.id }}">Status</label>
+            <select id="status-{{ msg.id }}" name="status" class="text-xs rounded-lg border border-theme bg-theme-card px-2 py-1">
+                {% for value, label in [("NEW", "Neu"), ("READ", "Gelesen"), ("REPLIED", "Beantwortet"), ("ARCHIVED", "Archiviert")] %}
+                <option value="{{ value }}" {% if msg.status.value == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </form>
+        <button type="button"
+                hx-post="/admin/messages/{{ msg.id }}/delete"
+                hx-target="#message-{{ msg.id }}"
+                hx-swap="outerHTML"
+                hx-confirm="Diese Nachricht endgültig löschen?"
+                class="text-xs text-red-600 hover:text-red-800 font-medium">Löschen</button>
+    </td>
+</tr>

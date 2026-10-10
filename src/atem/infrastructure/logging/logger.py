@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import structlog
 
@@ -21,41 +21,32 @@ def setup_logging(is_dev: bool = True) -> None:
         structlog.stdlib.PositionalArgumentsFormatter(),
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
     ]
 
-    if is_dev:
-        # Pretty colored console output for local development
-        processors: list[Processor] = [
-            *shared_processors,
-            structlog.dev.ConsoleRenderer(colors=True),
-        ]
-    else:
-        # JSON output for production log aggregation (Grafana Loki, Datadog, ELK)
-        processors = [
-            *shared_processors,
-            structlog.processors.dict_tracebacks,
-            structlog.processors.JSONRenderer(),
-        ]
-
+    # structlog only *prepares* the event dict; the stdlib ProcessorFormatter renders it
+    # exactly once (JSON in production, coloured console locally) – also for foreign logs
+    # (granian, alembic, litestar).
     structlog.configure(
-        processors=processors,
+        processors=[*shared_processors, structlog.stdlib.ProcessorFormatter.wrap_for_formatter],
         logger_factory=structlog.stdlib.LoggerFactory(),
         wrapper_class=structlog.stdlib.BoundLogger,
         cache_logger_on_first_use=True,
     )
 
-    # Configure standard library logging
-    handler = logging.StreamHandler(sys.stdout)
+    renderer: Processor = (
+        structlog.dev.ConsoleRenderer(colors=True)
+        if is_dev
+        else structlog.processors.JSONRenderer()
+    )
     formatter = structlog.stdlib.ProcessorFormatter(
         foreign_pre_chain=shared_processors,
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-            structlog.dev.ConsoleRenderer(colors=True)
-            if is_dev
-            else structlog.processors.JSONRenderer(),
+            *([] if is_dev else [structlog.processors.dict_tracebacks]),
+            renderer,
         ],
     )
+    handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
 
     root_logger = logging.getLogger()
@@ -64,10 +55,5 @@ def setup_logging(is_dev: bool = True) -> None:
     root_logger.setLevel(logging.DEBUG if is_dev else logging.INFO)
 
     # Suppress verbose loggers
-    for noisy in ["uvicorn.access", "sqlalchemy.engine", "httpcore", "httpx"]:
+    for noisy in ["sqlalchemy.engine", "httpcore", "httpx"]:
         logging.getLogger(noisy).setLevel(logging.WARNING)
-
-
-def get_logger(name: str) -> Any:
-    """Get structured logger instance."""
-    return structlog.get_logger(name)

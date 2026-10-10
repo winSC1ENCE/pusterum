@@ -230,3 +230,15 @@ src/atem/presentation/static/images/test_upload*.png
 # Dynamic User Media Storage (Persistent Docker Volume)
 storage/uploads/*
 !storage/uploads/.gitkeep
+
+# Lokale, nicht versionierte Analysen/Reviews (enthalten offene Schwachstellen)
+docs/reviews/
+
+# Build tooling & generated assets (scripts/build-css.sh)
+.tools/
+src/atem/presentation/static/css/app.css
+
+# Production secrets next to docker-compose.prod.yml (templates live in config/)
+/db.env
+/backup.env
+/secrets/

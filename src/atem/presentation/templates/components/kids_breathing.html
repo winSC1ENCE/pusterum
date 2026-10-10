@@ -1,0 +1,87 @@
+{% from "components/editable_block.html" import editable with context %}
+{% from "components/ui_macros.html" import section_header with context %}
+{% set kids_variants = numbered_content(content_blocks, 'kids.variant_', 'title', 'text', 'photo_closed', 'photo_open') %}
+
+{# Small line pictograms per variant (bud, open blossom, big flower, group circle) #}
+{% macro variant_icon(n) %}
+<svg class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+    {% if n == 1 %}
+    <path d="M12 21c-3-2-4.2-6-3.6-11L12 4l3.6 6c.6 5-.6 9-3.6 11z"/><path d="M12 21v-6"/>
+    {% elif n == 2 %}
+    <path d="M12 21c-4-1-7-5-7-11 3 0 5.2 2 7 4.2C13.8 12 16 10 19 10c0 6-3 10-7 11z"/><path d="M12 14.2V7"/>
+    {% elif n == 4 %}
+    <circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="3.5" r="1.5"/><circle cx="12" cy="20.5" r="1.5"/><circle cx="3.5" cy="12" r="1.5"/><circle cx="20.5" cy="12" r="1.5"/>
+    {% else %}
+    <circle cx="12" cy="12" r="2.5"/><path d="M12 9.5V3M12 14.5V21M9.5 12H3M14.5 12H21M10.2 10.2 5.6 5.6M13.8 13.8l4.6 4.6M13.8 10.2l4.6-4.6M10.2 13.8l-4.6 4.6"/>
+    {% endif %}
+</svg>
+{% endmacro %}
+
+<section id="kinder" class="py-20 bg-theme-main border-b border-theme transition-colors duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {{ section_header('kids', subtitle_rows=3) }}
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+
+            <!-- Variants -->
+            <ol x-data="kidsVariantList" @kids-flower-variant.window="onVariant($event)" class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% for i in range(1, kids_variants | length + 1) %}
+                <li :class="cardClass({{ loop.index0 }})" class="kids-variant-card bg-theme-card border border-theme rounded-3xl p-6 shadow-sm flex flex-col gap-2">
+                    <div class="flex items-center gap-3">
+                        <span class="w-10 h-10 rounded-xl bg-theme-secondary/40 flex items-center justify-center text-theme-primary flex-shrink-0">
+                            {{ variant_icon(i) }}
+                        </span>
+                        <span class="text-xs uppercase font-bold tracking-widest text-theme-primary">Blume {{ i }}</span>
+                    </div>
+                    {{ editable('kids.variant_' ~ i ~ '.title', tag='h3', class='font-heading text-lg font-bold text-theme-text-main') }}
+                    {{ editable('kids.variant_' ~ i ~ '.text', tag='p', class='text-sm text-theme-text-muted leading-relaxed', type='textarea', rows=4) }}
+                    {% if is_admin %}
+                    {# Real photos of the exercise – shown subtly behind the flower in the player #}
+                    <div class="grid grid-cols-2 gap-2 pt-2 text-[11px] text-slate-500">
+                        <div class="space-y-1">
+                            <span class="block font-semibold">Foto Ausatmen (geschlossen)</span>
+                            {{ editable('kids.variant_' ~ i ~ '.photo_closed', type='image', img_alt='Übung Blume ' ~ i ~ ', Hände geschlossen', img_class='w-full h-20 object-cover rounded-lg') }}
+                        </div>
+                        <div class="space-y-1">
+                            <span class="block font-semibold">Foto Einatmen (geöffnet)</span>
+                            {{ editable('kids.variant_' ~ i ~ '.photo_open', type='image', img_alt='Übung Blume ' ~ i ~ ', Hände geöffnet', img_class='w-full h-20 object-cover rounded-lg') }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="mt-auto pt-2">
+                        <button type="button" @click="start({{ loop.index0 }})" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-theme text-theme-primary hover:bg-theme-secondary/30 text-sm font-medium transition-colors">
+                            <svg class="w-3.5 h-3.5" width="14" height="14" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5v11a.5.5 0 00.77.42l8.5-5.5a.5.5 0 000-.84l-8.5-5.5A.5.5 0 006 4.5z"/></svg>
+                            <span x-text="isActive({{ loop.index0 }}) ? 'Läuft gerade' : 'Mitmachen'">Mitmachen</span>
+                        </button>
+                    </div>
+                </li>
+                {% endfor %}
+            </ol>
+
+            <!-- Interactive player -->
+            <!-- Same height as the variant grid; content centred, slots keep it steady -->
+            <div class="lg:col-span-5 bg-theme-card border border-theme rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col justify-center gap-4">
+                {{ editable('kids.player_hint', tag='p', class='text-sm text-theme-text-muted text-center', type='textarea', rows=3) }}
+                {% set compact = false %}
+                {% include "components/kids_flower_player.html" %}
+            </div>
+        </div>
+
+        <!-- Tips, source, printable card -->
+        <div class="mt-8 bg-theme-surface border border-theme rounded-3xl p-6 sm:p-8 shadow-sm grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+            <div class="md:col-span-8 space-y-3">
+                {{ editable('kids.tips_title', tag='h3', class='font-heading text-xl font-bold text-theme-text-main') }}
+                {{ editable('kids.tips', tag='div', class='text-sm text-theme-text-muted leading-relaxed', type='rich_text', rows=8) }}
+                {{ editable('kids.source', tag='p', class='text-xs italic text-theme-text-muted pt-2') }}
+            </div>
+            <div class="md:col-span-4 flex md:justify-end">
+                <a href="/atmende-blume/karte" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-theme text-theme-primary hover:bg-theme-secondary/30 text-sm font-medium transition-colors">
+                    <svg class="w-4 h-4" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V3h12v6M6 18H4a1 1 0 01-1-1v-6a2 2 0 012-2h14a2 2 0 012 2v6a1 1 0 01-1 1h-2M6 14h12v7H6z"/></svg>
+                    Übungskarte drucken
+                </a>
+            </div>
+        </div>
+
+    </div>
+</section>

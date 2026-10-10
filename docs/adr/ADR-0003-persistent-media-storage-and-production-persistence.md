@@ -14,7 +14,7 @@ In der bisherigen Implementierung wurden über das Admin-Interface hochgeladene 
 
 Dies führte zu zwei gravierenden Problemen:
 1. **Lokale Git-Verschmutzung:** Jeder Upload erzeugte neue unversionierte Git-Dateien (`git status: untracked files`), die bei Commits manuell bereinigt werden mussten und das Risiko bargen, binäre Uploads versehentlich in das Git-Repository zu committen.
-2. **Datenverlust in Produktion (Hosting / Docker):** In einer containerisierten Umgebung (Docker) wird der Container bei einem Release / Deployment (`docker compose up -d --build`) neu gebaut. Da die Uploads im flüchtigen Container-Dateisystem lagen, gingen alle in Produktion hochgeladenen Bilder bei jedem Update unwiderruflich verloren.
+2. **Datenverlust in Produktion (Docker):** In einer containerisierten Umgebung (Docker) wird der Container bei einem Release / Deployment (`docker compose up -d --build`) neu gebaut. Da die Uploads im flüchtigen Container-Dateisystem lagen, gingen alle in Produktion hochgeladenen Bilder bei jedem Update unwiderruflich verloren.
 
 ---
 
@@ -26,8 +26,8 @@ Dies führte zu zwei gravierenden Problemen:
   - Vollständige Git-Sauberkeit.
 * **Option B: Speicherung von Bildern als BLOB (`BYTEA`) in PostgreSQL**
   - Keine Dateisystem-Abhängigkeit, aber deutliche Vergrösserung der Datenbank-Backups und erhöhte Latenz beim Ausliefern von Bilddaten über Python/DB.
-* **Option C: Cloud Object Storage (S3 / Cloudflare R2 / SFTP-Backup-Speicher)**
-  - Gute Skalierbarkeit, aber unnötige externe Cloud-Abhängigkeit und Kosten für eine eigenständige Praxis-Webseite auf einem Server.
+* **Option C: Cloud Object Storage (S3 / Cloudflare R2 / SFTP-Speicher)**
+  - Gute Skalierbarkeit, aber unnötige externe Cloud-Abhängigkeit und Kosten für eine eigenständige Praxis-Webseite auf einem einzelnen Server.
 
 ---
 
@@ -42,7 +42,7 @@ graph TD
         GitIgnore[".gitignore -> storage/uploads/*"]
     end
 
-    subgraph ProductionDeployment["Hosting Docker Deployment"]
+    subgraph ProductionDeployment["Docker Deployment (Server)"]
         LitestarApp["Litestar ASGI Server"]
         MediaVolume[("Docker Volume: atem_media_data<br>/app/storage/uploads")]
     end

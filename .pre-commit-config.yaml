@@ -3,7 +3,9 @@ repos:
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
+        exclude: ^src/atem/presentation/static/vendor/  # vendored files keep their checksums
       - id: end-of-file-fixer
+        exclude: ^src/atem/presentation/static/vendor/
       - id: check-yaml
         args: [--unsafe]
       - id: check-toml

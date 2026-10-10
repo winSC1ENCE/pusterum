@@ -1,0 +1,89 @@
+#cloud-config
+# ==============================================================================
+# Cloud server – base hardening for the PUSTERUM server (Ubuntu 24.04 LTS)
+# Paste into "Cloud config" when creating the server. Replace the SSH key below.
+# Afterwards follow docs/ops/runbook.md (deploy, secrets, backups).
+# ==============================================================================
+timezone: Europe/Zurich
+package_update: true
+package_upgrade: true
+
+users:
+  - name: deploy
+    groups: [sudo, docker]
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAA_REPLACE_WITH_YOUR_PUBLIC_KEY admin@pusterum
+
+packages:
+  - ufw
+  - fail2ban
+  - unattended-upgrades
+  - apt-listchanges
+  - ca-certificates
+  - curl
+  - gnupg
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/10-hardening.conf
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PubkeyAuthentication yes
+      AllowUsers deploy
+      MaxAuthTries 3
+      LoginGraceTime 30
+      X11Forwarding no
+      AllowAgentForwarding no
+      AllowTcpForwarding no
+  - path: /etc/apt/apt.conf.d/52unattended-upgrades-local
+    content: |
+      Unattended-Upgrade::Automatic-Reboot "true";
+      Unattended-Upgrade::Automatic-Reboot-Time "04:30";
+      Unattended-Upgrade::Remove-Unused-Dependencies "true";
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+  - path: /etc/docker/daemon.json
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": {"max-size": "10m", "max-file": "5"},
+        "live-restore": true,
+        "no-new-privileges": true,
+        "userland-proxy": false
+      }
+  - path: /etc/sysctl.d/90-hardening.conf
+    content: |
+      net.ipv4.conf.all.rp_filter = 1
+      net.ipv4.conf.all.accept_redirects = 0
+      net.ipv6.conf.all.accept_redirects = 0
+      net.ipv4.conf.all.send_redirects = 0
+      net.ipv4.tcp_syncookies = 1
+      kernel.kptr_restrict = 2
+      kernel.dmesg_restrict = 1
+
+runcmd:
+  # Docker Engine from the official repository
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
+  - apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  - usermod -aG docker deploy
+  # Host firewall (the provider's cloud firewall in front is the primary filter)
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw limit 22/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw allow 443/udp
+  - ufw --force enable
+  - sysctl --system
+  - systemctl restart ssh
+  - systemctl enable --now fail2ban unattended-upgrades docker
+  - install -d -o deploy -g deploy -m 0750 /opt/pusterum

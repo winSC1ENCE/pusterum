@@ -3,6 +3,10 @@
 import pytest
 from litestar import Litestar
 from litestar.testing import AsyncTestClient
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from tests.conftest import contact_form_payload
 
 
 @pytest.mark.asyncio
@@ -10,10 +14,26 @@ async def test_health_endpoints(app_client: AsyncTestClient[Litestar]) -> None:
     """Test health and readiness probes."""
     res = await app_client.get("/health")
     assert res.status_code == 200
-    assert res.json() == {"status": "ok", "service": "atem-web"}
+    assert res.json() == {"status": "ok"}
 
     res_ready = await app_client.get("/health/ready")
     assert res_ready.status_code == 200
+    assert res_ready.json() == {"status": "ready", "database": "ok"}
+
+
+@pytest.mark.asyncio
+async def test_readiness_reports_database_failure(
+    app_client: AsyncTestClient[Litestar], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A broken database connection turns the readiness probe red (503)."""
+
+    async def broken_execute(*_: object, **__: object) -> None:
+        raise OperationalError("SELECT 1", {}, Exception("connection refused"))
+
+    monkeypatch.setattr(AsyncSession, "execute", broken_execute)
+    res = await app_client.get("/health/ready")
+    assert res.status_code == 503
+    assert res.json()["database"] == "error"
 
 
 @pytest.mark.asyncio
@@ -22,7 +42,12 @@ async def test_public_pages(app_client: AsyncTestClient[Litestar]) -> None:
     # Index Landing page
     res_index = await app_client.get("/")
     assert res_index.status_code == 200
-    assert "Atemtherapie" in res_index.text
+    assert "PUSTERUM" in res_index.text
+    assert "Hā Ola" not in res_index.text
+    # Indication checklist and rotating quote band are rendered from content blocks
+    assert "Schlafproblemen" in res_index.text
+    assert 'id="zitate"' in res_index.text
+    assert "James Nestor" in res_index.text
 
     # Impressum
     res_imp = await app_client.get("/impressum")
@@ -47,9 +72,11 @@ async def test_htmx_contact_form_submission(app_client: AsyncTestClient[Litestar
         "message": "Guten Tag, ich möchte einen Kennenlerntermin vereinbaren.",
         "website_url": "",
     }
-    res = await app_client.post("/contact", data=payload)
+    res = await app_client.post("/contact", data=await contact_form_payload(app_client, **payload))
     assert res.status_code == 200
     assert "Vielen Dank für Ihre Nachricht" in res.text
+    assert 'id="contact-form-container"' in res.text
+    assert "<section" not in res.text  # only the card partial is swapped (BUG-01)
 
     # Validation failure submission (missing message)
     invalid_payload = {
@@ -57,8 +84,12 @@ async def test_htmx_contact_form_submission(app_client: AsyncTestClient[Litestar
         "sender_email": "invalid-email",
         "message": "",
     }
-    res_err = await app_client.post("/contact", data=invalid_payload)
+    res_err = await app_client.post(
+        "/contact", data=await contact_form_payload(app_client, **invalid_payload)
+    )
     assert res_err.status_code == 200
+    assert "Bitte überprüfen Sie Ihre Eingaben" in res_err.text
+    assert "<section" not in res_err.text
     assert "Bitte überprüfen Sie Ihre Eingaben" in res_err.text
 
 
@@ -74,7 +105,10 @@ async def test_admin_flow(app_client: AsyncTestClient[Litestar]) -> None:
     assert res_login_page.status_code == 200
 
     # Successful login
-    login_data = {"username": "admin", "password": "admin-secure-init-pass-change-me"}
+    login_data = {
+        "email": "entwicklung@pusterum.be",
+        "password": "admin-secure-init-pass-change-me",
+    }
     res_login = await app_client.post("/admin/login", data=login_data, follow_redirects=True)
     assert res_login.status_code == 200
     assert "Praxis Dashboard" in res_login.text
@@ -103,5 +137,8 @@ async def test_admin_flow(app_client: AsyncTestClient[Litestar]) -> None:
     assert "dandelion-ambient-engine" in res_landing.text
 
     # Logout
-    res_logout = await app_client.get("/admin/logout", follow_redirects=True)
+    res_logout = await app_client.post("/admin/logout", follow_redirects=True)
     assert res_logout.status_code == 200
+    # The revoked session no longer grants access
+    res_after = await app_client.get("/admin", follow_redirects=False)
+    assert res_after.status_code == 302

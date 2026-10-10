@@ -1,5 +1,11 @@
 {% extends "layouts/base.html" %}
 
+{% block head_extra %}
+    <!-- ALTCHA widget 1.5.1 (MIT, self-hosted, external CSS/worker build for CSP) -->
+    <link rel="stylesheet" href="/static/vendor/altcha/altcha.css">
+    <script type="module" src="/static/vendor/altcha/altcha.js"></script>
+{% endblock %}
+
 {% block content %}
     <!-- Hero Section with Pusteblume Artwork -->
     {% include "components/hero.html" %}
@@ -7,11 +13,17 @@
     <!-- About & Method with Therapist Portrait -->
     {% include "components/about.html" %}
 
+    <!-- Rotating Breath Quotes Band -->
+    {% include "components/quotes.html" %}
+
     <!-- Competencies & Indications -->
     {% include "components/competencies.html" %}
 
-    <!-- Service Offerings, Pricing & EMR/ASCA Insurance -->
+    <!-- Service Offerings & Pricing -->
     {% include "components/services.html" %}
+
+    <!-- Breathing exercise for children («Atmende Blume») -->
+    {% include "components/kids_breathing.html" %}
 
     <!-- Practice Space & Location -->
     {% include "components/practice.html" %}

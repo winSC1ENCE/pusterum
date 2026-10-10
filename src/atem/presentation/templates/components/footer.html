@@ -7,7 +7,7 @@
             <!-- Column 1: Info & Brand -->
             <div class="space-y-4 md:col-span-2">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center p-1.5 border border-slate-700 text-white flex-shrink-0" style="width: 40px; height: 40px;">
+                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center p-1.5 border border-slate-700 text-white flex-shrink-0">
                         <svg class="w-full h-full text-slate-200" viewBox="0 0 100 100" fill="none" width="28" height="28">
                             <!-- Center Receptacle & Core -->
                             <circle cx="48" cy="52" r="5" fill="currentColor"/>
@@ -72,11 +72,11 @@
                         </svg>
                     </div>
                     <div>
-                        <span class="font-heading text-lg text-white font-bold block leading-tight">Atemtherapie Hā Ola</span>
-                        <span class="text-[11px] text-slate-400 uppercase tracking-wider block">Komplementärtherapie OdA KT &bull; Gemeinschaftspraxis Physiotherapie</span>
+                        <span class="font-heading text-lg text-white font-bold block leading-tight">PUSTERUM</span>
+                        <span class="text-[11px] text-slate-400 uppercase tracking-wider block">Atem- und Körpertherapie &bull; Gemeinschaftspraxis Physiotherapie</span>
                     </div>
                 </div>
-                {{ editable('footer.tagline', 'Dipl. Komplementärtherapeutin OdA KT Methode Atemtherapie. Eingebettet in eine interdisziplinäre Physiotherapie-Gemeinschaftspraxis.', tag='p', class='text-xs text-slate-400 max-w-md leading-relaxed') }}
+                {{ editable('footer.tagline', tag='p', class='text-xs text-slate-400 max-w-md leading-relaxed whitespace-pre-line') }}
             </div>
 
             <!-- Column 2: Quick Links -->
@@ -84,26 +84,21 @@
                 <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Navigation</h4>
                 <ul class="space-y-2 text-xs">
                     <li><a href="/#start" class="hover:text-white transition-colors">Startseite</a></li>
-                    <li><a href="/#ueber-mich" class="hover:text-white transition-colors">Über mich &amp; Hā Ola</a></li>
+                    <li><a href="/#ueber-mich" class="hover:text-white transition-colors">Über mich &amp; PUSTERUM</a></li>
                     <li><a href="/#kompetenzen" class="hover:text-white transition-colors">Kompetenzen</a></li>
                     <li><a href="/#angebote" class="hover:text-white transition-colors">Angebote &amp; Tarife</a></li>
+                    <li><a href="/#kinder" class="hover:text-white transition-colors">Atmen mit Kindern</a></li>
                     <li><a href="/#praxis" class="hover:text-white transition-colors">Praxis</a></li>
                     <li><a href="/#kontakt" class="hover:text-white transition-colors">Kontakt &amp; Termin</a></li>
                 </ul>
             </div>
 
-            <!-- Column 3: Legal & Admin -->
+            <!-- Column 3: Legal -->
             <div class="space-y-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Rechtliches &amp; Zugang</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Rechtliches</h4>
                 <ul class="space-y-2 text-xs">
                     <li><a href="/impressum" class="hover:text-white transition-colors">Impressum</a></li>
                     <li><a href="/datenschutz" class="hover:text-white transition-colors">Datenschutzerklärung</a></li>
-                    <li><a href="/admin" class="text-slate-400 hover:text-white transition-colors flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                        <span>Praxis-Login (Admin)</span>
-                    </a></li>
                 </ul>
             </div>
 
@@ -111,16 +106,16 @@
 
         <div class="mt-12 pt-8 border-t border-slate-800/80 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-4">
             <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
-                <p>&copy; 2026 Atemtherapie Hā Ola. Alle Rechte vorbehalten.</p>
+                <p>&copy; 2026 PUSTERUM. Alle Rechte vorbehalten.</p>
                 <span class="hidden sm:inline text-slate-700">&bull;</span>
                 <div class="flex items-center gap-1.5 text-slate-400">
-                    {{ editable('footer.webdesign', 'Webdesign bynico.', tag='span', class='hover:text-slate-200 transition-colors') }}
+                    {{ editable('footer.webdesign', tag='span', class='hover:text-slate-200 transition-colors') }}
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-right">
-                {{ editable('footer.trademark_notice', '«bynico.» ist eine eingetragene Marke von Nicolas Mischler.', tag='span', class='text-[11px] text-slate-500') }}
+                {{ editable('footer.trademark_notice', tag='span', class='text-[11px] text-slate-500') }}
                 <span class="hidden sm:inline text-slate-700">&bull;</span>
-                <p class="text-slate-500">Qualitätslabel EMR &bull; ASCA &bull; OdA KT</p>
+                <p class="text-slate-500">Ganzheitlich-Integrative Atemtherapie (IKP)</p>
             </div>
         </div>
     </div>

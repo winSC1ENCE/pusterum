@@ -1,0 +1,4 @@
+# git-crypt: encrypted on GitHub, plaintext locally after `git-crypt unlock <key>`.
+# Never add a pattern here after the file was committed in plaintext (history stays readable).
+docs/ops/runbook.md filter=git-crypt diff=git-crypt
+docs/ops/private/** filter=git-crypt diff=git-crypt

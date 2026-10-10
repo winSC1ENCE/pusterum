@@ -105,70 +105,130 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     transition: border-radius 0.6s ease;
 }
 
-/* Keyframe Animations */
-@keyframes pulseSlow {
-    0%, 100% {
-        transform: scale(1) rotate(6deg);
-        opacity: 0.35;
-    }
-    50% {
-        transform: scale(1.04) rotate(4deg);
-        opacity: 0.45;
-    }
+/* Honeypot field of the contact form – invisible for humans, filled by naive bots */
+.hp-field {
+    position: absolute !important;
+    left: -10000px !important;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
 }
 
-@keyframes floatSlow {
-    0%, 100% {
-        transform: translate(0, 0) rotate(-12deg);
-    }
-    50% {
-        transform: translate(15px, -25px) rotate(-4deg);
-    }
+/* Dandelion ambient effects (TDR-0002) – moved out of inline <style> for the CSP */
+@keyframes seedBreathFloat1 {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(-5deg); }
+    40% { transform: translate3d(18px, -28px, 0) rotate(8deg); }
+    70% { transform: translate3d(-10px, -14px, 0) rotate(-8deg); }
+}
+@keyframes seedBreathFloat2 {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(6deg); }
+    45% { transform: translate3d(-20px, -32px, 0) rotate(-10deg); }
+    80% { transform: translate3d(12px, -12px, 0) rotate(7deg); }
+}
+@keyframes seedBreathFloat3 {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(-8deg); }
+    35% { transform: translate3d(24px, -22px, 0) rotate(12deg); }
+    65% { transform: translate3d(10px, 16px, 0) rotate(-3deg); }
+}
+@keyframes pngWhisperFloat {
+    0% { opacity: 0.85; transform: translate3d(0, 0, 0) scale(0.85); }
+    100% { opacity: 0; transform: translate3d(10px, -35px, 0) scale(1.1); }
+}
+.whisper-seed { animation: pngWhisperFloat 1.2s ease-out forwards; }
+@media (prefers-reduced-motion: reduce) {
+    .ambient-png-seed, .whisper-seed { animation: none !important; }
 }
 
-@keyframes floatMedium {
-    0%, 100% {
-        transform: translate(0, 0) rotate(25deg);
-    }
-    50% {
-        transform: translate(-20px, -30px) rotate(15deg);
-    }
+/* Rich-text content blocks (presentation/rich_text.py): paragraphs, lists, underline */
+.rich-text > * + * { margin-top: 0.5rem; }
+.rich-text ul { list-style: disc; padding-left: 1.25rem; }
+.rich-text li + li { margin-top: 0.25rem; }
+.rich-text strong { font-weight: 600; color: var(--theme-text-main, #1E293B); }
+.rich-text u { text-underline-offset: 2px; }
+
+/* «Atmende Blume» for children (components/kids_flower_player.html, js/components/kids-flower.js) */
+.kids-petal {
+    fill: var(--theme-secondary, #CEDECF);
+    stroke: var(--theme-primary, #4A6C50);
+    stroke-width: 1.5;
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    transform: scale(0.35, 0.4);
+    transition: transform 4s ease-in-out;
+}
+.kids-flower.is-open .kids-petal { transform: scale(1); }
+.kids-flower.is-inhale .kids-petal { transition-duration: 3s; transition-timing-function: ease-out; }
+.kids-flower-center { fill: var(--theme-accent, #7FA485); }
+
+/* Each flower moves like its exercise (kids-flower.js → flowerClass) */
+.kids-flower { transition: transform 4s ease-in-out; transform-origin: 50% 50%; }
+.kids-flower.is-inhale { transition-duration: 3s; transition-timing-function: ease-out; }
+/* 1 Knospe: only the fingertips part – petals open halfway */
+.kids-flower.v1.is-open .kids-petal { transform: scale(0.62, 0.68); }
+/* 3 Grosse Blume: arms far out – the blossom grows and turns a little */
+.kids-flower.v3.is-open { transform: scale(1.14) rotate(14deg); }
+/* 4 Blumenwiese: hands up over the head – the blossom rises while opening */
+.kids-flower.v4.is-open { transform: translateY(-9%) scale(1.05); }
+
+/* Real photos of the exercise, cross-fading subtly behind the flower */
+.kids-photos {
+    position: absolute; inset: 0; overflow: hidden; border-radius: 1.25rem;
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 40%, transparent 75%);
+    mask-image: radial-gradient(ellipse at center, #000 40%, transparent 75%);
+}
+.kids-photo {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; transition: opacity 4s ease-in-out;
+}
+.kids-photo.is-inhale { transition-duration: 3s; }
+/* Opacity is set in the Design Studio (slider «Foto-Deckkraft», via /theme.css) */
+.kids-photo.is-visible { opacity: var(--kids-photo-opacity, 0.3); }
+
+.kids-dandelion { transition: transform 3s ease-out; }
+.kids-dandelion.is-growing { transform: scale(1.12); }
+.kids-dandelion-stem {
+    position: absolute; left: 50%; top: 50%; width: 3px; height: 50%;
+    margin-left: -1.5px; border-radius: 2px; background: var(--theme-primary, #4A6C50); opacity: 0.6;
+}
+.kids-dandelion-center {
+    position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+    border-radius: 9999px; background: var(--theme-accent, #7FA485);
+}
+.kids-seed-anchor {
+    position: absolute; left: 50%; top: 50%; width: 40px; margin: -30px 0 0 -20px;
+    transform-origin: 50% 100%;
+}
+/* The seed PNG is white – a soft outline keeps it visible on light cards */
+.kids-seed {
+    width: 100%; height: auto; transition: opacity 0.3s;
+    filter: drop-shadow(0 0 1px rgba(60, 50, 30, 0.55)) drop-shadow(0 1px 2px rgba(60, 50, 30, 0.25));
+}
+.kids-seed.is-flying { animation: kidsSeedFly 1.6s ease-out forwards; }
+.kids-seed.is-gone { opacity: 0; }
+.kids-seed-float { animation: seedBreathFloat1 6s ease-in-out infinite; }
+@keyframes kidsSeedFly {
+    0% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg); }
+    100% { opacity: 0; transform: translate3d(18px, -120px, 0) rotate(25deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .kids-petal, .kids-dandelion, .kids-flower, .kids-photo { transition: none; }
+    .kids-flower.v3.is-open, .kids-flower.v4.is-open { transform: none; }
+    .kids-seed.is-flying { animation: none; opacity: 0; }
+    .kids-seed-float { animation: none; }
 }
 
-@keyframes floatReverse {
-    0%, 100% {
-        transform: translate(0, 0) rotate(45deg);
-    }
-    50% {
-        transform: translate(25px, 20px) rotate(35deg);
-    }
+/* Printable exercise card (pages/kids_card.html) */
+.kids-card { page: kidscard; }
+@page kidscard { size: A5; margin: 12mm; }
+@media print {
+    .kids-card { box-shadow: none !important; border: none !important; padding: 0 !important; }
 }
 
-@keyframes breathe {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.03);
-    }
+/* Variant card currently guided by the «Atmende Blume» player */
+.kids-variant-card { transition: box-shadow 0.4s ease, border-color 0.4s ease, transform 0.4s ease; }
+.kids-variant-card.kids-card-active {
+    border-color: var(--theme-primary, #4A6C50);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary, #4A6C50) 25%, transparent);
+    transform: translateY(-2px);
 }
-
-.animate-pulse-slow {
-    animation: pulseSlow 8s ease-in-out infinite;
-}
-
-.animate-float-slow {
-    animation: floatSlow 12s ease-in-out infinite;
-}
-
-.animate-float-medium {
-    animation: floatMedium 9s ease-in-out infinite;
-}
-
-.animate-float-reverse {
-    animation: floatReverse 11s ease-in-out infinite;
-}
-
-.animate-breath {
-    animation: breathe 6s ease-in-out infinite;
-}
+@media (prefers-reduced-motion: reduce) { .kids-variant-card { transition: none; } .kids-variant-card.kids-card-active { transform: none; } }

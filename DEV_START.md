@@ -1,6 +1,6 @@
 # Quickstart: Lokale Entwicklungsumgebung (DEV START)
 
-Kurzanleitung zum schnellen und sauberen Starten der lokalen Entwicklungsumgebung für **Atemtherapie Hā Ola**.
+Kurzanleitung zum schnellen und sauberen Starten der lokalen Entwicklungsumgebung für **PUSTERUM – Praxis für Atem- und Körpertherapie**.
 
 ---
 
@@ -19,10 +19,17 @@ Folgende Tools müssen auf dem System installiert sein:
 
 ## 2. DEV-Umgebung in 4 Schritten starten
 
-### Schritt 1: Abhängigkeiten installieren
+### Schritt 1: Abhängigkeiten installieren & `.env` anlegen
 ```bash
 uv sync
 uv run pre-commit install
+cp config/env.development.example .env   # ENVIRONMENT=development ist Pflicht (Default = production)
+```
+
+### Schritt 1b: CSS kompilieren (Tailwind, ohne Node.js)
+```bash
+scripts/build-css.sh            # einmalig
+scripts/build-css.sh --watch    # während der Arbeit an Templates (eigenes Terminal)
 ```
 
 ### Schritt 2: PostgreSQL Datenbank starten
@@ -46,6 +53,13 @@ uv run granian --interface asgi --host 127.0.0.1 --port 8000 --reload --factory 
 > uv run --no-sync granian --interface asgi --host 127.0.0.1 --port 8000 --reload --factory atem.presentation.app:create_app
 > ```
 
+> **Hinweis bei Port-Konflikten (Port 8000 belegt):**
+> Wurde zuvor der App-Container gestartet, stoppen Sie ihn einfach (während `db` weiterläuft):
+> ```bash
+> docker compose stop app   # oder: docker stop atem_app
+> docker compose up -d db   # DB läuft weiterhin
+> ```
+
 ---
 
 ## 3. URLs & Standard-Zugangsdaten
@@ -53,7 +67,7 @@ uv run granian --interface asgi --host 127.0.0.1 --port 8000 --reload --factory 
 | Bereich | URL | Zugangsdaten |
 | :--- | :--- | :--- |
 | **Website (Live)** | [http://127.0.0.1:8000](http://127.0.0.1:8000) | Öffentlich zugänglich |
-| **Admin-Login** | [http://127.0.0.1:8000/admin/login](http://127.0.0.1:8000/admin/login) | **User:** `admin`<br/>**Passwort:** `admin-secure-init-pass-change-me` |
+| **Admin-Login** | [http://127.0.0.1:8000/admin/login](http://127.0.0.1:8000/admin/login) | **E-Mail:** `entwicklung@pusterum.be`<br/>**Passwort:** `admin-secure-init-pass-change-me`<br/>(nur development, 2FA optional) |
 | **Corporate Design Studio** | [http://127.0.0.1:8000/admin/design](http://127.0.0.1:8000/admin/design) | Nach Login im Admin-Panel |
 | **Health Check** | [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health) | Status & System-Check |
 
@@ -64,8 +78,11 @@ uv run granian --interface asgi --host 127.0.0.1 --port 8000 --reload --factory 
 Vor Commits können alle automatisierten Prüfungen lokal ausgeführt werden:
 
 ```bash
-# Tests & Coverage ausführen (Mindestens 85%)
+# Tests & Coverage ausführen (mindestens 90 %)
 uv run pytest
+
+# Browser-E2E (Playwright, einmalig: uv run playwright install chromium)
+uv run pytest tests_e2e --no-cov
 
 # Alle Linters, Type-Checks & Sicherheits-Gates prüfen
 uv run pre-commit run --all-files

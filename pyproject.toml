@@ -1,12 +1,12 @@
 [project]
 name = "atem"
 version = "0.1.0"
-description = "Webapplikation für Atemtherapie-Praxis (Litestar, PostgreSQL, HTMX, Tailwind, Clean Architecture)"
+description = "Webapplikation für PUSTERUM – Praxis für Atem- und Körpertherapie (Litestar, PostgreSQL, HTMX, Tailwind, Clean Architecture)"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
-    { name = "Atemtherapie Praxis", email = "info@atem-praxis.ch" }
+    { name = "PUSTERUM", email = "info@pusterum.be" }
 ]
 dependencies = [
     "litestar[jinja,structlog]>=2.14.0",
@@ -21,9 +21,13 @@ dependencies = [
     "cryptography>=43.0.0",
     "python-multipart>=0.0.20",
     "granian>=1.7.0",
-    "uvicorn[standard]>=0.34.0",
     "httpx>=0.28.1",
     "aiosmtplib>=3.0.2",
+    "pyotp>=2.9.0",
+    "segno>=1.6.1",
+    "markupsafe>=2.1",
+    "pillow>=11.0",
+    "altcha>=0.1.9",
 ]
 
 [dependency-groups]
@@ -39,6 +43,9 @@ dev = [
     "licensecheck>=2024.3",
     "pre-commit>=4.0.1",
     "aiosqlite>=0.20.0",
+    "pytest-playwright>=0.5",
+    "pip-audit>=2.7",
+    "granian[reload]>=1.7.0",
 ]
 
 [build-system]
@@ -76,7 +83,7 @@ ignore = [
     "TRY003",  # Avoid specifying long messages outside the exception class
     "EM101",   # Exception must not use a string literal
     "EM102",   # Exception must not use an f-string literal
-    "RUF001",  # String contains ambiguous unicode character (e.g. Hawaiian okina, dashes)
+    "RUF001",  # String contains ambiguous unicode character (e.g. typographic quotes, dashes)
     "RUF002",  # Docstring contains ambiguous unicode character
     "RUF003",  # Comment contains ambiguous unicode character
 ]
@@ -138,7 +145,7 @@ argon2-cffi = ["argon2"]
 python-multipart = ["multipart"]
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["asyncpg", "uvicorn", "granian", "python-multipart", "cryptography", "email-validator", "alembic", "httpx"]
+DEP002 = ["asyncpg", "granian", "python-multipart", "cryptography", "email-validator", "alembic", "httpx"]
 DEP003 = ["atem"]
 
 # ==============================================================================
@@ -156,10 +163,13 @@ minversion = "8.0"
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-addopts = "-v --cov=src/atem --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
+addopts = "-v --cov=src/atem --cov-report=term-missing --cov-report=xml --cov-fail-under=90"
 
 [tool.coverage.run]
 source = ["src/atem"]
+# SQLAlchemy async runs code after DB awaits inside greenlets – without this, coverage
+# silently misses those lines and the reported percentage is meaningless.
+concurrency = ["greenlet", "thread"]
 omit = [
     "*/tests/*",
     "*/migrations/*",

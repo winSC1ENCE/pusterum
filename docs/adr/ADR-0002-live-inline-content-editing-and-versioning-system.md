@@ -35,7 +35,7 @@ Klassische CMS-Formulare im Backend haben den Nachteil, dass der redaktionelle I
    - Jede Speicherung erzeugt einen unveränderbaren Versionsdatensatz (Append-Only).
    - Nach dem Speichern wird am Block ein kleines Versions-Badge eingeblendet (z.B. `v1`, `v2`, `v3`).
    - Klick auf das Versions-Badge öffnet ein **modales Fenster** mit dem vollständigen Verlauf:
-     - **Wer:** Benutzername des Bearbeiters.
+     - **Wer:** E-Mail-Adresse (Login) des Bearbeiters.
      - **Zeit:** Datum & Uhrzeit der Änderung.
      - **Was:** Zusammenfassung / Vorher-Nachher-Inhalt der Änderung (mit Bildvorschau bei Bildblöcken).
 6. **Sicheres Rollback (Wiederherstellung):**

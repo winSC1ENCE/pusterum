@@ -1,5 +1,7 @@
 """Tests for Live In-Context Content Management and Versioning (ADR-0002)."""
 
+import re
+
 import pytest
 from litestar import Litestar
 from litestar.testing import AsyncTestClient
@@ -19,7 +21,7 @@ async def test_content_service_default_blocks_and_retrieval(
     assert "hero.image" in content_map
     assert "about.bio" in content_map
     assert content_map["hero.title"].current_version_number == 1
-    assert content_map["hero.title"].current_content == "Hā Ola."
+    assert content_map["hero.title"].current_content == "PUSTERUM."
 
 
 @pytest.mark.asyncio
@@ -33,7 +35,7 @@ async def test_content_service_save_version_and_history(
 
     # 2. Save new version (v2)
     save_dto = SaveContentBlockRequestDTO(
-        content="Hā Ola Atemzentrum",
+        content="PUSTERUM Atemraum",
         change_summary="Titel optimiert",
     )
     updated = await content_service.save_block_content(
@@ -42,7 +44,7 @@ async def test_content_service_save_version_and_history(
         author_name="Therapeutin",
     )
     assert updated.current_version_number == 2
-    assert updated.current_content == "Hā Ola Atemzentrum"
+    assert updated.current_content == "PUSTERUM Atemraum"
 
     # 3. Save identical content (no-op, version remains v2)
     no_op = await content_service.save_block_content(
@@ -58,7 +60,7 @@ async def test_content_service_save_version_and_history(
     assert history.current_version == 2
     assert len(history.versions) == 2
     assert history.versions[0].version_number == 2
-    assert history.versions[0].content == "Hā Ola Atemzentrum"
+    assert history.versions[0].content == "PUSTERUM Atemraum"
     assert history.versions[0].is_current is True
     assert history.versions[1].version_number == 1
     assert history.versions[1].is_current is False
@@ -83,13 +85,13 @@ async def test_content_service_rollback_creates_next_version(
         author_name="Admin",
     )
     assert restored.current_version_number == 3
-    assert restored.current_content == "Hā Ola."
+    assert restored.current_content == "PUSTERUM."
 
     # History should contain 3 versions
     history = await content_service.get_block_history("hero.title")
     assert len(history.versions) == 3
     assert history.versions[0].version_number == 3
-    assert history.versions[0].content == "Hā Ola."
+    assert history.versions[0].content == "PUSTERUM."
     assert history.versions[0].is_current is True
 
 
@@ -97,10 +99,10 @@ async def test_content_service_rollback_creates_next_version(
 async def test_content_service_validation_errors(
     content_service: ContentService,
 ) -> None:
-    """Test validation errors for empty content and unknown keys."""
+    """Test validation errors for empty image content and unknown keys."""
     with pytest.raises(ValidationException):
         await content_service.save_block_content(
-            key="hero.title",
+            key="hero.image",
             dto=SaveContentBlockRequestDTO(content="   "),
             author_name="Admin",
         )
@@ -119,6 +121,7 @@ async def test_content_service_validation_errors(
 @pytest.mark.asyncio
 async def test_content_admin_endpoints_and_auth_guard(
     app_client: AsyncTestClient[Litestar],
+    sample_png: bytes,
 ) -> None:
     """Test HTMX content routes with unauthorized and authorized requests."""
     # 1. Unauthorized request without session -> 401
@@ -131,7 +134,7 @@ async def test_content_admin_endpoints_and_auth_guard(
     # 2. Login as admin (automatically sets cookie in client)
     login_resp = await app_client.post(
         "/admin/login",
-        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
         follow_redirects=True,
     )
     assert login_resp.status_code == 200
@@ -155,7 +158,7 @@ async def test_content_admin_endpoints_and_auth_guard(
     # 5. Restore version 1
     restore_resp = await app_client.post("/admin/content/hero.title/restore/1")
     assert restore_resp.status_code == 200
-    assert "Hā Ola." in restore_resp.text
+    assert "PUSTERUM." in restore_resp.text
     assert "v3" in restore_resp.text
 
     # 6. Test GET /admin/images/list
@@ -167,11 +170,6 @@ async def test_content_admin_endpoints_and_auth_guard(
     assert any("filename" in img and "url" in img for img in images)
 
     # 7. Test POST /admin/images/upload (with valid PNG into persistent /media/)
-    sample_png = (
-        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00"
-        b"\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4"
-        b"\x00\x00\x00\x00IEND\xaeB`\x82"
-    )
     upload_resp = await app_client.post(
         "/admin/images/upload",
         files={"data": ("test_upload.png", sample_png, "image/png")},
@@ -179,12 +177,12 @@ async def test_content_admin_endpoints_and_auth_guard(
     assert upload_resp.status_code in {200, 201}
     upload_data = upload_resp.json()
     assert "url" in upload_data
-    assert upload_data["url"].startswith("/media/test_upload")
+    assert re.fullmatch(r"/media/[0-9a-f]{32}\.png", upload_data["url"])
 
     # 8. Test GET /media/... to verify serving from persistent media router
     media_fetch_resp = await app_client.get(upload_data["url"])
     assert media_fetch_resp.status_code == 200
-    assert media_fetch_resp.content == sample_png
+    assert media_fetch_resp.content.startswith(b"\x89PNG")  # re-encoded, metadata stripped
 
     # 9. Test saving practice.interior_image with uploaded URL (multipart and form data)
     save_img_resp = await app_client.post(
@@ -220,7 +218,11 @@ async def test_universal_content_blocks_seeded(
         "about.interdisciplinary",
         "competencies.badge",
         "competencies.title",
-        "competencies.1.title",
+        "competencies.bridge_p1",
+        "competencies.for_whom_1",
+        "competencies.for_whom_8",
+        "quotes.1.text",
+        "quotes.6.author",
         "services.badge",
         "services.insurance_title",
         "contact.badge",
@@ -264,7 +266,7 @@ async def test_impressum_and_datenschutz_public_routes(
     # Test editing impressum webdesign block
     await app_client.post(
         "/admin/login",
-        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
         follow_redirects=True,
     )
     edit_resp = await app_client.post(
@@ -278,19 +280,14 @@ async def test_impressum_and_datenschutz_public_routes(
 @pytest.mark.asyncio
 async def test_image_upload_save_and_immediate_live_render(
     app_client: AsyncTestClient[Litestar],
+    sample_png: bytes,
 ) -> None:
     """Verify that uploaded images for practice, portrait, and hero are rendered live."""
     # 1. Login as admin
     await app_client.post(
         "/admin/login",
-        data={"username": "admin", "password": "admin-secure-init-pass-change-me"},
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
         follow_redirects=True,
-    )
-
-    sample_png = (
-        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00"
-        b"\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4"
-        b"\x00\x00\x00\x00IEND\xaeB`\x82"
     )
 
     # 2. Upload new practice room image
@@ -336,3 +333,84 @@ async def test_image_upload_save_and_immediate_live_render(
     landing_resp2 = await app_client.get("/")
     assert portrait_url in landing_resp2.text
     assert uploaded_url in landing_resp2.text
+
+
+@pytest.mark.asyncio
+async def test_optional_content_block_can_be_emptied_and_refilled(
+    content_service: ContentService,
+) -> None:
+    """Text blocks accept empty content (hidden publicly); image blocks do not."""
+    filled = await content_service.save_block_content(
+        key="hero.text",
+        dto=SaveContentBlockRequestDTO(content="Kurzer Einstieg"),
+        author_name="Admin",
+    )
+    assert filled.current_content == "Kurzer Einstieg"
+
+    cleared = await content_service.save_block_content(
+        key="hero.text",
+        dto=SaveContentBlockRequestDTO(content="   "),
+        author_name="Admin",
+    )
+    assert cleared.current_content == ""
+
+    cleared_title = await content_service.save_block_content(
+        key="about.title",
+        dto=SaveContentBlockRequestDTO(content=""),
+        author_name="Admin",
+    )
+    assert cleared_title.current_content == ""
+
+    with pytest.raises(ValidationException):
+        await content_service.save_block_content(
+            key="about.portrait",
+            dto=SaveContentBlockRequestDTO(content=""),
+            author_name="Admin",
+        )
+
+
+@pytest.mark.asyncio
+async def test_empty_optional_hero_text_hidden_publicly_but_placeholder_for_admin(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    """An empty hero.text renders nothing publicly and a fillable placeholder for admins."""
+    placeholder = "Optionales Feld – leer (öffentlich ausgeblendet)"
+
+    public_resp = await app_client.get("/")
+    assert public_resp.status_code == 200
+    assert placeholder not in public_resp.text
+    assert "content-block-hero-text" not in public_resp.text
+
+    await app_client.post(
+        "/admin/login",
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
+        follow_redirects=True,
+    )
+    admin_resp = await app_client.get("/")
+    assert placeholder in admin_resp.text
+    assert 'id="content-block-hero-text"' in admin_resp.text
+
+
+@pytest.mark.asyncio
+async def test_contact_phone_and_email_are_editable_blocks_without_links_for_admin(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    """Phone/e-mail render from content blocks; admins get edit fields instead of links."""
+    public_resp = await app_client.get("/")
+    assert 'href="tel:+41310000000"' in public_resp.text
+    assert 'href="mailto:info@pusterum.be"' in public_resp.text
+
+    await app_client.post(
+        "/admin/login",
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
+        follow_redirects=True,
+    )
+    admin_resp = await app_client.get("/")
+    assert 'id="content-block-practice-phone"' in admin_resp.text
+    assert 'id="content-block-practice-email"' in admin_resp.text
+    assert 'href="tel:' not in admin_resp.text
+    assert 'href="mailto:info@pusterum.be"' not in admin_resp.text
+
+    impressum_resp = await app_client.get("/impressum")
+    assert 'id="content-block-practice-email"' in impressum_resp.text
+    assert "mailto:info@pusterum.be" not in impressum_resp.text

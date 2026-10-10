@@ -1,67 +1,32 @@
 {% from "components/editable_block.html" import editable with context %}
+{% from "components/ui_macros.html" import section_header, check_item with context %}
 
 <section id="kompetenzen" class="py-20 bg-theme-main transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <!-- Section Header -->
-        <div class="text-center max-w-3xl mx-auto mb-16">
-            <span class="text-xs uppercase font-bold tracking-widest text-theme-primary block mb-2">
-                {{ editable('competencies.badge', 'Anwendungsbereiche & Indikationen', tag='span') }}
-            </span>
-            <h2 class="font-heading text-3xl sm:text-4xl font-bold text-theme-text-main">
-                {{ editable('competencies.title', 'Wann hilft Atemtherapie?', tag='span') }}
-            </h2>
-            <div class="mt-3">
-                {{ editable('competencies.subtitle', 'Atemtherapie eignet sich sowohl zur gezielten Behandlung körperlicher und seelischer Beschwerden als auch zur präventiven Gesundheitsförderung und Entspannung.', tag='p', class='text-theme-text-muted text-base leading-relaxed', type='textarea', rows=3) }}
+        {{ section_header('competencies', subtitle_rows=3) }}
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+
+            <!-- Was ist Atem- und Körpertherapie? -->
+            <div class="bg-theme-card border border-theme p-8 rounded-3xl shadow-sm space-y-4 text-theme-text-muted leading-relaxed text-base">
+                {{ editable('competencies.bridge_p1', tag='p', type='textarea', rows=4) }}
+                {{ editable('competencies.bridge_p2', tag='p', type='textarea', rows=4) }}
+                {{ editable('competencies.bridge_p3', tag='p', type='textarea', rows=4) }}
+                {{ editable('competencies.bridge_p4', tag='p', type='textarea', rows=4) }}
             </div>
-        </div>
 
-        <!-- Competency Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {% for comp in profile.competencies %}
-            {% set idx = loop.index %}
-            <div class="bg-theme-card border border-theme p-8 rounded-3xl shadow-sm hover:shadow-md hover:border-theme-primary/40 transition-all duration-300 group flex flex-col justify-between">
-                <div>
-                    <!-- Icon / Shape Frame -->
-                    <div class="w-14 h-14 rounded-2xl bg-theme-secondary/40 border border-theme flex items-center justify-center text-theme-primary mb-6 group-hover:scale-110 group-hover:bg-theme-primary group-hover:text-white transition-all duration-300" style="width: 56px; height: 56px;">
-                        {% if comp.icon_name == "lungs" %}
-                        <svg class="w-7 h-7" width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v16m0-16c-3 0-6 2-6 7 0 4 2 7 6 9m0-16c3 0 6 2 6 7 0 4-2 7-6 9"/>
-                        </svg>
-                        {% elif comp.icon_name == "heart-pulse" %}
-                        <svg class="w-7 h-7" width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                        </svg>
-                        {% elif comp.icon_name == "feather" %}
-                        <svg class="w-7 h-7" width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        {% else %}
-                        <svg class="w-7 h-7" width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                        {% endif %}
-                    </div>
+            <!-- Für wen eignet sich Atem- und Körpertherapie? -->
+            <div class="bg-theme-surface border border-theme p-8 rounded-3xl shadow-sm">
+                {{ editable('competencies.for_whom_title', tag='h3', class='font-heading text-2xl font-bold text-theme-text-main mb-3') }}
+                {{ editable('competencies.for_whom_subtitle', tag='p', class='text-sm text-theme-text-muted leading-relaxed mb-6', type='textarea', rows=4) }}
 
-                    <div class="mb-3">
-                        {{ editable('competencies.' ~ idx ~ '.title', comp.title, tag='h3', class='font-heading text-xl font-bold text-theme-text-main group-hover:text-theme-primary transition-colors') }}
-                    </div>
-
-                    <div>
-                        {{ editable('competencies.' ~ idx ~ '.description', comp.description, tag='p', class='text-sm text-theme-text-muted leading-relaxed', type='textarea', rows=3) }}
-                    </div>
-                </div>
-
-                <div class="pt-6 mt-6 border-t border-theme/50 flex items-center text-xs font-semibold text-theme-primary">
-                    <a href="#kontakt" class="flex items-center hover:underline">
-                        <span>Mehr erfahren &amp; Termin anfragen</span>
-                        <svg class="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-1 transition-transform" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </a>
-                </div>
+                <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                    {% for i in range(1, count_numbered_keys('competencies.for_whom_') + 1) %}
+                    {{ check_item('competencies.for_whom_' ~ i) }}
+                    {% endfor %}
+                </ul>
             </div>
-            {% endfor %}
         </div>
 
     </div>

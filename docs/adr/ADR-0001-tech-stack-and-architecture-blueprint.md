@@ -271,4 +271,4 @@ sequenceDiagram
 2. **Robuste Testbarkeit**: Dank ABC-Interfaces können alle Services mit Mocks oder In-Memory-SQLite in Millisekunden getestet werden.
 3. **Optimale Web-Performance & SEO**: Die Webseite rendert direkt serverseitig via Jinja2 mit minimalem JavaScript-Payload (HTMX + Alpine.js), was für mobile Nutzer und Suchmaschinen (Google) optimal ist.
 4. **Sicherheit & Compliance**: Automatisiertes Secret-Scanning (`gitleaks`), Sicherheitsanalyse (`bandit`), strikte Typisierung (`mypy --strict`) und saubere Cookie-Sessions.
-5. **Einfaches Deployment**: Cloud-Server benötigt lediglich Docker Compose + Caddy.
+5. **Einfaches Deployment**: Der Server benötigt lediglich Docker Compose + Caddy.

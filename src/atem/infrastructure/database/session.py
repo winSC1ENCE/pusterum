@@ -1,6 +1,5 @@
 """Database Connection and Async Session Factory."""
 
-from collections.abc import AsyncGenerator
 from typing import Any
 
 from sqlalchemy.ext.asyncio import (
@@ -33,16 +32,3 @@ def create_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSessi
         autoflush=False,
         autocommit=False,
     )
-
-
-async def get_db_session(
-    session_factory: async_sessionmaker[AsyncSession],
-) -> AsyncGenerator[AsyncSession, None]:
-    """Dependency provider yielding async database session with automatic transaction management."""
-    async with session_factory() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise

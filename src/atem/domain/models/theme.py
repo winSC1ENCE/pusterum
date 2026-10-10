@@ -1,7 +1,36 @@
+import contextlib
+import re
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from atem.domain.models.base import BaseEntity
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+# Only CSS hex colours (#rgb, #rgba, #rrggbb, #rrggbbaa) are accepted anywhere in the theme.
+HEX_COLOR_PATTERN = r"^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
+_HEX_COLOR_RE = re.compile(HEX_COLOR_PATTERN)
+
+SEED_SIZE_MIN, SEED_SIZE_MAX, SEED_SIZE_DEFAULT = 20, 120, 48
+SEED_OPACITY_MIN, SEED_OPACITY_MAX, SEED_OPACITY_DEFAULT = 10, 100, 80
+# Background photos of the «Atmende Blume» exercise (subtle: never fully opaque)
+KIDS_PHOTO_OPACITY_MIN, KIDS_PHOTO_OPACITY_MAX, KIDS_PHOTO_OPACITY_DEFAULT = 0, 80, 30
+
+
+def is_hex_color(value: str) -> bool:
+    """Return True for a valid CSS hex colour."""
+    return bool(_HEX_COLOR_RE.fullmatch(value))
+
+
+class FontFamily(StrEnum):
+    """Allowlist of self-hosted font families selectable in the design studio."""
+
+    LORA = "Lora"
+    PLAYFAIR_DISPLAY = "Playfair Display"
+    PLUS_JAKARTA_SANS = "Plus Jakarta Sans"
+    RUBIK = "Rubik"
 
 
 class ShapeType(StrEnum):
@@ -34,6 +63,23 @@ class DandelionEffectMode(StrEnum):
     WATERMARK_ACCENTS = "watermark_accents"  # 3. Wasserzeichen-Akzente (Statisch)
     BREATH_WIDGET = "breath_widget"  # 4. Die interaktive Atem-Pause (Zen-Widget)
     WHISPER_TRAIL = "whisper_trail"  # 5. Sanfter Hauch bei Mausbewegung (Seed Whisper)
+    KIDS_FLOWER = "kids_flower"  # 6. Atmende Blume für Kinder (Widget, teilt Button mit 4)
+
+    @classmethod
+    def parse_many(cls, raw: "str | Iterable[str] | None") -> list["DandelionEffectMode"]:
+        """Parse a comma separated string or iterable; invalid values are ignored.
+
+        ``disabled`` only survives on its own – combined with visual modes it is dropped.
+        """
+        parts = raw.split(",") if isinstance(raw, str) else list(raw or [])
+        modes: list[DandelionEffectMode] = []
+        for part in parts:
+            with contextlib.suppress(ValueError):
+                mode = cls(str(part).strip())
+                if mode not in modes:
+                    modes.append(mode)
+        visual: list[DandelionEffectMode] = [m for m in modes if m != cls.DISABLED]
+        return visual or [cls.DISABLED]
 
 
 @dataclass(kw_only=True)
@@ -77,38 +123,30 @@ class ThemeConfig(BaseEntity):
 
     # Organic / Geometric Shapes
     active_shape: ShapeType = ShapeType.DANDELION_SEED
-    motif_enabled: bool = True
-    motif_animation_speed: str = "normal"  # "slow", "normal", "fast", "static"
 
     # Dandelion Ambient Effects Engine (Multi-Select Modes 1–5 or Disabled) & Sliders
     dandelion_modes: list[DandelionEffectMode] = field(
         default_factory=lambda: [DandelionEffectMode.DISABLED]
     )
-    dandelion_seed_size: int = 48  # Pixel size (20 - 110px)
-    dandelion_seed_opacity: int = 80  # Opacity percentage (10 - 100%)
+    dandelion_seed_size: int = SEED_SIZE_DEFAULT  # px, SEED_SIZE_MIN..SEED_SIZE_MAX
+    dandelion_seed_opacity: int = SEED_OPACITY_DEFAULT  # %, SEED_OPACITY_MIN..SEED_OPACITY_MAX
+    kids_photo_opacity: int = KIDS_PHOTO_OPACITY_DEFAULT  # %, KIDS_PHOTO_OPACITY_MIN..MAX
 
-    @property
-    def dandelion_mode(self) -> DandelionEffectMode:
-        """Backward-compatibility property returning the primary active mode."""
-        for m in self.dandelion_modes:
-            if m != DandelionEffectMode.DISABLED:
-                return m
-        return DandelionEffectMode.DISABLED
-
-    @dandelion_mode.setter
-    def dandelion_mode(self, val: DandelionEffectMode) -> None:
-        """Backward-compatibility setter."""
-        self.dandelion_modes = [val]
-
-    @property
-    def dandelion_modes_list(self) -> list[str]:
-        """Return list of active mode string values for templates and JSON."""
-        return [m.value for m in self.dandelion_modes]
-
-    def has_dandelion_mode(self, mode: DandelionEffectMode | str) -> bool:
-        """Check if a specific dandelion mode is active."""
-        val = mode.value if isinstance(mode, DandelionEffectMode) else mode
-        return any(m.value == val for m in self.dandelion_modes)
+    def apply_palette(self, preset_key: "ColorPresetKey") -> None:
+        """Take over all colours of a preset palette (falls back to Salbei & Sand)."""
+        palette = PRESET_THEMES.get(preset_key, PRESET_THEMES[ColorPresetKey.SALBEI_SAND])
+        self.preset_key = preset_key
+        self.name = palette.name
+        self.primary_color = palette.primary
+        self.primary_hover = palette.primary_hover
+        self.secondary_color = palette.secondary
+        self.accent_color = palette.accent
+        self.background_color = palette.background
+        self.surface_color = palette.surface
+        self.surface_muted = palette.surface_muted
+        self.text_main_color = palette.text_main
+        self.text_muted_color = palette.text_muted
+        self.border_color = palette.border_color
 
 
 # ------------------------------------------------------------------------------
@@ -212,7 +250,6 @@ class ShapeDefinition:
     name: str
     description: str
     css_border_radius: str
-    css_clip_path: str = ""
 
 
 PRESET_SHAPES: dict[ShapeType, ShapeDefinition] = {
@@ -250,7 +287,105 @@ PRESET_SHAPES: dict[ShapeType, ShapeDefinition] = {
     ShapeType.FLUID_CAPSULE: ShapeDefinition(
         shape_type=ShapeType.FLUID_CAPSULE,
         name="Flüssige Kapsel (Fluid Capsule & Leaf)",
-        description="Fließende ovale Kapselformen mit dezenten Blattkonturen.",
+        description="Fliessende ovale Kapselformen mit dezenten Blattkonturen.",
         css_border_radius="2rem 6rem 2rem 6rem",
     ),
 }
+
+
+# Colours compared when detecting whether a custom theme equals a preset palette
+PALETTE_MATCH_FIELDS = (
+    ("primary_color", "primary"),
+    ("secondary_color", "secondary"),
+    ("accent_color", "accent"),
+    ("background_color", "background"),
+    ("surface_color", "surface"),
+    ("border_color", "border_color"),
+)
+
+
+def find_matching_preset(colors: dict[str, str], current: ColorPresetKey) -> ColorPresetKey:
+    """Return the preset whose palette equals ``colors`` (current preset first), else CUSTOM."""
+
+    def matches(palette: ColorPalette) -> bool:
+        return all(
+            colors.get(field_name, "").lower() == getattr(palette, palette_attr).lower()
+            for field_name, palette_attr in PALETTE_MATCH_FIELDS
+        )
+
+    candidates = [current, *(key for key in PRESET_THEMES if key != current)]
+    for key in candidates:
+        palette = PRESET_THEMES.get(key)
+        if palette is not None and matches(palette):
+            return key
+    return ColorPresetKey.CUSTOM
+
+
+# ------------------------------------------------------------------------------
+# DANDELION AMBIENT MODES – metadata for the design studio (TDR-0002)
+# ------------------------------------------------------------------------------
+@dataclass(frozen=True)
+class DandelionModeDefinition:
+    """Label and description of an ambient effect mode."""
+
+    key: str
+    number: str
+    name: str
+    badge: str
+    description: str
+
+
+DANDELION_MODE_DEFINITIONS: tuple[DandelionModeDefinition, ...] = (
+    DandelionModeDefinition(
+        key=DandelionEffectMode.DISABLED.value,
+        number="0",
+        name="Deaktiviert",
+        badge="Standard / Aus",
+        description="Vollständig statische Seite ohne Hintergrund-Partikel oder Widgets.",
+    ),
+    DandelionModeDefinition(
+        key=DandelionEffectMode.BREATHING_FLOW.value,
+        number="1",
+        name="Sanfter Atem-Drift",
+        badge="Ambient Flow",
+        description="5–6 zarte Samen schweben mit geringer Deckkraft im 4s/6s-Atemrhythmus.",
+    ),
+    DandelionModeDefinition(
+        key=DandelionEffectMode.SCROLL_JOURNEY.value,
+        number="2",
+        name="Die Reise des Samens",
+        badge="Scroll-Begleiter",
+        description="Ein einzelner Samen begleitet den Besucher beim Scrollen bis zum Kontakt.",
+    ),
+    DandelionModeDefinition(
+        key=DandelionEffectMode.WATERMARK_ACCENTS.value,
+        number="3",
+        name="Wasserzeichen-Akzente",
+        badge="Statisch & Edel",
+        description="Statische, feine Samen-Wasserzeichen an den Seitenrändern.",
+    ),
+    DandelionModeDefinition(
+        key=DandelionEffectMode.BREATH_WIDGET.value,
+        number="4",
+        name="Interaktive Atem-Pause",
+        badge="Zen-Widget",
+        description="Schwebendes Zen-Widget unten rechts zum geführten 4-4-6 Durchatmen.",
+    ),
+    DandelionModeDefinition(
+        key=DandelionEffectMode.WHISPER_TRAIL.value,
+        number="5",
+        name="Sanfter Hauch bei Bewegung",
+        badge="Seed Whisper",
+        description="Feine Samen entstehen bei Mausbewegung und verfliegen nach 1.2 s.",
+    ),
+    DandelionModeDefinition(
+        key=DandelionEffectMode.KIDS_FLOWER.value,
+        number="6",
+        name="Atmende Blume (Kinder)",
+        badge="Kinder-Widget",
+        description=(
+            "Geführte Kinder-Atemübung mit Blüte und Pusten-Spiel; mit der Atem-Pause"
+            " kombiniert teilen sich beide einen Button."
+        ),
+    ),
+)

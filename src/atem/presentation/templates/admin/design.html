@@ -1,86 +1,36 @@
 <!DOCTYPE html>
 <html lang="de" class="h-full bg-slate-50">
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Corporate Design Studio – Admin Console</title>
 
     <link rel="icon" type="image/png" href="/static/images/favicon.png">
-    <script src="/static/js/tailwindcss.js"></script>
-    <script defer src="/static/js/alpine.min.js"></script>
-    <script src="/static/js/htmx.min.js"></script>
-    <script defer src="/static/js/app.js"></script>
+    <!-- Styles: self-hosted fonts, compiled Tailwind, base styles, theme variables -->
+    <link rel="stylesheet" href="/static/css/fonts.css?v={{ asset_version }}">
+    <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}">
+    <link rel="stylesheet" href="/static/css/styles.css?v={{ asset_version }}">
+    <link rel="stylesheet" href="/theme.css?v={{ theme_css | content_hash }}">
 
-    <!-- Google Webfonts for Preview -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..600;1,400..600&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Rubik:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-    <style>
-        {{ theme_css | safe }}
-    </style>
-
-    <script>
-        function designStudioState() {
-            return {
-                activePreset: '{{ theme.preset_key.value }}',
-                activeShape: '{{ theme.active_shape.value }}',
-                activeModes: {{ theme.dandelion_modes_list | tojson | safe }},
-                seedSize: {{ theme.dandelion_seed_size }},
-                seedOpacity: {{ theme.dandelion_seed_opacity }},
-                saveStatus: 'Gespeichert',
-                isSaving: false,
-                isModeActive(key) {
-                    return this.activeModes.includes(key);
-                },
-                toggleMode(key) {
-                    if (key === 'disabled') {
-                        this.activeModes = ['disabled'];
-                    } else {
-                        // Deselect 'disabled' when choosing any visual mode (1-5)
-                        this.activeModes = this.activeModes.filter(m => m !== 'disabled');
-                        if (this.activeModes.includes(key)) {
-                            // Toggle off
-                            this.activeModes = this.activeModes.filter(m => m !== key);
-                            // If all visual modes were unchecked, reset back to disabled
-                            if (this.activeModes.length === 0) {
-                                this.activeModes = ['disabled'];
-                            }
-                        } else {
-                            // Toggle on
-                            this.activeModes.push(key);
-                        }
-                    }
-                    this.$nextTick(() => {
-                        const form = document.getElementById('dandelion-multiselect-form');
-                        if (form) {
-                            htmx.trigger(form, 'submit');
-                        }
-                    });
-                },
-                flashSaved() {
-                    this.isSaving = false;
-                    this.saveStatus = 'Automatisch gespeichert';
-                },
-                updateLivePreview() {
-                    const previewEl = document.getElementById('seed-live-preview-img');
-                    if (previewEl) {
-                        previewEl.style.width = Math.min(this.seedSize, 90) + 'px';
-                        previewEl.style.opacity = String(this.seedOpacity / 100);
-                    }
-                    const sizeBadge = document.getElementById('seed-size-badge');
-                    if (sizeBadge) sizeBadge.textContent = this.seedSize + ' px';
-                    const opacityBadge = document.getElementById('seed-opacity-badge');
-                    if (opacityBadge) opacityBadge.textContent = this.seedOpacity + ' %';
-                }
-            };
-        }
-    </script>
+    <!-- Scripts (no inline JS – strict Content-Security-Policy). htmx must not inject styles. -->
+    <meta name="htmx-config" content='{"includeIndicatorStyles": false, "allowEval": false}'>
+    <script src="/static/js/htmx.min.js?v={{ asset_version }}"></script>
+    <script defer src="/static/js/app.js?v={{ asset_version }}"></script>
+    <script defer src="/static/js/components/design-studio.js?v={{ asset_version }}"></script>
+    <script defer src="/static/vendor/alpinejs-csp/cdn.min.js"></script>
 </head>
 <body
+    hx-headers='{"x-csrftoken": "{{ csrf_token() }}"}'
     class="h-full flex flex-col font-sans text-slate-800 antialiased"
-    x-data="designStudioState()"
-    @htmx:before-request="isSaving = true"
+    x-data="designStudio"
+    data-preset="{{ theme.preset_key.value }}"
+    data-shape="{{ theme.active_shape.value }}"
+    data-modes="{{ theme.dandelion_modes_list | tojson | forceescape }}"
+    data-seed-size="{{ theme.dandelion_seed_size }}"
+    data-seed-opacity="{{ theme.dandelion_seed_opacity }}"
+    data-kids-photo-opacity="{{ theme.kids_photo_opacity }}"
+    @htmx:before-request="startSaving()"
     @htmx:after-request="flashSaved()"
 >
 
@@ -117,7 +67,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                         </svg>
                     </a>
-                    <a href="/admin/logout" class="text-xs text-red-600 hover:text-red-800 font-medium">Abmelden</a>
+                    <form method="POST" action="/admin/logout" class="inline"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="text-xs text-red-600 hover:text-red-800 font-medium">Abmelden</button></form>
                 </div>
             </div>
         </div>
@@ -293,7 +243,7 @@
                 hx-swap="none"
                 class="hidden"
             >
-                <input type="hidden" name="dandelion_modes" :value="activeModes.join(',')">
+                <input type="hidden" name="dandelion_modes" :value="activeModesValue">
                 <input type="hidden" name="dandelion_seed_size" :value="seedSize" value="{{ theme.dandelion_seed_size }}">
                 <input type="hidden" name="dandelion_seed_opacity" :value="seedOpacity" value="{{ theme.dandelion_seed_opacity }}">
             </form>
@@ -309,7 +259,7 @@
                     hx-swap="none"
                     class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6"
                 >
-                    <input type="hidden" name="dandelion_modes" :value="activeModes.join(',')">
+                    <input type="hidden" name="dandelion_modes" :value="activeModesValue">
 
                     <!-- Sliders Container -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-grow w-full lg:w-auto">
@@ -360,6 +310,43 @@
                                 <span>10 % (Hauchfein)</span>
                                 <span>80 % (Standard)</span>
                                 <span>100 % (Voll sichtbar)</span>
+                            </div>
+                        </div>
+
+                        <!-- Slider 3: background photos of the children's exercise «Atmende Blume» -->
+                        <div class="sm:col-span-2 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row gap-4 items-stretch">
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label for="kids_photo_opacity_input" class="text-xs font-bold text-slate-800 uppercase tracking-wider">Foto-Deckkraft «Atmende Blume»</label>
+                                    <span class="text-xs font-bold font-mono px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md" x-text="kidsPhotoOpacity + ' %'">{{ theme.kids_photo_opacity }} %</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="80"
+                                    step="5"
+                                    id="kids_photo_opacity_input"
+                                    name="kids_photo_opacity"
+                                    value="{{ theme.kids_photo_opacity }}"
+                                    x-model.number="kidsPhotoOpacity"
+                                    class="w-full accent-emerald-600 cursor-pointer h-2.5 bg-slate-200 rounded-lg appearance-none"
+                                />
+                                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                                    <span>0 % (Aus)</span>
+                                    <span>30 % (Standard)</span>
+                                    <span>80 % (Deutlich)</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-2">Wie stark die Übungsfotos hinter der Blume durchscheinen (Kinder-Übung, Sektion «Atmen mit Kindern»).</p>
+                            </div>
+                            <div class="relative w-full sm:w-36 h-24 rounded-xl overflow-hidden bg-white border border-slate-200 flex-shrink-0" title="Vorschau mit Beispielbild">
+                                <img src="/static/images/practice_interior.png" alt="" class="absolute inset-0 w-full h-full object-cover" :style="photoPreviewStyle" style="opacity: {{ theme.kids_photo_opacity / 100 }};" />
+                                <svg class="kids-flower is-open relative w-16 h-16 mx-auto mt-4" viewBox="0 0 120 120" aria-hidden="true">
+                                    {% for angle in [0, 60, 120, 180, 240, 300] %}
+                                    <g transform="rotate({{ angle }} 60 60)"><ellipse class="kids-petal" cx="60" cy="34" rx="13" ry="24"/></g>
+                                    {% endfor %}
+                                    <circle class="kids-flower-center" cx="60" cy="60" r="12"/>
+                                </svg>
+                                <span class="absolute bottom-1 left-2 text-[9px] uppercase font-bold text-slate-500">Vorschau</span>
                             </div>
                         </div>
                     </div>
@@ -422,32 +409,37 @@
                                 </span>
                             {% elif mode.key == 'breathing_flow' %}
                                 <div class="flex items-center gap-3 text-slate-700 animate-pulse">
-                                    <img src="/static/images/dandelion_seed_single.png" alt="Samen" class="w-5 h-auto" :style="`opacity: ${seedOpacity / 100};`" />
-                                    <img src="/static/images/dandelion_seed_single.png" alt="Samen" class="w-4 h-auto" :style="`opacity: ${(seedOpacity / 100) * 0.7};`" />
+                                    <img src="/static/images/dandelion_seed_single.png" alt="Samen" class="w-5 h-auto" :style="seedPreviewStyle(1)" />
+                                    <img src="/static/images/dandelion_seed_single.png" alt="Samen" class="w-4 h-auto" :style="seedPreviewStyle(0.7)" />
                                     <span class="text-[11px] text-slate-700 font-semibold">4s/6s Atemfluss</span>
                                 </div>
                             {% elif mode.key == 'scroll_journey' %}
                                 <div class="flex items-center gap-2 text-slate-600 text-xs font-semibold">
                                     <span class="text-slate-400 text-[10px]">Blume</span>
                                     <span class="text-slate-300">&bull;&bull;&bull;</span>
-                                    <img src="/static/images/dandelion_seed_single.png" alt="Reisesamen" class="w-5 h-auto" :style="`opacity: ${seedOpacity / 100};`" />
+                                    <img src="/static/images/dandelion_seed_single.png" alt="Reisesamen" class="w-5 h-auto" :style="seedPreviewStyle(1)" />
                                     <span class="text-slate-300">&bull;&bull;&bull;</span>
                                     <span class="text-slate-400 text-[10px]">Kontakt</span>
                                 </div>
                             {% elif mode.key == 'watermark_accents' %}
                                 <div class="relative w-full h-full flex items-center justify-between px-4">
-                                    <img src="/static/images/dandelion_seed_single.png" alt="Wasserzeichen" class="w-5 h-auto filter grayscale" :style="`opacity: ${(seedOpacity / 100) * 0.4};`" />
+                                    <img src="/static/images/dandelion_seed_single.png" alt="Wasserzeichen" class="w-5 h-auto filter grayscale" :style="seedPreviewStyle(0.4)" />
                                     <span class="text-[11px] text-slate-600 font-medium">Statische Silhouetten</span>
-                                    <img src="/static/images/dandelion_seed_single.png" alt="Wasserzeichen" class="w-5 h-auto filter grayscale" :style="`opacity: ${(seedOpacity / 100) * 0.4};`" />
+                                    <img src="/static/images/dandelion_seed_single.png" alt="Wasserzeichen" class="w-5 h-auto filter grayscale" :style="seedPreviewStyle(0.4)" />
                                 </div>
                             {% elif mode.key == 'breath_widget' %}
                                 <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm text-xs font-semibold text-slate-800">
                                     <img src="/static/images/dandelion_seed_single.png" alt="Zen-Samen" class="w-4 h-auto animate-pulse" />
                                     <span>Atem-Pause 4-4-6</span>
                                 </div>
+                            {% elif mode.key == 'kids_flower' %}
+                                <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm text-xs font-semibold text-slate-800">
+                                    <svg class="w-4 h-4 text-emerald-600" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><path d="M12 9.5V3M12 14.5V21M9.5 12H3M14.5 12H21"/></svg>
+                                    <span>Atmende Blume &bull; Kinder</span>
+                                </div>
                             {% elif mode.key == 'whisper_trail' %}
                                 <div class="flex items-center gap-1.5 text-[11px] text-slate-600 font-medium">
-                                    <img src="/static/images/dandelion_seed_single.png" alt="Hauch" class="w-4 h-auto" :style="`opacity: ${seedOpacity / 100};`" />
+                                    <img src="/static/images/dandelion_seed_single.png" alt="Hauch" class="w-4 h-auto" :style="seedPreviewStyle(1)" />
                                     <span>Hauch bei Cursor-Bewegung</span>
                                 </div>
                             {% endif %}
@@ -492,7 +484,7 @@
             >
                 <!-- State preservation hidden fields -->
                 <input type="hidden" name="active_shape" :value="activeShape">
-                <input type="hidden" name="dandelion_mode" :value="activeMode">
+                <input type="hidden" name="dandelion_mode" :value="activeModesValue">
                 <input type="hidden" name="dandelion_seed_size" :value="seedSize">
                 <input type="hidden" name="dandelion_seed_opacity" :value="seedOpacity">
                 <input type="hidden" name="text_main_color" value="{{ theme.text_main_color }}">

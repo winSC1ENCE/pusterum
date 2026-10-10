@@ -11,7 +11,7 @@
             <div>
                 <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Verwaltung</span>
                 <h1 class="font-heading text-3xl sm:text-4xl text-theme-text-main font-bold mt-1">Praxis Dashboard</h1>
-                <p class="text-xs text-theme-text-muted mt-1">Angemeldet als <strong>{{ user.username }}</strong> ({{ user.role }})</p>
+                <p class="text-xs text-theme-text-muted mt-1">Angemeldet als <strong>{{ user.email }}</strong> ({{ user.role }})</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
                 <a href="/admin/design" class="px-5 py-2.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary text-xs font-semibold shadow-sm flex items-center gap-2 transition-all">
@@ -20,12 +20,16 @@
                     </svg>
                     <span>Corporate Design Studio</span>
                 </a>
+                <a href="/admin/services" class="px-4 py-2.5 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted transition-colors">
+                    Angebote &amp; Tarife
+                </a>
+                <a href="/admin/security" class="px-4 py-2.5 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted transition-colors">
+                    Sicherheit &amp; 2FA
+                </a>
                 <a href="/" target="_blank" class="px-4 py-2.5 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted transition-colors">
                     Webseite anzeigen ↗
                 </a>
-                <a href="/admin/logout" class="px-4 py-2.5 rounded-full bg-slate-200 hover:bg-slate-300 text-xs font-medium text-slate-800 transition-colors">
-                    Abmelden
-                </a>
+                <form method="POST" action="/admin/logout" class="inline"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button type="submit" class="px-4 py-2.5 rounded-full bg-slate-200 hover:bg-slate-300 text-xs font-medium text-slate-800 transition-colors">Abmelden</button></form>
             </div>
         </div>
 
@@ -62,11 +66,11 @@
             </div>
             <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
                 <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Aktive Angebote</span>
-                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ profile.services|length }}</div>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ services|length }}</div>
             </div>
             <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
-                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Kompetenzen</span>
-                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ profile.competencies|length }}</div>
+                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Neue Anfragen</span>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ messages|selectattr("status.value", "equalto", "NEW")|list|length }}</div>
             </div>
         </div>
 
@@ -85,35 +89,13 @@
                             <th class="py-3.5 px-6 font-bold">Name</th>
                             <th class="py-3.5 px-6 font-bold">E-Mail / Tel</th>
                             <th class="py-3.5 px-6 font-bold">Betreff &amp; Nachricht</th>
-                            <th class="py-3.5 px-6 font-bold">Status</th>
+                            <th class="py-3.5 px-6 font-bold">Status / Aktion</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-theme">
                         {% if messages %}
                             {% for msg in messages %}
-                            <tr class="hover:bg-theme-muted/40 transition-colors">
-                                <td class="py-4 px-6 text-xs text-theme-text-muted whitespace-nowrap">{{ msg.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                                <td class="py-4 px-6 font-bold text-theme-text-main">{{ msg.sender_name }}</td>
-                                <td class="py-4 px-6 text-xs">
-                                    <a href="mailto:{{ msg.sender_email }}" class="text-theme-primary font-semibold hover:underline block">{{ msg.sender_email }}</a>
-                                    {% if msg.sender_phone %}
-                                    <span class="text-theme-text-muted block">{{ msg.sender_phone }}</span>
-                                    {% endif %}
-                                </td>
-                                <td class="py-4 px-6 max-w-md">
-                                    <span class="font-bold text-theme-text-main block text-xs">{{ msg.subject }}</span>
-                                    <p class="text-xs text-theme-text-muted mt-1 line-clamp-2">{{ msg.message }}</p>
-                                </td>
-                                <td class="py-4 px-6 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
-                                        {% if msg.status.value == 'NEW' %}bg-amber-100 text-amber-800
-                                        {% elif msg.status.value == 'READ' %}bg-blue-100 text-blue-800
-                                        {% elif msg.status.value == 'REPLIED' %}bg-emerald-100 text-emerald-800
-                                        {% else %}bg-slate-100 text-slate-800{% endif %}">
-                                        {{ msg.status.value }}
-                                    </span>
-                                </td>
-                            </tr>
+                            {% include "admin/message_row.html" %}
                             {% endfor %}
                         {% else %}
                             <tr>

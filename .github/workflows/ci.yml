@@ -12,95 +12,221 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: read
+
+# Third-party actions are pinned by commit SHA (tag in the comment).
+env:
+  UV_VERSION: "0.12.23"
+  PYTHON_VERSION: "3.12"
+  POSTGRES_IMAGE: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
 
 jobs:
   code-quality:
-    name: Lint, Format, Types & Security
+    name: Lint, Types, Security & Licences
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
+          version: ${{ env.UV_VERSION }}
           enable-cache: true
-          version: "0.5.8"
+      - run: uv python install ${{ env.PYTHON_VERSION }}
+      - run: uv sync --frozen
 
-      - name: Set up Python
-        run: uv python install 3.12
-
-      - name: Install Dependencies
-        run: uv sync --frozen
-
-      - name: Gitleaks Secret Scanner
-        uses: gitleaks/gitleaks-action@v2
+      - name: Gitleaks secret scan (full history)
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: false
 
-      - name: Ruff Linter Check
-        run: uv run ruff check src tests
-
-      - name: Ruff Formatter Check
-        run: uv run ruff format --check src tests
-
-      - name: Mypy Strict Type Check
+      - name: Ruff lint
+        run: uv run ruff check src tests tests_e2e migrations
+      - name: Ruff format
+        run: uv run ruff format --check src tests tests_e2e migrations
+      - name: Mypy (strict)
         run: uv run mypy src
-
-      - name: Bandit Security Analysis
+      - name: Bandit
         run: uv run bandit -c pyproject.toml -r src
-
-      - name: Deptry Dependency Check
+      - name: Deptry
         run: uv run deptry .
-
-      - name: Vulture Dead Code Analysis
+      - name: Vulture
         run: uv run vulture src
 
+      - name: Export production requirements
+        run: uv export --frozen --no-dev --no-emit-project --format requirements-txt > requirements.txt
+      - name: Dependency vulnerability audit (pip-audit)
+        run: uv run pip-audit -r requirements.txt --disable-pip --no-deps --progress-spinner off
+      - name: Licence compatibility (MIT)
+        run: uv run licensecheck --requirements-paths requirements.txt --license MIT --show-only-failing --zero
+
   tests:
-    name: Pytest & Coverage
+    name: Pytest (${{ matrix.database }})
     runs-on: ubuntu-latest
     needs: code-quality
-
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [sqlite, postgres]
+    services:
+      postgres:
+        image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+        env:
+          POSTGRES_USER: atem
+          POSTGRES_PASSWORD: ci-password
+          POSTGRES_DB: atem_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U atem -d atem_test" --health-interval 5s
+          --health-timeout 5s --health-retries 10
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
+          version: ${{ env.UV_VERSION }}
           enable-cache: true
+      - run: uv python install ${{ env.PYTHON_VERSION }}
+      - run: uv sync --frozen
+      - name: Run tests
+        env:
+          TEST_DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgresql+asyncpg://atem:ci-password@localhost:5432/atem_test' || '' }}
+        run: |
+          if [ -z "$TEST_DATABASE_URL" ]; then unset TEST_DATABASE_URL; fi
+          uv run pytest
 
-      - name: Set up Python
-        run: uv python install 3.12
-
-      - name: Install Dependencies
-        run: uv sync --frozen
-
-      - name: Run Pytest with Coverage
-        run: uv run pytest --cov=src/atem --cov-report=xml --cov-report=term-missing
-
-  docker-build:
-    name: Docker Build Validation
+  migrations:
+    name: Alembic migrations (PostgreSQL)
     runs-on: ubuntu-latest
     needs: code-quality
-
+    services:
+      postgres:
+        image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+        env:
+          POSTGRES_USER: atem
+          POSTGRES_PASSWORD: ci-password
+          POSTGRES_DB: atem_migrations
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U atem -d atem_migrations" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql+asyncpg://atem:ci-password@localhost:5432/atem_migrations
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv python install ${{ env.PYTHON_VERSION }}
+      - run: uv sync --frozen
+      - name: Upgrade empty database to head
+        run: uv run alembic upgrade head
+      - name: Models and migrations are in sync
+        run: uv run alembic check
+      - name: Downgrade to base and upgrade again (reversibility)
+        run: |
+          uv run alembic downgrade base
+          uv run alembic upgrade head
+          uv run alembic check
+      - name: Seed content via CLI
+        run: uv run python -m atem.cli seed-content
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  e2e:
+    name: Browser E2E (Playwright, strict CSP)
+    runs-on: ubuntu-latest
+    needs: code-quality
+    services:
+      postgres:
+        image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+        env:
+          POSTGRES_USER: atem
+          POSTGRES_PASSWORD: ci-password
+          POSTGRES_DB: atem_e2e
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U atem -d atem_e2e" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      E2E_DATABASE_URL: postgresql+asyncpg://atem:ci-password@localhost:5432/atem_e2e
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv python install ${{ env.PYTHON_VERSION }}
+      - run: uv sync --frozen
+      - name: Compile Tailwind CSS
+        run: scripts/build-css.sh
+      - name: Install Chromium
+        run: uv run playwright install --with-deps chromium
+      - name: Run E2E tests
+        run: uv run pytest tests_e2e --no-cov
 
-      - name: Build Docker Image
-        uses: docker/build-push-action@v5
+  docker:
+    name: Images, vulnerability scan & smoke start
+    runs-on: ubuntu-latest
+    needs: [tests, migrations]
+    services:
+      postgres:
+        image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+        env:
+          POSTGRES_USER: atem
+          POSTGRES_PASSWORD: ci-smoke-password-123
+          POSTGRES_DB: atem_db
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U atem -d atem_db" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Build app image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
-          push: false
-          tags: atem:latest
+          load: true
+          tags: pusterum/app:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Build Caddy image (rate limiting)
+        run: docker build -t pusterum/caddy:ci docker/caddy
+      - name: Build backup image
+        run: docker build -t pusterum/backup:ci docker/backup
+
+      - name: Trivy vulnerability scan (app image)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: pusterum/app:ci
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Smoke start in production mode
+        run: |
+          docker run -d --name app --network host \
+            -e ENVIRONMENT=production \
+            -e SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_hex(32))')" \
+            -e ALLOWED_HOSTS='["ci.pusterum.test", "localhost"]' \
+            -e DATABASE_URL=postgresql+asyncpg://atem:ci-smoke-password-123@localhost:5432/atem_db \
+            -e MAIL_ENABLED=false \
+            pusterum/app:ci
+          for i in $(seq 1 60); do
+            curl -fsS http://127.0.0.1:8000/health/ready && break
+            sleep 2
+          done
+          curl -fsS -H "Host: ci.pusterum.test" http://127.0.0.1:8000/ | grep -q PUSTERUM
+          curl -fsS -D - -o /dev/null -H "Host: ci.pusterum.test" http://127.0.0.1:8000/ \
+            | grep -qi "content-security-policy: default-src 'self'"
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: ci.pusterum.test' http://127.0.0.1:8000/schema)" = "404"
+      - name: Container logs
+        if: always()
+        run: docker logs app || true
+
+      - name: Production refuses insecure configuration
+        run: |
+          if docker run --rm -e ENVIRONMENT=production pusterum/app:ci \
+               python -c "from atem.infrastructure.config.settings import get_settings; get_settings()"; then
+            echo "expected startup refusal" && exit 1
+          fi

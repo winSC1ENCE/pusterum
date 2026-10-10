@@ -1,12 +1,13 @@
 {# =============================================================================
    IN-CONTEXT INLINE EDITING MACRO (ADR-0002)
-   Supports text, textarea, rich text, and image selection with flat monochrome icons,
+   Supports text, textarea and image selection with flat monochrome icons,
    Alt+S save, Esc cancel, immutable version badges, and modal audit trail.
    ============================================================================= #}
 
-{% macro editable(key, default_value, tag='p', class='', type='text', img_alt='', img_class='', rows=3, force_admin=none) %}
+{% macro editable(key, default_value=none, tag='p', class='', type='text', img_alt='', img_class='', rows=3, force_admin=none) %}
+    {# Fallback (only used before seeding): explicit value or the default from content_defaults.py #}
     {% set block = content_blocks.get(key) if content_blocks else none %}
-    {% set val = block.current_content if block else default_value %}
+    {% set val = block.current_content if block else (default_value if default_value is not none else content_default(key)) %}
     {% set version = block.current_version_number if block else 1 %}
     {% set dom_id = "content-block-" ~ (key | replace('.', '-')) %}
     {% set show_admin = force_admin if force_admin is not none else is_admin %}
@@ -14,7 +15,7 @@
     {% if show_admin %}
     <div
         id="{{ dom_id }}"
-        x-data="inlineEditor('{{ key }}', '{{ type }}')"
+        x-data='inlineEditor({{ key | tojson }}, {{ type | tojson }})'
         class="editable-block-container relative group/edit {% if type == 'image' %}w-full h-full flex items-center justify-center{% else %}inline-block w-full{% endif %}"
         data-dom-id="{{ dom_id }}"
         data-tag="{{ tag }}"
@@ -26,12 +27,19 @@
     >
         <!-- VIEW MODE (Default state for Admin) -->
         <div x-show="!isEditing" @dblclick="startEdit()" class="relative {% if type == 'image' %}w-full h-full flex items-center justify-center{% endif %} group-hover/edit:outline-dashed group-hover/edit:outline-1 group-hover/edit:outline-slate-400/80 rounded-lg transition-all" title="Doppelklick oder Stift-Symbol zum Bearbeiten">
-            {% if type == 'image' %}
+            {% if type == 'image' and val %}
                 <img src="{{ val }}" alt="{{ img_alt }}" class="{{ img_class }}" />
-            {% else %}
-                <{{ tag }} class="{{ class }}">
-                    {{ val | safe if type == 'rich' else val }}
+            {% elif type == 'image' %}
+                {# Optional picture not set yet: placeholder only in admin mode #}
+                <div class="{{ img_class }} min-h-[4rem] flex items-center justify-center border border-dashed border-slate-400 rounded-lg bg-slate-50 text-xs text-slate-500">Bild hinzufügen</div>
+            {% elif not val %}
+                <{{ tag }} class="{{ class }} !text-base italic opacity-60 border border-dashed border-slate-400 rounded-lg px-3 py-2">
+                    Optionales Feld – leer (öffentlich ausgeblendet). Doppelklick oder Stift zum Befüllen.
                 </{{ tag }}>
+            {% elif type == 'rich_text' %}
+                <{{ tag }} class="rich-text {{ class }}">{{ val | rich_text }}</{{ tag }}>
+            {% else %}
+                <{{ tag }} class="{{ class }}">{{ val }}</{{ tag }}>
             {% endif %}
 
             <!-- Admin Action Overlay Bar (Flat Monochrome Vector SVGs) -->
@@ -90,11 +98,32 @@
                         class="w-full p-2 text-xs rounded-lg border border-slate-300 text-slate-900 bg-white focus:ring-1 focus:ring-slate-800 focus:outline-none"
                     />
                     <div class="flex items-center gap-3 pt-1">
-                        <img :src="$refs.inputField ? $refs.inputField.value : '{{ val }}'" class="w-14 h-14 object-cover rounded-lg border border-slate-300 bg-slate-50" alt="Vorschau" />
+                        <img :src='$refs.inputField ? $refs.inputField.value : {{ val | tojson }}' class="w-14 h-14 object-cover rounded-lg border border-slate-300 bg-slate-50" alt="Vorschau" />
                         <span class="text-[11px] text-slate-500">Live-Vorschau</span>
                     </div>
                 </div>
-                {% elif type == 'textarea' or type == 'rich' %}
+                {% elif type == 'rich_text' %}
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Inhalt bearbeiten:</label>
+                    <!-- Formatting toolbar: inserts the markup rendered by presentation/rich_text.py -->
+                    <div class="flex flex-wrap items-center gap-1 mb-1.5 text-xs" role="toolbar" aria-label="Formatierung">
+                        <button type="button" @click="format('bold')" class="px-2 py-0.5 rounded border border-slate-300 text-slate-800 hover:bg-slate-100 transition-colors font-bold" title="Fett (Strg+B)">B</button>
+                        <button type="button" @click="format('italic')" class="px-2 py-0.5 rounded border border-slate-300 text-slate-800 hover:bg-slate-100 transition-colors italic" title="Kursiv (Strg+I)">I</button>
+                        <button type="button" @click="format('underline')" class="px-2 py-0.5 rounded border border-slate-300 text-slate-800 hover:bg-slate-100 transition-colors underline" title="Unterstrichen (Strg+U)">U</button>
+                        <button type="button" @click="format('list')" class="px-2 py-0.5 rounded border border-slate-300 text-slate-800 hover:bg-slate-100 transition-colors" title="Aufzählung">&bull; Liste</button>
+                        <span class="text-[10px] text-slate-500 ml-1">Leerzeile = neuer Absatz</span>
+                    </div>
+                    <textarea
+                        name="content"
+                        x-ref="inputField"
+                        rows="{{ rows }}"
+                        @keydown.ctrl.b.prevent="format('bold')"
+                        @keydown.ctrl.i.prevent="format('italic')"
+                        @keydown.ctrl.u.prevent="format('underline')"
+                        class="w-full p-2.5 text-sm font-mono rounded-xl border border-slate-300 text-slate-900 bg-white focus:ring-1 focus:ring-slate-800 focus:outline-none"
+                    >{{ val }}</textarea>
+                </div>
+                {% elif type == 'textarea' %}
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Inhalt bearbeiten:</label>
                     <textarea
@@ -158,11 +187,11 @@
     {% else %}
         <!-- PUBLIC RENDERING (No editing overhead or controls) -->
         {% if type == 'image' %}
-            <img src="{{ val }}" alt="{{ img_alt }}" class="{{ img_class }}" />
-        {% else %}
-            <{{ tag }} class="{{ class }}">
-                {{ val | safe if type == 'rich' else val }}
-            </{{ tag }}>
+            {% if val %}<img src="{{ val }}" alt="{{ img_alt }}" class="{{ img_class }}" />{% endif %}
+        {% elif val and type == 'rich_text' %}
+            <{{ tag }} class="rich-text {{ class }}">{{ val | rich_text }}</{{ tag }}>
+        {% elif val %}
+            <{{ tag }} class="{{ class }}">{{ val }}</{{ tag }}>
         {% endif %}
     {% endif %}
 {% endmacro %}

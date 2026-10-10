@@ -1,0 +1,23 @@
+# Keep secrets, VCS data and local artefacts out of the build context
+.env
+.env.*
+config/env.*
+*.env
+.git
+.github
+.tmp
+.tools
+.venv
+.mypy_cache
+.ruff_cache
+.pytest_cache
+**/__pycache__
+coverage.xml
+htmlcov
+storage
+tests
+tests_e2e
+docs
+ops
+dev.db
+src/atem/presentation/static/css/app.css

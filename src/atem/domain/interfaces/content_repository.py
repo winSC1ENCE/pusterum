@@ -10,6 +10,10 @@ class IContentRepository(ABC):
     """Interface for managing site content blocks and immutable version histories."""
 
     @abstractmethod
+    async def seed_missing_blocks(self) -> int:
+        """Insert missing default content blocks; return the number inserted."""
+
+    @abstractmethod
     async def get_block(self, key: str) -> ContentBlock | None:
         """Retrieve an active content block by its unique key."""
 

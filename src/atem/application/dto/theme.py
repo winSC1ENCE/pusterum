@@ -1,10 +1,29 @@
 """Theme and Corporate Design Data Transfer Objects (DTOs)."""
 
+from typing import Annotated
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from atem.domain.models.theme import ColorPresetKey, DandelionEffectMode, ShapeType
+from atem.domain.models.theme import (
+    HEX_COLOR_PATTERN,
+    KIDS_PHOTO_OPACITY_DEFAULT,
+    KIDS_PHOTO_OPACITY_MAX,
+    KIDS_PHOTO_OPACITY_MIN,
+    SEED_OPACITY_MAX,
+    SEED_OPACITY_MIN,
+    SEED_SIZE_MAX,
+    SEED_SIZE_MIN,
+    ColorPresetKey,
+    DandelionEffectMode,
+    FontFamily,
+    ShapeType,
+)
+
+HexColor = Annotated[str, Field(pattern=HEX_COLOR_PATTERN, max_length=9)]
+SeedSize = Annotated[int, Field(ge=SEED_SIZE_MIN, le=SEED_SIZE_MAX)]
+SeedOpacity = Annotated[int, Field(ge=SEED_OPACITY_MIN, le=SEED_OPACITY_MAX)]
+KidsPhotoOpacity = Annotated[int, Field(ge=KIDS_PHOTO_OPACITY_MIN, le=KIDS_PHOTO_OPACITY_MAX)]
 
 
 class ColorPaletteDTO(BaseModel):
@@ -55,19 +74,16 @@ class ThemeConfigDTO(BaseModel):
     body_font: str = Field(default="Plus Jakarta Sans", max_length=50)
 
     active_shape: ShapeType = ShapeType.DANDELION_SEED
-    motif_enabled: bool = True
-    motif_animation_speed: str = Field(default="normal", max_length=20)
-    dandelion_mode: DandelionEffectMode = DandelionEffectMode.DISABLED
     dandelion_modes: list[DandelionEffectMode] = Field(
         default_factory=lambda: [DandelionEffectMode.DISABLED]
     )
     dandelion_seed_size: int = Field(default=48, ge=20, le=120)
     dandelion_seed_opacity: int = Field(default=80, ge=10, le=100)
+    kids_photo_opacity: KidsPhotoOpacity = KIDS_PHOTO_OPACITY_DEFAULT
 
     def has_dandelion_mode(self, mode: DandelionEffectMode | str) -> bool:
-        """Check if a specific dandelion mode is active."""
-        val = mode.value if isinstance(mode, DandelionEffectMode) else mode
-        return any(m.value == val for m in self.dandelion_modes)
+        """Check if a specific dandelion mode is active (used by templates)."""
+        return DandelionEffectMode(mode) in self.dandelion_modes
 
     @property
     def dandelion_modes_list(self) -> list[str]:
@@ -76,38 +92,25 @@ class ThemeConfigDTO(BaseModel):
 
 
 class UpdateThemeRequestDTO(BaseModel):
-    """Request payload to update custom theme colors and typography."""
+    """Request payload to update custom theme colors and typography (strictly validated)."""
 
     preset_key: ColorPresetKey = ColorPresetKey.CUSTOM
-    primary_color: str = Field(..., min_length=4, max_length=20)
-    primary_hover: str | None = None
-    secondary_color: str = Field(..., min_length=4, max_length=20)
-    accent_color: str = Field(..., min_length=4, max_length=20)
-    background_color: str = Field(..., min_length=4, max_length=20)
-    surface_color: str = Field(..., min_length=4, max_length=20)
-    surface_muted: str = Field(..., min_length=4, max_length=20)
-    text_main_color: str = Field(..., min_length=4, max_length=20)
-    text_muted_color: str = Field(..., min_length=4, max_length=20)
-    border_color: str = Field(..., min_length=4, max_length=20)
-    heading_font: str = Field(default="Lora", max_length=50)
-    body_font: str = Field(default="Plus Jakarta Sans", max_length=50)
+    primary_color: HexColor
+    primary_hover: HexColor | None = None
+    secondary_color: HexColor
+    accent_color: HexColor
+    background_color: HexColor
+    surface_color: HexColor
+    surface_muted: HexColor
+    text_main_color: HexColor
+    text_muted_color: HexColor
+    border_color: HexColor
+    heading_font: FontFamily = FontFamily.LORA
+    body_font: FontFamily = FontFamily.PLUS_JAKARTA_SANS
     active_shape: ShapeType = ShapeType.DANDELION_SEED
-    motif_enabled: bool = True
-    motif_animation_speed: str = Field(default="normal", max_length=20)
-    dandelion_mode: DandelionEffectMode = DandelionEffectMode.DISABLED
     dandelion_modes: list[DandelionEffectMode] = Field(
         default_factory=lambda: [DandelionEffectMode.DISABLED]
     )
-    dandelion_seed_size: int = Field(default=48, ge=20, le=120)
-    dandelion_seed_opacity: int = Field(default=80, ge=10, le=100)
-
-
-class UpdateDandelionModeRequestDTO(BaseModel):
-    """Request payload to update ambient dandelion effect mode and sliders."""
-
-    dandelion_mode: DandelionEffectMode = DandelionEffectMode.DISABLED
-    dandelion_modes: list[DandelionEffectMode] = Field(
-        default_factory=lambda: [DandelionEffectMode.DISABLED]
-    )
-    dandelion_seed_size: int = Field(default=48, ge=20, le=120)
-    dandelion_seed_opacity: int = Field(default=80, ge=10, le=100)
+    dandelion_seed_size: SeedSize = 48
+    dandelion_seed_opacity: SeedOpacity = 80
+    kids_photo_opacity: KidsPhotoOpacity = KIDS_PHOTO_OPACITY_DEFAULT

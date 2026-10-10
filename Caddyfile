@@ -1,30 +1,68 @@
 # ==============================================================================
-# Caddyfile - Reverse Proxy & Automatic SSL Configuration
+# Caddyfile – reverse proxy, automatic HTTPS (Let's Encrypt) and edge protection
+# Required env (from .env): DOMAIN=www.pusterum.be, ACME_EMAIL=…
 # ==============================================================================
+{
+	email {$ACME_EMAIL}
+	order rate_limit before reverse_proxy
+}
 
-{$DOMAIN:localhost} {
-    encode gzip zstd
+# Apex domain → canonical www domain (with HSTS on the apex as well)
+pusterum.be {
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	redir https://{$DOMAIN}{uri} permanent
+}
 
-    # Security Headers
-    header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "DENY"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        Permissions-Policy "camera=(), microphone=(), geolocation=()"
-    }
+{$DOMAIN} {
+	encode zstd gzip
 
-    # Reverse proxy to Litestar application
-    reverse_proxy app:8000 {
-        header_up Host {host}
-        header_up X-Real-IP {remote_host}
-        header_up X-Forwarded-For {remote_host}
-        header_up X-Forwarded-Proto {scheme}
-    }
+	# Uploads are capped at 10 MB by the app; reject larger bodies early.
+	request_body {
+		max_size 12MB
+	}
 
-    # Logging
-    log {
-        output stdout
-        format console
-    }
+	# Edge rate limits per client IP (the app enforces its own limits as well)
+	rate_limit {
+		zone admin_login {
+			match {
+				method POST
+				path /admin/login /admin/login/verify
+			}
+			key {remote_host}
+			events 10
+			window 1m
+		}
+		zone contact_form {
+			match {
+				method POST
+				path /contact
+			}
+			key {remote_host}
+			events 5
+			window 10m
+		}
+		zone altcha {
+			match {
+				path /altcha/challenge
+			}
+			key {remote_host}
+			events 30
+			window 1m
+		}
+	}
+
+	# HSTS here; CSP, COOP/CORP, nosniff etc. are set by the application
+	# (presentation/security/security_headers.py). `preload` is deliberately not set yet.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+		-Via
+	}
+
+	reverse_proxy app:8000
+
+	log {
+		output stdout
+		format json
+	}
 }

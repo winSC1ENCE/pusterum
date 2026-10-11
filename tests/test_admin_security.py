@@ -123,10 +123,12 @@ def test_totp_provider_rejects_replay_and_garbage() -> None:
         ("172.18.0.5", None, "172.18.0.5"),
         ("172.18.0.5", "not-an-ip", "not-an-ip"),
         ("testclient", "198.51.100.9", "testclient"),
+        ("fd4e:1c2a:9b3f::5", "2001:db8::9", "2001:db8::9"),  # IPv6 via trusted Caddy
+        ("2001:db8::1", "198.51.100.9", "2001:db8::1"),  # untrusted IPv6 peer
     ],
 )
 def test_resolve_client_ip(peer: str, forwarded: str | None, expected: str) -> None:
-    networks = parse_networks(["127.0.0.1/32", "172.16.0.0/12"])
+    networks = parse_networks(["127.0.0.1/32", "::1/128", "172.16.0.0/12", "fc00::/7"])
     assert resolve_client_ip(peer, forwarded, networks) == expected
 
 

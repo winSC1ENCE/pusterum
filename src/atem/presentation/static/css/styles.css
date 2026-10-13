@@ -14,6 +14,15 @@ html {
     scroll-padding-top: 5rem;
 }
 
+/* Font size control (components/font-size.js): Tailwind uses rem, so everything scales */
+html[data-font-scale="1"] {
+    font-size: 112.5%;
+}
+
+html[data-font-scale="2"] {
+    font-size: 125%;
+}
+
 /* Admin mode: the live-editor bar sits on top of the header */
 html.is-admin {
     scroll-padding-top: 7.5rem;

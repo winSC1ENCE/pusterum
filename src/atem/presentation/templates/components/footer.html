@@ -1,4 +1,5 @@
 {% from "components/editable_block.html" import editable with context %}
+{% from "components/ui_macros.html" import font_size_control with context %}
 
 <footer class="bg-slate-900 text-slate-400 text-sm border-t border-slate-800 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
@@ -73,7 +74,7 @@
                     </div>
                     <div>
                         <span class="font-heading text-lg text-white font-bold block leading-tight">PUSTERUM</span>
-                        <span class="text-[11px] text-slate-400 uppercase tracking-wider block">Atem- und Körpertherapie &bull; Gemeinschaftspraxis Physiotherapie</span>
+                        <span class="text-xs text-slate-400 uppercase tracking-wider block">Atem- und Körpertherapie &bull; Gemeinschaftspraxis Physiotherapie</span>
                     </div>
                 </div>
                 {{ editable('footer.tagline', tag='p', class='text-xs text-slate-400 max-w-md leading-relaxed whitespace-pre-line') }}
@@ -102,6 +103,9 @@
                     <li><a href="/impressum" class="hover:text-white transition-colors">Impressum</a></li>
                     <li><a href="/datenschutz" class="hover:text-white transition-colors">Datenschutzerklärung</a></li>
                 </ul>
+                <div class="pt-3">
+                    {{ font_size_control(dark=true) }}
+                </div>
             </div>
 
         </div>
@@ -115,7 +119,7 @@
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-right">
-                {{ editable('footer.trademark_notice', tag='span', class='text-[11px] text-slate-400') }}
+                {{ editable('footer.trademark_notice', tag='span', class='text-xs text-slate-400') }}
                 <span class="hidden sm:inline text-slate-600">&bull;</span>
                 <p class="text-slate-400">Ganzheitlich-Integrative Atemtherapie (IKP)</p>
             </div>

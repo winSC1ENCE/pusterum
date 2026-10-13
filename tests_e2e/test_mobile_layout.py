@@ -47,3 +47,47 @@ def test_footer_brand_is_light_on_dark(page: Page, server_url: str) -> None:
     brand = page.locator("footer").get_by_text("PUSTERUM", exact=True)
     expect(brand).to_have_css("color", "rgb(255, 255, 255)")
     expect(page.locator("footer h4").first).to_have_css("color", "rgb(226, 232, 240)")
+
+
+ROOT_FONT_SIZE = "getComputedStyle(document.documentElement).fontSize"
+PHONE_WIDTH = 375
+
+
+def test_font_size_control_in_mobile_menu_persists(page: Page, server_url: str) -> None:
+    page.set_viewport_size({"width": PHONE_WIDTH, "height": 800})
+    page.goto(server_url + "/")
+    assert page.evaluate(ROOT_FONT_SIZE) == "16px"
+    page.get_by_role("button", name="Menü öffnen").click()
+    menu = page.locator("header")
+    larger = menu.get_by_role("button", name="Schrift vergrössern")
+    larger.click()
+    assert page.evaluate(ROOT_FONT_SIZE) == "18px"
+    larger.click()
+    assert page.evaluate(ROOT_FONT_SIZE) == "20px"
+    expect(larger).to_be_disabled()
+
+    # Kept after a reload (applied before Alpine starts) – and still no horizontal scrolling
+    page.reload()
+    assert page.evaluate(ROOT_FONT_SIZE) == "20px"
+    assert page.evaluate("document.documentElement.scrollWidth") <= PHONE_WIDTH
+    box = page.get_by_role("button", name="Menü öffnen").bounding_box()
+    assert box is not None and box["x"] + box["width"] <= PHONE_WIDTH
+
+    page.get_by_role("button", name="Menü öffnen").click()
+    menu.get_by_role("button", name="Normale Schriftgrösse").click()
+    assert page.evaluate(ROOT_FONT_SIZE) == "16px"
+    assert page.evaluate("localStorage.getItem('pusterum_font_scale')") is None
+    expect(menu.get_by_role("button", name="Schrift verkleinern")).to_be_disabled()
+    assert_clean(page)
+
+
+def test_font_size_control_in_footer_syncs_menu(page: Page, server_url: str) -> None:
+    page.set_viewport_size({"width": 1440, "height": 900})
+    page.goto(server_url + "/")
+    footer = page.locator("footer")
+    footer.get_by_role("button", name="Schrift vergrössern").click()
+    assert page.evaluate(ROOT_FONT_SIZE) == "18px"
+    expect(footer.get_by_role("button", name="Schrift verkleinern")).to_be_enabled()
+    # The (hidden) menu control follows, so both never disagree
+    expect(page.locator('header [aria-label="Schrift verkleinern"]')).to_be_enabled()
+    assert_clean(page)

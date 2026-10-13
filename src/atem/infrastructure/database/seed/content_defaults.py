@@ -906,7 +906,8 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
             "zum Schutz der Formulare vor Missbrauch (CSRF-Schutz) sowie – nur für die "
             "Praxisinhaberin – ein Anmelde-Cookie für den Verwaltungsbereich. Alle Schriftarten "
             "werden direkt von diesem Server geladen; es besteht keine Verbindung zu Google oder "
-            "anderen Drittanbietern."
+            "anderen Drittanbietern. Wenn Sie die Schriftgrösse ändern, speichert Ihr Browser "
+            "diese Einstellung lokal (Local Storage); sie wird nicht an den Server übertragen."
         ),
     },
     {

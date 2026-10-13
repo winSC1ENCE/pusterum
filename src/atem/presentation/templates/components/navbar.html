@@ -3,7 +3,7 @@
         <div class="flex justify-between items-center h-20 gap-3 sm:gap-4">
 
             <!-- Brand / Logo -->
-            <a href="/" class="flex items-center gap-2.5 sm:gap-3 group min-w-0 flex-shrink-0">
+            <a href="/" class="flex items-center gap-2.5 sm:gap-3 group min-w-0 flex-1">
                 <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-theme-secondary/50 flex items-center justify-center p-2 border border-theme text-theme-primary group-hover:scale-105 transition-all duration-300 flex-shrink-0">
                     <!-- Crisp, Scalable Dandelion Vector Icon -->
                     <svg class="w-full h-full text-theme-primary" viewBox="0 0 100 100" fill="none" width="32" height="32">
@@ -73,7 +73,7 @@
                     <span class="font-heading text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-theme-primary leading-tight whitespace-nowrap">
                         PUSTERUM
                     </span>
-                    <span class="text-[10px] sm:text-xs uppercase tracking-wider text-theme-text-muted whitespace-nowrap truncate">
+                    <span class="hidden sm:block text-xs uppercase tracking-wider text-theme-text-muted truncate">
                         Atem- und Körpertherapie &bull; Gemeinschaftspraxis
                     </span>
                 </div>
@@ -86,7 +86,9 @@
                 <a href="/#kompetenzen" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Kompetenzen</a>
                 <a href="/#angebote" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Angebote &amp; Tarife</a>
                 {# Only from xl: at lg widths the bar would overflow (footer + mobile menu link it too) #}
+                {% if theme and theme.kids_enabled %}
                 <a href="/#kinder" class="hidden xl:inline hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Für Kinder</a>
+                {% endif %}
                 <a href="/#praxis" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Praxis</a>
                 <a href="/#kontakt" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Kontakt</a>
 
@@ -128,13 +130,15 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 translate-y-0"
         x-transition:leave-end="opacity-0 -translate-y-2"
-        class="lg:hidden border-b border-theme bg-theme-main px-4 pt-3 pb-6 space-y-2 shadow-xl"
+        class="lg:hidden absolute inset-x-0 top-full max-h-[calc(100vh-5rem)] overflow-y-auto border-b border-theme bg-theme-main px-4 pt-3 pb-6 space-y-2 shadow-xl"
     >
         <a @click="mobileOpen = false" href="/#start" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Start</a>
         <a @click="mobileOpen = false" href="/#ueber-mich" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Über mich &amp; PUSTERUM</a>
         <a @click="mobileOpen = false" href="/#kompetenzen" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Kompetenzen</a>
         <a @click="mobileOpen = false" href="/#angebote" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Angebote &amp; Tarife</a>
+        {% if theme and theme.kids_enabled %}
         <a @click="mobileOpen = false" href="/#kinder" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Atmen mit Kindern</a>
+        {% endif %}
         <a @click="mobileOpen = false" href="/#praxis" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Praxis</a>
         <a @click="mobileOpen = false" href="/#kontakt" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Kontakt &amp; Standort</a>
         <div class="pt-3">

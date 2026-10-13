@@ -38,6 +38,21 @@ document.addEventListener("DOMContentLoaded", () => {
         if (option) select.value = option.value;
     });
 
+    // ALTCHA cannot load its challenge (e.g. a corporate proxy answers 403): offer e-mail instead.
+    // The widget fires a non-bubbling «statechange» on itself, so listen in the capture phase –
+    // this also covers the form card that HTMX swaps in after a submit.
+    document.addEventListener(
+        "statechange",
+        (e) => {
+            const fallback = document.getElementById("altcha-fallback");
+            if (!fallback || !(e.target instanceof Element) || e.target.tagName !== "ALTCHA-WIDGET") return;
+            const state = e.detail && e.detail.state;
+            if (state === "error") fallback.hidden = false;
+            else if (state === "verified") fallback.hidden = true;
+        },
+        true,
+    );
+
     // Smooth scroll for anchor navigation
     document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener("click", function (e) {

@@ -34,8 +34,9 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     SECRET_KEY: str = Field(default=DEV_SECRET_KEY, min_length=MIN_SECRET_LENGTH)
     ALLOWED_HOSTS: list[str] = ["localhost", "127.0.0.1"]
-    # Reverse proxies whose X-Forwarded-For header is trusted (CIDR notation).
-    TRUSTED_PROXIES: list[str] = ["127.0.0.1/32", "172.16.0.0/12"]
+    # Reverse proxies whose X-Forwarded-For header is trusted (CIDR notation): Docker bridge
+    # networks (IPv4 172.16.0.0/12, IPv6 unique local fc00::/7).
+    TRUSTED_PROXIES: list[str] = ["127.0.0.1/32", "::1/128", "172.16.0.0/12", "fc00::/7"]
 
     # Database
     DATABASE_URL: str = Field(

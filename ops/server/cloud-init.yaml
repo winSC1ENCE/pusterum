@@ -20,6 +20,7 @@ users:
 packages:
   - ufw
   - fail2ban
+  - python3-systemd   # fail2ban backend=systemd (journald jail for the app)
   - unattended-upgrades
   - apt-listchanges
   - ca-certificates

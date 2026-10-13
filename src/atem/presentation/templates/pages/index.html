@@ -23,7 +23,17 @@
     {% include "components/services.html" %}
 
     <!-- Breathing exercise for children («Atmende Blume») -->
+    {% if theme and theme.kids_enabled %}
     {% include "components/kids_breathing.html" %}
+    {% elif is_admin %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <p class="border border-dashed border-slate-400 rounded-lg px-4 py-3 text-sm text-slate-600 bg-slate-50">
+            Die Sektion «Atmen mit Kindern» ist öffentlich ausgeblendet. Einblenden unter
+            <a href="/admin/design" class="underline font-medium">Corporate Design</a> → Effekt «Atmende Blume (Kinder)».
+        </p>
+    </div>
+    {% include "components/kids_breathing.html" %}
+    {% endif %}
 
     <!-- Practice Space & Location -->
     {% include "components/practice.html" %}

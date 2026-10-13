@@ -56,6 +56,12 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: atem_app
+    # App logs go to the systemd journal (stable name instead of per-container files), so the
+    # fail2ban jail "pusterum-admin" keeps working across rebuilds. `docker compose logs` still works.
+    logging:
+      driver: journald
+      options:
+        tag: atem_app
     env_file:
       - .env
     volumes:
@@ -127,6 +133,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+# IPv6 on the internal network: with "userland-proxy": false (daemon.json) Docker only forwards
+# published ports for an address family the network has. The ULA subnet is allocated automatically;
+# DNAT keeps the real client address, which TRUSTED_PROXIES (fc00::/7) relies on.
+networks:
+  default:
+    enable_ipv6: true
 
 volumes:
   postgres_prod_data:

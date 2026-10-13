@@ -22,4 +22,5 @@ Alle Diagramme werden ausschliesslich mit **Mermaid** direkt in Markdown gepfleg
 * [TDR-0004: ALTCHA statt Drittanbieter-CAPTCHA](../tdr/TDR-0004-altcha-captcha.md)
 * [TDR-0005: Tailwind-Build, Alpine-CSP & strikte CSP](../tdr/TDR-0005-tailwind-build-and-strict-csp.md)
 * [TDR-0006: Backups mit restic](../tdr/TDR-0006-restic-backups.md)
+* [TDR-0007: SSH-Zugang über WireGuard](../tdr/TDR-0007-ssh-via-wireguard.md)
 * Vorlagen: [ADR](../adr/template.md) · [TDR](../tdr/template.md)

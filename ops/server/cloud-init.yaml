@@ -25,6 +25,7 @@ packages:
   - apt-listchanges
   - ca-certificates
   - git
+  - wireguard-tools   # SSH via VPN tunnel, keys set up per runbook (TDR-0007)
   - curl
   - gnupg
 
@@ -95,6 +96,7 @@ runcmd:
   - ufw allow 80/tcp
   - ufw allow 443/tcp
   - ufw allow 443/udp
+  - ufw allow 51820/udp   # WireGuard (TDR-0007)
   - ufw --force enable
   - sysctl --system
   - systemctl restart ssh

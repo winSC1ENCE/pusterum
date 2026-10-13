@@ -24,6 +24,7 @@ packages:
   - unattended-upgrades
   - apt-listchanges
   - ca-certificates
+  - git
   - curl
   - gnupg
 
@@ -58,6 +59,17 @@ write_files:
         "no-new-privileges": true,
         "userland-proxy": false
       }
+  - path: /etc/profile.d/90-git-prompt.sh
+    content: |
+      # Git branch and status in the bash prompt (git-sh-prompt ships with git). Red user@host = production.
+      if [ -n "${BASH_VERSION:-}" ] && [ -f /usr/lib/git-core/git-sh-prompt ]; then
+          . /usr/lib/git-core/git-sh-prompt
+          GIT_PS1_SHOWDIRTYSTATE=1      # * modified, + staged
+          GIT_PS1_SHOWUNTRACKEDFILES=1  # % untracked files
+          GIT_PS1_SHOWUPSTREAM=auto     # = in sync, < behind, > ahead of origin
+          GIT_PS1_SHOWCOLORHINTS=1
+          PROMPT_COMMAND='__git_ps1 "\[\e[1;31m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]" "\\\$ "'
+      fi
   - path: /etc/sysctl.d/90-hardening.conf
     content: |
       net.ipv4.conf.all.rp_filter = 1

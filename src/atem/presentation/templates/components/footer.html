@@ -87,7 +87,9 @@
                     <li><a href="/#ueber-mich" class="hover:text-white transition-colors">Über mich &amp; PUSTERUM</a></li>
                     <li><a href="/#kompetenzen" class="hover:text-white transition-colors">Kompetenzen</a></li>
                     <li><a href="/#angebote" class="hover:text-white transition-colors">Angebote &amp; Tarife</a></li>
+                    {% if theme and theme.kids_enabled %}
                     <li><a href="/#kinder" class="hover:text-white transition-colors">Atmen mit Kindern</a></li>
+                    {% endif %}
                     <li><a href="/#praxis" class="hover:text-white transition-colors">Praxis</a></li>
                     <li><a href="/#kontakt" class="hover:text-white transition-colors">Kontakt &amp; Termin</a></li>
                 </ul>

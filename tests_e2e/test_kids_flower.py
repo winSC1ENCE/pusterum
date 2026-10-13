@@ -2,6 +2,7 @@
 
 import re
 
+import pytest
 from playwright.sync_api import Page, expect
 
 from tests_e2e.conftest import ADMIN_EMAIL, ADMIN_PASSWORD, assert_clean
@@ -22,6 +23,13 @@ def _set_modes(page: Page, server_url: str, modes: str) -> None:
         headers={"x-csrftoken": token or "", "hx-request": "true"},
     )
     assert response.ok
+
+
+@pytest.fixture(autouse=True)
+def _kids_enabled(page: Page, server_url: str) -> None:
+    """The section is only public while «Atmende Blume» is on; tests start logged out."""
+    _set_modes(page, server_url, "kids_flower")
+    page.context.clear_cookies()
 
 
 def _blow(page: Page, button_selector: str) -> None:
@@ -204,7 +212,7 @@ def test_variant_done_offers_next_flower(page: Page, server_url: str) -> None:
 
 
 def test_photos_fade_behind_the_flower(page: Page, server_url: str) -> None:
-    _set_modes(page, server_url, "disabled")  # logged in as admin now
+    _set_modes(page, server_url, "kids_flower")  # logged in as admin now
     token = page.locator('meta[name="csrf-token"]').get_attribute("content") or ""
     for kind in ("photo_closed", "photo_open"):
         response = page.request.post(

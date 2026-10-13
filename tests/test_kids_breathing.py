@@ -1,5 +1,6 @@
 """Children's breathing exercise «Atmende Blume»: section, widget mode, printable card."""
 
+import pytest
 from litestar import Litestar
 from litestar.testing import AsyncTestClient
 
@@ -15,6 +16,12 @@ async def _set_modes(client: AsyncTestClient[Litestar], modes: str) -> None:
     client.cookies.delete("atem_session")
 
 
+@pytest.fixture
+async def kids_on(app_client: AsyncTestClient[Litestar]) -> None:
+    """The children's section is only public while «Atmende Blume» is switched on."""
+    await _set_modes(app_client, "kids_flower")
+
+
 def test_kids_flower_mode_is_combinable_and_listed() -> None:
     modes = DandelionEffectMode.parse_many("breath_widget,kids_flower")
     assert modes == [DandelionEffectMode.BREATH_WIDGET, DandelionEffectMode.KIDS_FLOWER]
@@ -22,7 +29,7 @@ def test_kids_flower_mode_is_combinable_and_listed() -> None:
 
 
 async def test_section_renders_variants_player_and_tips(
-    app_client: AsyncTestClient[Litestar],
+    app_client: AsyncTestClient[Litestar], kids_on: None
 ) -> None:
     page = (await app_client.get("/")).text
     assert 'id="kinder"' in page
@@ -65,7 +72,7 @@ async def test_breath_pause_alone_has_no_kids_tab(app_client: AsyncTestClient[Li
     assert 'data-scope="widget"' not in page
 
 
-async def test_printable_card(app_client: AsyncTestClient[Litestar]) -> None:
+async def test_printable_card(app_client: AsyncTestClient[Litestar], kids_on: None) -> None:
     res = await app_client.get("/atmende-blume/karte")
     assert res.status_code == 200
     assert "kids-card" in res.text
@@ -76,7 +83,7 @@ async def test_printable_card(app_client: AsyncTestClient[Litestar]) -> None:
 
 
 async def test_edited_variant_appears_in_section_and_card(
-    app_client: AsyncTestClient[Litestar],
+    app_client: AsyncTestClient[Litestar], kids_on: None
 ) -> None:
     await app_client.post("/admin/login", data=ADMIN)
     saved = await app_client.post(
@@ -89,7 +96,9 @@ async def test_edited_variant_appears_in_section_and_card(
     assert "Die kleine Tulpe" in (await app_client.get("/atmende-blume/karte")).text
 
 
-async def test_every_variant_card_can_be_started(app_client: AsyncTestClient[Litestar]) -> None:
+async def test_every_variant_card_can_be_started(
+    app_client: AsyncTestClient[Litestar], kids_on: None
+) -> None:
     page = (await app_client.get("/")).text
     for index in range(4):
         assert f'@click="start({index})"' in page
@@ -101,7 +110,9 @@ async def test_every_variant_card_can_be_started(app_client: AsyncTestClient[Lit
     assert '@kids-flower-start.window="startFrom($event)"' in page
 
 
-async def test_photos_are_admin_only_until_uploaded(app_client: AsyncTestClient[Litestar]) -> None:
+async def test_photos_are_admin_only_until_uploaded(
+    app_client: AsyncTestClient[Litestar], kids_on: None
+) -> None:
     public = (await app_client.get("/")).text
     assert "Bild hinzufügen" not in public
     assert "Foto Ausatmen" not in public
@@ -149,3 +160,18 @@ async def test_photo_opacity_slider_is_saved_clamped_and_kept(
     # Saving colours (custom form without the slider field) keeps the value
     await app_client.post("/admin/design/custom", data={"primary_color": "#4A6C50"})
     assert "--kids-photo-opacity: 0.80;" in (await app_client.get("/theme.css")).text
+
+
+async def test_kids_offer_hidden_while_switched_off(app_client: AsyncTestClient[Litestar]) -> None:
+    await _set_modes(app_client, "breath_widget")
+    page = (await app_client.get("/")).text
+    assert 'id="kinder"' not in page
+    assert 'href="/#kinder"' not in page
+    assert 'x-data="kidsFlower"' not in page
+    assert (await app_client.get("/atmende-blume/karte")).status_code == 404
+
+    # Admins still see (and can edit) the hidden section, with a hint
+    await app_client.post("/admin/login", data=ADMIN)
+    admin = (await app_client.get("/")).text
+    assert 'id="kinder"' in admin
+    assert "öffentlich ausgeblendet" in admin

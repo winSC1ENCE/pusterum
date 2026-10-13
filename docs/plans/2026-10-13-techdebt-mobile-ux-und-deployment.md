@@ -10,7 +10,7 @@ Arbeitsliste in der vereinbarten Reihenfolge. Betriebsschritte auf dem Server st
 | 2 | Mobile: Hamburger-Menü ausserhalb des Bildschirms | erledigt |
 | 3 | Menü-Sprung landet zu weit unten / unter dem Header | erledigt |
 | 4 | Footer: «PUSTERUM» auf dunklem Grund kaum lesbar | erledigt |
-| 4b | Kinder-Sektion trotz deaktivierter «Atmende Blume» sichtbar | offen |
+| 4b | Kinder-Sektion trotz deaktivierter «Atmende Blume» sichtbar | erledigt |
 | 5 | `develop` → `main`, Server auf `main` (Runbook 1.12) | offen |
 | 6 | Automatisches Deployment bei Push auf `main` (ADR-0005, Runbook 1.13) | offen |
 | 7 | Schrift: Mindestgrössen anheben + Regler «Schrift A− A A+» | offen |

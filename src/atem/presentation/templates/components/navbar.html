@@ -86,7 +86,9 @@
                 <a href="/#kompetenzen" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Kompetenzen</a>
                 <a href="/#angebote" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Angebote &amp; Tarife</a>
                 {# Only from xl: at lg widths the bar would overflow (footer + mobile menu link it too) #}
+                {% if theme and theme.kids_enabled %}
                 <a href="/#kinder" class="hidden xl:inline hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Für Kinder</a>
+                {% endif %}
                 <a href="/#praxis" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Praxis</a>
                 <a href="/#kontakt" class="hover:text-theme-primary transition-colors py-1 whitespace-nowrap">Kontakt</a>
 
@@ -134,7 +136,9 @@
         <a @click="mobileOpen = false" href="/#ueber-mich" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Über mich &amp; PUSTERUM</a>
         <a @click="mobileOpen = false" href="/#kompetenzen" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Kompetenzen</a>
         <a @click="mobileOpen = false" href="/#angebote" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Angebote &amp; Tarife</a>
+        {% if theme and theme.kids_enabled %}
         <a @click="mobileOpen = false" href="/#kinder" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Atmen mit Kindern</a>
+        {% endif %}
         <a @click="mobileOpen = false" href="/#praxis" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Praxis</a>
         <a @click="mobileOpen = false" href="/#kontakt" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Kontakt &amp; Standort</a>
         <div class="pt-3">

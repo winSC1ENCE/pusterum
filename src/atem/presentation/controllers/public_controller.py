@@ -5,6 +5,7 @@ from typing import Annotated, Any
 import structlog
 from litestar import Controller, Request, get, post
 from litestar.enums import RequestEncodingType
+from litestar.exceptions import NotFoundException
 from litestar.params import Body
 from litestar.response import Response, Template
 from pydantic import ValidationError
@@ -185,6 +186,8 @@ class PublicController(Controller):
     ) -> Template:
         """Printable A5 card of the children's breathing exercise «Atmende Blume»."""
         theme = await theme_service.get_active_theme()
+        if not theme.kids_enabled:
+            raise NotFoundException()
         return Template(
             template_name="pages/kids_card.html",
             context={

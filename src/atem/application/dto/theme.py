@@ -86,6 +86,11 @@ class ThemeConfigDTO(BaseModel):
         return DandelionEffectMode(mode) in self.dandelion_modes
 
     @property
+    def kids_enabled(self) -> bool:
+        """The children's offer (section, links, card) follows the «Atmende Blume» switch."""
+        return self.has_dandelion_mode(DandelionEffectMode.KIDS_FLOWER)
+
+    @property
     def dandelion_modes_list(self) -> list[str]:
         """Return list of active mode string values for templates and JSON."""
         return [m.value for m in self.dandelion_modes]

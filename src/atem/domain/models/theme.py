@@ -385,7 +385,8 @@ DANDELION_MODE_DEFINITIONS: tuple[DandelionModeDefinition, ...] = (
         badge="Kinder-Widget",
         description=(
             "Geführte Kinder-Atemübung mit Blüte und Pusten-Spiel; mit der Atem-Pause"
-            " kombiniert teilen sich beide einen Button."
+            " kombiniert teilen sich beide einen Button. Aus = auch die Sektion «Atmen mit"
+            " Kindern» samt Menü-Links und Druckkarte ist ausgeblendet."
         ),
     ),
 )

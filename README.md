@@ -138,5 +138,9 @@ Produktions-Secrets: `cp config/env.production.example .env`, `cp config/db.env.
 Start mit unsicheren Werten. Beim ersten Login wird die Zwei-Faktor-Anmeldung (TOTP) erzwungen.
 Server-Härtung (`ops/server/cloud-init.yaml`), Backups/Restore und Notfälle: [`docs/ops/runbook.md`](docs/ops/runbook.md).
 
+**Updates** deployen automatisch: Pull Request `develop` → `main` (Merge-Commit) → grüne CI → der Job
+«Promote to production» setzt den Branch `production` → ein systemd-Timer auf dem Server übernimmt ihn innerhalb
+von ~5 Minuten, prüft `/health/ready` und rollt bei Fehlern zurück (`ops/deploy/`, [ADR-0005](docs/adr/ADR-0005-continuous-deployment.md)).
+
 > **Hinweis:** `docs/ops/runbook.md` ist mit [git-crypt](https://github.com/AGWA/git-crypt) verschlüsselt und
 > auf GitHub nur als Binärdatei sichtbar. Mit dem Schlüssel entsperren: `git-crypt unlock /pfad/zum/pusterum.key`.

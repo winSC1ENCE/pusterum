@@ -15,6 +15,7 @@ Alle Diagramme werden ausschliesslich mit **Mermaid** direkt in Markdown gepfleg
 * [ADR-0002: Live In-Context Inline-Editing & Versionierung](../adr/ADR-0002-live-inline-content-editing-and-versioning-system.md)
 * [ADR-0003: Persistente Medien & Produktions-Persistenz](../adr/ADR-0003-persistent-media-storage-and-production-persistence.md)
 * [ADR-0004: Security-Architektur](../adr/ADR-0004-security-architecture.md)
+* [ADR-0005: Automatisches Deployment per Pull-Prinzip](../adr/ADR-0005-continuous-deployment.md)
 * [TDR-0001: Theme & organische Formen](../tdr/TDR-0001-dynamic-theme-and-organic-shapes-engine.md)
 * [TDR-0002: Pusteblumen-Effekte](../tdr/TDR-0002-dandelion-ambient-effects-engine.md)
 * [TDR-0003: Zitat-Band & Datenmigrationen](../tdr/TDR-0003-quote-rotator-and-content-migrations.md)

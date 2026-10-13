@@ -230,3 +230,30 @@ jobs:
                python -c "from atem.infrastructure.config.settings import get_settings; get_settings()"; then
             echo "expected startup refusal" && exit 1
           fi
+
+  # Pull-based deployment (ADR-0005): after a fully green run on main, move the branch
+  # `production` to the tested commit. The server's systemd timer picks it up – no secrets
+  # or SSH access from GitHub to the server.
+  promote:
+    name: Promote to production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [code-quality, tests, migrations, e2e, docker]
+    permissions:
+      contents: write
+    concurrency:
+      group: promote-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Fast-forward production to the tested commit
+        run: |
+          if git fetch origin production 2>/dev/null; then
+            if ! git merge-base --is-ancestor origin/production "$GITHUB_SHA"; then
+              echo "production is not an ancestor of $GITHUB_SHA – refusing to rewrite it" && exit 1
+            fi
+          fi
+          git push origin "$GITHUB_SHA:refs/heads/production"
+          echo "production → ${GITHUB_SHA::7} (server deploys within ~5 min)" >> "$GITHUB_STEP_SUMMARY"

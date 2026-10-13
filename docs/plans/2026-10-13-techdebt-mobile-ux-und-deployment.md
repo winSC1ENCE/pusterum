@@ -89,6 +89,10 @@ aktualisiert sie nicht (Runbook 6). Umsetzung:
 
 ## Später (erfasst, nicht eingeplant)
 
+- HEAD-Anfragen auf Seiten (z. B. `curl -I https://www.pusterum.be/`) liefern 405 statt 200.
+  Für Besucher irrelevant, aber Uptime-Monitore prüfen teils per HEAD → Fehlalarm. GET-Routen
+  auch für HEAD freigeben (Litestar) oder Monitor auf GET stellen.
+
 - Benachrichtigung bei fehlgeschlagenem Deployment (heute nur im Server-Journal), z. B. Ping an
   einen Uptime-/Healthcheck-Dienst aus `pusterum-deploy.sh`.
 - GitHub-Actions-Pins auf Versionen mit Node 24 anheben (Warnung «Node.js 20 is deprecated»).

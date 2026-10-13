@@ -153,4 +153,5 @@ docker compose -f docker-compose.prod.yml exec app python -m atem.cli create-adm
   --email vorname.name@example.ch   # persönliche Adresse = Login
 ```
 
-Backups, Restore-Test, Rollback und Notfälle: [`docs/ops/runbook.md`](docs/ops/runbook.md).
+Updates laufen danach automatisch: Merge nach `main` → grüne CI → Branch `production` → systemd-Timer auf dem
+Server (`ops/deploy/`, ADR-0005). Backups, Restore-Test, Rollback und Notfälle: [`docs/ops/runbook.md`](docs/ops/runbook.md).

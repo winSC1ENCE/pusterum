@@ -136,3 +136,6 @@ Secrets in `.env`, `db.env`, `backup.env` (Vorlagen in `config/`); Backups per r
 Anbieter-Namen und konkrete Zugangsschritte stehen nur im **git-crypt-verschlüsselten** Runbook – in allen
 anderen (öffentlichen) Dateien Anbieter neutral benennen («Cloud-Server», «Backup-Speicher», «Mail-Provider»).
 Ablauf, Restore und Notfälle: [`docs/ops/runbook.md`](docs/ops/runbook.md) (verschlüsselt, `git-crypt unlock`).
+Releases: PR `develop` → `main` (geschützt: PR + 6 Pflicht-Checks, **nur Merge-Commits**, kein Squash). Nach grüner CI
+setzt der Job `promote` den Branch `production`; ein systemd-Timer auf dem Server deployt ihn (`ops/deploy/`,
+Pull-Prinzip, Health-Check + Rollback, ADR-0005). Nie direkt auf `main` oder `production` pushen.

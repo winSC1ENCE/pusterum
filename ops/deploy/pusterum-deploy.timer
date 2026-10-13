@@ -1,0 +1,11 @@
+# Checks every 5 minutes whether CI moved the production branch (ADR-0005).
+[Unit]
+Description=PUSTERUM: check for new production commits every 5 minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitInactiveSec=5min
+RandomizedDelaySec=30s
+
+[Install]
+WantedBy=timers.target

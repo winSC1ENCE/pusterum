@@ -186,9 +186,8 @@ async def test_totp_and_recovery_code_flow(auth_service: AuthService) -> None:
     setup = auth_service.start_totp_setup(first.user)
     with pytest.raises(ValidationException):
         await auth_service.confirm_totp_setup(first.user.id, setup.secret, "000000x")
-    codes = await auth_service.confirm_totp_setup(
-        first.user.id, setup.secret, pyotp.TOTP(setup.secret).now()
-    )
+    enrolment_code = pyotp.TOTP(setup.secret).now()
+    codes = await auth_service.confirm_totp_setup(first.user.id, setup.secret, enrolment_code)
     assert await auth_service.count_recovery_codes(first.user.id) == 10
 
     # Enabling 2FA revoked the old session
@@ -199,9 +198,10 @@ async def test_totp_and_recovery_code_flow(auth_service: AuthService) -> None:
     )
     assert second.requires_totp
 
-    # The TOTP code used for enrolment cannot be replayed
+    # The TOTP code used for enrolment cannot be replayed – the same code, not now(): across a
+    # 30 s boundary now() is a new, legitimately valid code (flaky CI run on 2026-10-13)
     with pytest.raises(AuthenticationException):
-        await auth_service.verify_second_factor(first.user.id, pyotp.TOTP(setup.secret).now(), IP)
+        await auth_service.verify_second_factor(first.user.id, enrolment_code, IP)
 
     # Recovery code works exactly once (case/space insensitive)
     user = await auth_service.verify_second_factor(first.user.id, f" {codes[0].upper()} ", IP)

@@ -15,6 +15,7 @@ Arbeitsliste in der vereinbarten Reihenfolge. Betriebsschritte auf dem Server st
 | 5 | `develop` → `main`, Server auf `main` (Runbook 1.12) | erledigt |
 | 6 | Automatisches Deployment bei Push auf `main` (ADR-0005, Runbook 1.13) | umgesetzt, Server-Installation offen |
 | 7 | Schrift: Mindestgrössen anheben + Regler «Schrift A− A A+» | offen |
+| 8 | Updates der Container-Images: wöchentlicher CI-Lauf + Renovate/Dependabot | offen |
 
 ## Details
 
@@ -58,8 +59,8 @@ Umsetzung:
   <a href="mailto:…">…</a>.» Adresse aus dem bestehenden Content-Block (wie `practice_email` in
   `components/contact_form.html`), keine neue Konfiguration.
 - `static/js/app.js`: auf das `statechange`-Event des Widgets hören (`detail.state === "error"` →
-  Hinweis zeigen, `"verified"` → wieder verbergen). Bindung nach HTMX-Swaps erneuern
-  (`htmx:load`), da das Formular nach dem Absenden ersetzt wird. CSP-konform, kein Inline-JS.
+  Hinweis zeigen, `"verified"` → wieder verbergen). Das Event bubbelt nicht → Listener in der
+  Capture-Phase am `document`; wirkt so auch nach HTMX-Swaps. CSP-konform, kein Inline-JS.
 - E2E (`tests_e2e/test_smoke.py`): `page.route("**/altcha/challenge", …)` liefert 403 →
   Checkbox anklicken → Hinweis mit `mailto:` sichtbar, keine CSP-Fehler.
 - Firmenseitig unabhängig davon: IT bitten, `pusterum.be` zu kategorisieren bzw. freizugeben.
@@ -76,13 +77,20 @@ Feste Kleinstgrössen (`text-[10px]`, `text-[11px]`) in öffentlichen Templates 
 `text-xs` anheben. Dazu ein dezenter Regler im Mobile-Menü und im Footer (100 / 112.5 / 125 %),
 gespeichert nur lokal im Browser (`localStorage`, kein Cookie).
 
+### 8 · Updates der Container-Images
+
+Basis-Images (Python, PostgreSQL, Caddy, Backup) sind per Digest gepinnt – `apt` auf dem Server
+aktualisiert sie nicht (Runbook 6). Umsetzung:
+- `ci.yml`: zusätzlicher Trigger `schedule:` (wöchentlich) – der Trivy-Scan meldet dann neue,
+  behebbare CVEs der Images, auch ohne Push.
+- Renovate (oder Dependabot) für Docker-Digests, `uv` und GitHub-Actions; vorher prüfen, ob das
+  Werkzeug die `ARG`-basierten `FROM`-Zeilen in den Dockerfiles erkennt.
+- Update-PRs laufen wie Code: CI → Merge nach `main` → automatisches Deployment.
+
 ## Später (erfasst, nicht eingeplant)
 
 - Benachrichtigung bei fehlgeschlagenem Deployment (heute nur im Server-Journal), z. B. Ping an
   einen Uptime-/Healthcheck-Dienst aus `pusterum-deploy.sh`.
-- CI zusätzlich wöchentlich per `schedule:` laufen lassen, damit neue CVEs auffallen, bevor ein
-  normaler Push rot wird.
-- Dependabot (oder Renovate) für `uv` und GitHub-Actions.
 - GitHub-Actions-Pins auf Versionen mit Node 24 anheben (Warnung «Node.js 20 is deprecated»).
 - Litestar-Deprecations (~20 000 Warnungen in `pytest`): Pfadparameter mit `FromPath[…]` bzw.
   `Annotated[…, PathParameter()]` und Dependencies mit `NamedDependency[…]` deklarieren – sonst

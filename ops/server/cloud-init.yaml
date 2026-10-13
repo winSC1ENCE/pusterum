@@ -44,7 +44,7 @@ write_files:
   - path: /etc/apt/apt.conf.d/52unattended-upgrades-local
     content: |
       Unattended-Upgrade::Automatic-Reboot "true";
-      Unattended-Upgrade::Automatic-Reboot-Time "04:30";
+      Unattended-Upgrade::Automatic-Reboot-Time "05:30";   // after backup 02:30 and Sunday check 04:15
       Unattended-Upgrade::Remove-Unused-Dependencies "true";
   - path: /etc/apt/apt.conf.d/20auto-upgrades
     content: |

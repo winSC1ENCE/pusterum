@@ -12,7 +12,7 @@ Arbeitsliste in der vereinbarten Reihenfolge. Betriebsschritte auf dem Server st
 | 4 | Footer: «PUSTERUM» auf dunklem Grund kaum lesbar | erledigt |
 | 4b | Kinder-Sektion trotz deaktivierter «Atmende Blume» sichtbar | erledigt |
 | 4c | Kontaktformular: Ausweg per E-Mail, wenn ALTCHA blockiert wird | erledigt |
-| 5 | `develop` → `main`, Server auf `main` (Runbook 1.12) | offen |
+| 5 | `develop` → `main`, Server auf `main` (Runbook 1.12) | erledigt |
 | 6 | Automatisches Deployment bei Push auf `main` (ADR-0005, Runbook 1.13) | offen |
 | 7 | Schrift: Mindestgrössen anheben + Regler «Schrift A− A A+» | offen |
 

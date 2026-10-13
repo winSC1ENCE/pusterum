@@ -17,6 +17,9 @@
     <link rel="shortcut icon" href="/static/images/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
 
+    <!-- Saved font size before first paint (sync, tiny; no inline JS under the CSP) -->
+    <script src="/static/js/font-size-init.js?v={{ asset_version }}"></script>
+
     <!-- Styles: self-hosted fonts, compiled Tailwind, base styles, theme variables -->
     <link rel="stylesheet" href="/static/css/fonts.css?v={{ asset_version }}">
     <link rel="stylesheet" href="/static/css/app.css?v={{ asset_version }}">
@@ -29,6 +32,7 @@
     <script defer src="/static/js/app.js?v={{ asset_version }}"></script>
     <script defer src="/static/js/components/dandelion.js?v={{ asset_version }}"></script>
     <script defer src="/static/js/components/quotes.js?v={{ asset_version }}"></script>
+    <script defer src="/static/js/components/font-size.js?v={{ asset_version }}"></script>
     <script defer src="/static/js/components/kids-flower.js?v={{ asset_version }}"></script>
     {% if is_admin %}
     <script defer src="/static/js/admin/live-editor.js?v={{ asset_version }}"></script>

@@ -38,7 +38,7 @@
                     {{ editable('kids.variant_' ~ i ~ '.text', tag='p', class='text-sm text-theme-text-muted leading-relaxed', type='textarea', rows=4) }}
                     {% if is_admin %}
                     {# Real photos of the exercise – shown subtly behind the flower in the player #}
-                    <div class="grid grid-cols-2 gap-2 pt-2 text-[11px] text-slate-500">
+                    <div class="grid grid-cols-2 gap-2 pt-2 text-xs text-slate-500">
                         <div class="space-y-1">
                             <span class="block font-semibold">Foto Ausatmen (geschlossen)</span>
                             {{ editable('kids.variant_' ~ i ~ '.photo_closed', type='image', img_alt='Übung Blume ' ~ i ~ ', Hände geschlossen', img_class='w-full h-20 object-cover rounded-lg') }}

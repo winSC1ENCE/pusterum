@@ -11,7 +11,7 @@
             {% for service in services %}
             <div class="w-full md:w-[calc((100%-4rem)/3)] bg-theme-main border border-theme p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
                 {% if service.is_health_insurance_recognized %}
-                <div class="absolute top-0 right-0 bg-theme-primary text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-bl-xl">
+                <div class="absolute top-0 right-0 bg-theme-primary text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-bl-xl">
                     Krankenkassen-Anerkannt
                 </div>
                 {% endif %}

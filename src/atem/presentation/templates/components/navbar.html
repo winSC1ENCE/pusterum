@@ -1,3 +1,4 @@
+{% from "components/ui_macros.html" import font_size_control with context %}
 <header class="sticky top-0 z-50 bg-theme-main/95 backdrop-blur-md border-b border-theme transition-colors duration-300" x-data="{ mobileOpen: false }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-20 gap-3 sm:gap-4">
@@ -145,6 +146,9 @@
             <a @click="mobileOpen = false" href="/#kontakt" class="block text-center w-full px-5 py-3.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary font-medium shadow-md transition-all">
                 Termin anfragen
             </a>
+        </div>
+        <div class="pt-4 mt-2 border-t border-theme flex justify-center">
+            {{ font_size_control() }}
         </div>
     </div>
 </header>

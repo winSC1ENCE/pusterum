@@ -46,6 +46,19 @@ def test_contact_form_with_altcha(page: Page, server_url: str) -> None:
     assert_clean(page)
 
 
+def test_altcha_blocked_offers_email_fallback(page: Page, server_url: str) -> None:
+    # Corporate web filters answer the challenge request with 403 (seen in the wild)
+    page.route("**/altcha/challenge", lambda route: route.fulfill(status=403, body="Forbidden"))
+    page.goto(server_url + "/#kontakt")
+    fallback = page.locator("#altcha-fallback")
+    expect(fallback).to_be_hidden()
+    page.locator("altcha-widget input[type=checkbox]").click()  # unchecks itself on error
+    expect(fallback).to_be_visible(timeout=15000)
+    expect(fallback.locator('a[href^="mailto:"]')).to_have_count(1)
+    # The widget itself logs the 403 to the console, so only CSP is checked here
+    assert page.evaluate("window.__cspViolations || []") == []
+
+
 def test_admin_login_and_inline_edit(page: Page, server_url: str) -> None:
     page.goto(server_url + "/admin/login")
     page.fill("#email", ADMIN_EMAIL)

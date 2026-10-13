@@ -10,6 +10,13 @@
 html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    /* Anchor targets start right below the sticky header (h-20) */
+    scroll-padding-top: 5rem;
+}
+
+/* Admin mode: the live-editor bar sits on top of the header */
+html.is-admin {
+    scroll-padding-top: 7.5rem;
 }
 
 body {
@@ -58,8 +65,12 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     font-family: var(--font-heading, 'Lora', Georgia, serif);
     font-weight: 700;
     line-height: 1.25;
-    color: var(--theme-text-main, #1E293B);
     margin-top: 0;
+}
+
+/* Default colour only – zero specificity so utilities like text-white win */
+:where(h1, h2, h3, h4, h5, h6, .font-heading) {
+    color: var(--theme-text-main, #1E293B);
 }
 
 /* Dynamic Theme Utilities */

@@ -11,6 +11,7 @@ Arbeitsliste in der vereinbarten Reihenfolge. Betriebsschritte auf dem Server st
 | 3 | Menü-Sprung landet zu weit unten / unter dem Header | erledigt |
 | 4 | Footer: «PUSTERUM» auf dunklem Grund kaum lesbar | erledigt |
 | 4b | Kinder-Sektion trotz deaktivierter «Atmende Blume» sichtbar | erledigt |
+| 4c | Kontaktformular: Ausweg per E-Mail, wenn ALTCHA blockiert wird | offen |
 | 5 | `develop` → `main`, Server auf `main` (Runbook 1.12) | offen |
 | 6 | Automatisches Deployment bei Push auf `main` (ADR-0005, Runbook 1.13) | offen |
 | 7 | Schrift: Mindestgrössen anheben + Regler «Schrift A− A A+» | offen |
@@ -42,6 +43,26 @@ Der Effekt-Schalter «Atmende Blume (Kinder)» im Corporate Design steuerte nur 
 Sektion «Atmen mit Kindern», Menü-/Footer-Links und die Druckkarte wurden immer ausgeliefert.
 Lösung: alles hängt am selben Schalter. Admins sehen die ausgeblendete Sektion weiterhin (mit
 Hinweis), damit die Texte pflegbar bleiben.
+
+### 4c · ALTCHA-Fallback
+
+Befund: In einem Firmennetz (Edge) antwortet ein Web-Proxy auf `/altcha/challenge` mit 403 und
+liefert für CSS eine HTML-Sperrseite (neu registrierte, unkategorisierte Domain). Server und App
+liefern korrekt (geprüft: 200 / `application/json`, CSS `text/css`; unser Stack kennt dort kein 403).
+Das Widget zeigt nur «Prüfung fehlgeschlagen – bitte erneut versuchen.» – die Anfrage geht verloren.
+
+Umsetzung:
+- `components/contact_form_card.html`: unter `<altcha-widget>` ein verstecktes
+  `<p id="altcha-fallback" role="alert" hidden>` – «Die Sicherheitsprüfung konnte nicht geladen
+  werden (z. B. wegen eines Firmen-Netzwerkfilters). Schreiben Sie uns direkt an
+  <a href="mailto:…">…</a>.» Adresse aus dem bestehenden Content-Block (wie `practice_email` in
+  `components/contact_form.html`), keine neue Konfiguration.
+- `static/js/app.js`: auf das `statechange`-Event des Widgets hören (`detail.state === "error"` →
+  Hinweis zeigen, `"verified"` → wieder verbergen). Bindung nach HTMX-Swaps erneuern
+  (`htmx:load`), da das Formular nach dem Absenden ersetzt wird. CSP-konform, kein Inline-JS.
+- E2E (`tests_e2e/test_smoke.py`): `page.route("**/altcha/challenge", …)` liefert 403 →
+  Checkbox anklicken → Hinweis mit `mailto:` sichtbar, keine CSP-Fehler.
+- Firmenseitig unabhängig davon: IT bitten, `pusterum.be` zu kategorisieren bzw. freizugeben.
 
 ### 6 · Automatisches Deployment
 

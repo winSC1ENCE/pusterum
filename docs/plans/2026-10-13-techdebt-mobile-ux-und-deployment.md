@@ -14,8 +14,9 @@ Arbeitsliste in der vereinbarten Reihenfolge. Betriebsschritte auf dem Server st
 | 4c | Kontaktformular: Ausweg per E-Mail, wenn ALTCHA blockiert wird | erledigt |
 | 5 | `develop` → `main`, Server auf `main` (Runbook 1.12) | erledigt |
 | 6 | Automatisches Deployment bei Push auf `main` (ADR-0005, Runbook 1.13) | erledigt |
-| 7 | Schrift: Mindestgrössen anheben + Regler «Schrift A− A A+» | erledigt |
+| 7 | Schrift: Mindestgrössen anheben + Regler «Schrift A− A+» | erledigt |
 | 8 | Updates der Container-Images: wöchentlicher CI-Lauf + Renovate/Dependabot | offen |
+| 9 | Backup-Container: Zombie-Prozesse würden `pids_limit` füllen → Backups fallen aus | erledigt |
 
 ## Details
 
@@ -87,8 +88,26 @@ aktualisiert sie nicht (Runbook 6). Umsetzung:
   Werkzeug die `ARG`-basierten `FROM`-Zeilen in den Dockerfiles erkennt.
 - Update-PRs laufen wie Code: CI → Merge nach `main` → automatisches Deployment.
 
+### 9 · Zombie-Prozesse im Backup-Container
+
+Befund 2026-10-14 (Login-Meldung «7 zombie processes»): alles `ssh`-Prozesse von restic (SFTP),
+Elternprozess `crond` = PID 1 im Container `atem_backup`. `crond` räumt beendete Enkelprozesse
+nicht ab; pro Backup bleiben ~2 Zombies. Sie zählen zu `pids_limit: 128` → nach rund zwei
+Monaten hätte der Container keine Prozesse mehr starten können, Backups wären still ausgefallen.
+Fix: `init: true` für `backup` und `restore` (Docker-Init räumt ab; lokal nachgewiesen: ohne Init
+1 Zombie, mit Init 0). Nach dem Deploy prüfen: `ps -eo stat | grep -c '^Z'` → 0.
+
 ## Später (erfasst, nicht eingeplant)
 
+- ~~**Server: Zeitzone prüfen und Update-Zeit vor den Neustart legen.**~~ **Erledigt 2026-10-14**
+  (Cloud config + Runbook 6.1; Updates 04:30, Neustart 05:30). Meldung 2026-10-14 06:30 CEST:
+  «The system will reboot at Thu 2026-10-15 05:30 CEST». **Geprüft 2026-10-14:** Zeitzone stimmt
+  (`timedatectl` → `Europe/Zurich (CEST, +0200)`); `apt-daily-upgrade.timer` lief 06:03, nächster
+  Lauf 06:57 – also immer *nach* dem Neustart-Fenster 05:30 → jeder Neustart wartet bis ~23 h.
+  Lösung: Override `/etc/systemd/system/apt-daily-upgrade.timer.d/override.conf` mit
+  `OnCalendar=` (leeren) + `OnCalendar=*-*-* 04:30` und `RandomizedDelaySec=20m` → Neustart in
+  derselben Nacht; in Cloud-Config und Runbook 6.1 aufnehmen (Sonntag: `restic check` 04:15 ist
+  kein Konflikt, da nur der Neustart stört).
 - HEAD-Anfragen auf Seiten (z. B. `curl -I https://www.pusterum.be/`) liefern 405 statt 200.
   Für Besucher irrelevant, aber Uptime-Monitore prüfen teils per HEAD → Fehlalarm. GET-Routen
   auch für HEAD freigeben (Litestar) oder Monitor auf GET stellen.

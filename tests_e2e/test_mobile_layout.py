@@ -51,6 +51,9 @@ def test_footer_brand_is_light_on_dark(page: Page, server_url: str) -> None:
 
 ROOT_FONT_SIZE = "getComputedStyle(document.documentElement).fontSize"
 PHONE_WIDTH = 375
+# At the very end of the page the browser cannot scroll further, so the button may move
+# a few pixels (before the fix it slid ~900 px out of view).
+POSITION_TOLERANCE_PX = 10
 
 
 def test_font_size_control_in_mobile_menu_persists(page: Page, server_url: str) -> None:
@@ -97,4 +100,25 @@ def test_font_size_control_in_footer_syncs_menu(page: Page, server_url: str) -> 
     expect(footer.get_by_role("button", name="Schrift verkleinern")).to_be_enabled()
     # The (hidden) menu control follows, so both never disagree
     expect(page.locator('header [aria-label="Schrift verkleinern"]')).to_be_enabled()
+    assert_clean(page)
+
+
+@pytest.mark.parametrize("width", [375, 1280])
+def test_font_size_change_keeps_footer_control_in_place(
+    page: Page, server_url: str, width: int
+) -> None:
+    page.set_viewport_size({"width": width, "height": 800})
+    page.goto(server_url + "/")
+    footer = page.locator("footer")
+    larger = footer.get_by_role("button", name="Schrift vergrössern")
+    larger.scroll_into_view_if_needed()
+    page.wait_for_timeout(300)  # let smooth scrolling settle
+    top_before = larger.bounding_box()["y"]  # type: ignore[index]
+    larger.click()
+    page.wait_for_timeout(300)
+    assert page.evaluate(ROOT_FONT_SIZE) == "18px"
+    # The page got longer, but the control stays where it was clicked (no jump)
+    assert abs(larger.bounding_box()["y"] - top_before) <= POSITION_TOLERANCE_PX  # type: ignore[index]
+    # Dots show the step: two of three filled
+    expect(footer.locator('[role="group"] .opacity-90')).to_have_count(2)
     assert_clean(page)

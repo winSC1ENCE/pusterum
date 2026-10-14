@@ -32,3 +32,11 @@ def test_postgres_pins_match_the_backup_image() -> None:
             f"{name} uses {sorted(set(pins))}, backup image is {source[0]} – "
             "run scripts/sync-image-pins.sh"
         )
+
+
+def test_dependabot_config_has_no_yaml_aliases() -> None:
+    """Valid YAML and schema, yet Dependabot rejects the file: «YAML aliases are not supported»."""
+    anchor_or_alias = re.compile(r"(:|^\s*-)\s*[&*][\w-]+")
+    lines = (ROOT / ".github/dependabot.yml").read_text().splitlines()
+    offending = [line for line in lines if anchor_or_alias.search(line.split("#")[0])]
+    assert not offending, f"Dependabot cannot parse YAML anchors/aliases: {offending}"

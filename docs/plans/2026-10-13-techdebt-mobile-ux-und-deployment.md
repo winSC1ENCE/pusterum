@@ -16,6 +16,7 @@ Arbeitsliste in der vereinbarten Reihenfolge. Betriebsschritte auf dem Server st
 | 6 | Automatisches Deployment bei Push auf `main` (ADR-0005, Runbook 1.13) | erledigt |
 | 7 | Schrift: Mindestgrössen anheben + Regler «Schrift A− A A+» | erledigt |
 | 8 | Updates der Container-Images: wöchentlicher CI-Lauf + Renovate/Dependabot | offen |
+| 9 | Backup-Container: Zombie-Prozesse würden `pids_limit` füllen → Backups fallen aus | erledigt |
 
 ## Details
 
@@ -86,6 +87,15 @@ aktualisiert sie nicht (Runbook 6). Umsetzung:
 - Renovate (oder Dependabot) für Docker-Digests, `uv` und GitHub-Actions; vorher prüfen, ob das
   Werkzeug die `ARG`-basierten `FROM`-Zeilen in den Dockerfiles erkennt.
 - Update-PRs laufen wie Code: CI → Merge nach `main` → automatisches Deployment.
+
+### 9 · Zombie-Prozesse im Backup-Container
+
+Befund 2026-10-14 (Login-Meldung «7 zombie processes»): alles `ssh`-Prozesse von restic (SFTP),
+Elternprozess `crond` = PID 1 im Container `atem_backup`. `crond` räumt beendete Enkelprozesse
+nicht ab; pro Backup bleiben ~2 Zombies. Sie zählen zu `pids_limit: 128` → nach rund zwei
+Monaten hätte der Container keine Prozesse mehr starten können, Backups wären still ausgefallen.
+Fix: `init: true` für `backup` und `restore` (Docker-Init räumt ab; lokal nachgewiesen: ohne Init
+1 Zombie, mit Init 0). Nach dem Deploy prüfen: `ps -eo stat | grep -c '^Z'` → 0.
 
 ## Später (erfasst, nicht eingeplant)
 

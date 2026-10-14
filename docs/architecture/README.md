@@ -24,4 +24,5 @@ Alle Diagramme werden ausschliesslich mit **Mermaid** direkt in Markdown gepfleg
 * [TDR-0006: Backups mit restic](../tdr/TDR-0006-restic-backups.md)
 * [TDR-0007: SSH-Zugang über WireGuard](../tdr/TDR-0007-ssh-via-wireguard.md)
 * [TDR-0008: Updates mit Dependabot](../tdr/TDR-0008-dependency-updates-dependabot.md)
+* [TDR-0009: Versionierung und Releases](../tdr/TDR-0009-versioning-and-releases.md)
 * Vorlagen: [ADR](../adr/template.md) · [TDR](../tdr/template.md)

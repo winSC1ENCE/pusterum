@@ -126,6 +126,25 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
 - Drittbibliotheken im Browser liegen unter `static/vendor/` (README mit Version + SHA-256).
 - Commits: Conventional Commits (`feat(scope): …`, `fix(…)`, `chore: …`).
 
+## Versionierung & Releases (TDR-0009)
+
+Version nur in `pyproject.toml` (`[project].version`, SemVer). Changelog: `CHANGELOG.md` (Keep a Changelog, Deutsch).
+
+- **Jede Änderung** (`feat`/`fix`/sichtbare `chore`) bekommt im selben Commit eine Zeile unter
+  `## [Unreleased]`. Gruppiert wird unter «Hinzugefügt», «Geändert», «Behoben» und «Sicherheit».
+  Geschrieben wird für die Praxis, nicht als Commit-Text.
+- **Release-PR `develop` → `main`:** Claude erhöht immer die Version:
+  - MAJOR bei Handarbeit im Betrieb oder einer inkompatiblen Änderung;
+  - MINOR bei einer neuen Funktion;
+  - PATCH bei Fixes oder Updates.
+
+  Danach `uv lock` ausführen, `## [Unreleased]` in `## [x.y.z] – YYYY-MM-DD` umbenennen und ein
+  leeres `## [Unreleased]` darüber anlegen. Am besten auf einem Branch `release/x.y.z` von
+  `develop`, PR nach `develop`, danach `develop` → `main`.
+- Die CI erzwingt das: `tests/test_versioning.py` prüft pyproject, `uv.lock` und Changelog. PRs
+  nach `main` scheitern, wenn `v<version>` schon existiert.
+- Tags `vX.Y.Z` und GitHub-Releases erstellt nur die CI (Job `promote`). Nie von Hand taggen.
+
 ## Deployment
 
 Domain: **www.pusterum.be** (`.be` = Bern, nicht Belgien); `pusterum.be` leitet per Caddy auf `www` um.

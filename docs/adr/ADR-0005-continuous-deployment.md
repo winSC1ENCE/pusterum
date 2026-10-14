@@ -61,6 +61,11 @@ sequenceDiagram
   Fast-Forward, baut neu, prüft `/health/ready` (bis 5 Minuten) und rollt bei Fehler zurück.
   Ein fehlgeschlagener Commit wird nicht erneut versucht, bis ein neuer kommt. `flock` verhindert
   parallele Läufe; Ausgaben landen im systemd-Journal.
+* **Benachrichtigung** (Nachtrag 2026-10-14): Jeder Lauf prüft auch ohne neuen Commit die
+  Live-Website und meldet das Ergebnis per Ping an einen Healthcheck-Dienst (`DEPLOY_PING_URL` in
+  `deploy.env`, Vorlage `config/deploy.env.production.example`): `<url>` = ok, `<url>/fail` mit der
+  Meldung. Der Dienst alarmiert per Mail bei `/fail` und wenn Pings ausbleiben (Server oder Timer
+  ausgefallen). Ein fehlgeschlagener Commit hält den Alarm, bis ein neuer Commit gesund läuft.
 * **Manuell** bleibt möglich (Runbook Abschnitt 2), z. B. bei pausiertem Timer.
 
 ### Positive Consequences
@@ -76,7 +81,7 @@ sequenceDiagram
   Container-Wechsel
 * Rollback setzt nur den Code zurück: Migrationen müssen additiv bleiben (bestehende Regel, TDR-0003);
   bei Schema-Problemen hilft nur das Backup (Runbook 3.3)
-* Fehlermeldungen erscheinen nur im Journal (`journalctl -u pusterum-deploy`) – keine Push-Benachrichtigung
+* Benachrichtigung hängt von einem externen Healthcheck-Dienst ab (ohne `DEPLOY_PING_URL` nur Journal)
 
 ## Pros and Cons of the Options
 
@@ -95,7 +100,7 @@ sequenceDiagram
 ### C: Pull-Deployment
 
 * Good, because keine eingehende Verbindung, keine Secrets, einfache Shell + systemd
-* Bad, because Polling-Verzögerung und Fehler nur im Server-Journal sichtbar
+* Bad, because Polling-Verzögerung; Fehler ohne Zusatzdienst nur im Server-Journal sichtbar
 
 ### D: Registry + Image-Updater
 

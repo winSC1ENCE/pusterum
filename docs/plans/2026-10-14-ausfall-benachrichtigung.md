@@ -1,6 +1,6 @@
 # Plan: Benachrichtigung bei Ausfall und fehlgeschlagenem Deployment
 
-> Status: **geplant, noch nicht umgesetzt** (2026-10-14). Herkunft: Tech-Debt «Später» in
+> Status: **umgesetzt** (2026-10-14, v1.0.0). Einrichtung auf dem Server: Runbook 1.15. Herkunft: Tech-Debt «Später» in
 > [`2026-10-13-techdebt-mobile-ux-und-deployment.md`](2026-10-13-techdebt-mobile-ux-und-deployment.md).
 
 ## Kontext

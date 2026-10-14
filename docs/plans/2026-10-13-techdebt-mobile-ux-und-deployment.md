@@ -89,6 +89,14 @@ aktualisiert sie nicht (Runbook 6). Umsetzung:
 
 ## Später (erfasst, nicht eingeplant)
 
+- **Server: Zeitzone prüfen und Update-Zeit vor den Neustart legen.** Meldung 2026-10-14 06:30 CEST:
+  «The system will reboot at Thu 2026-10-15 05:30 CEST». **Geprüft 2026-10-14:** Zeitzone stimmt
+  (`timedatectl` → `Europe/Zurich (CEST, +0200)`); `apt-daily-upgrade.timer` lief 06:03, nächster
+  Lauf 06:57 – also immer *nach* dem Neustart-Fenster 05:30 → jeder Neustart wartet bis ~23 h.
+  Lösung: Override `/etc/systemd/system/apt-daily-upgrade.timer.d/override.conf` mit
+  `OnCalendar=` (leeren) + `OnCalendar=*-*-* 04:30` und `RandomizedDelaySec=20m` → Neustart in
+  derselben Nacht; in Cloud-Config und Runbook 6.1 aufnehmen (Sonntag: `restic check` 04:15 ist
+  kein Konflikt, da nur der Neustart stört).
 - HEAD-Anfragen auf Seiten (z. B. `curl -I https://www.pusterum.be/`) liefern 405 statt 200.
   Für Besucher irrelevant, aber Uptime-Monitore prüfen teils per HEAD → Fehlalarm. GET-Routen
   auch für HEAD freigeben (Litestar) oder Monitor auf GET stellen.

@@ -1,9 +1,6 @@
 # Caddy with the rate-limit module (github.com/mholt/caddy-ratelimit), pinned by digest/commit.
-ARG CADDY_BUILDER=caddy:2.10-builder-alpine@sha256:4cff3ae272ea05842adb4546e35961e4947aeea65f80fa1eb62a35b960e84971
-ARG CADDY_IMAGE=caddy:2.10-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d
-
-FROM ${CADDY_BUILDER} AS builder
+FROM caddy:2.10-builder-alpine@sha256:4cff3ae272ea05842adb4546e35961e4947aeea65f80fa1eb62a35b960e84971 AS builder
 RUN xcaddy build --with github.com/mholt/caddy-ratelimit@5625512f24f6f59d6f64fb3aafe5eecff0b286db
 
-FROM ${CADDY_IMAGE}
+FROM caddy:2.10-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy

@@ -1,16 +1,13 @@
 # ==============================================================================
 # Multi-Stage Dockerfile – PUSTERUM web application
-# Base images are pinned by digest (update via Renovate/Dependabot or manually with
-# `docker buildx imagetools inspect <image:tag>`).
+# Base images are pinned by digest directly in the FROM lines (Dependabot only updates those;
+# manually: `docker buildx imagetools inspect <image:tag>`).
 # ==============================================================================
-
-ARG PYTHON_IMAGE=python:3.12-slim-bookworm@sha256:54c85f3c47607a77f32adec749d3c81d1348bf25833671f512b26a9b6d778cb3
-ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:3783cc01769c7b2b1b83a5c5ad96c815348e28ed7da68e2e3687004faa906251
 
 # ------------------------------------------------------------------------------
 # Stage 1: Python dependencies (uv)
 # ------------------------------------------------------------------------------
-FROM ${PYTHON_IMAGE} AS builder
+FROM python:3.12-slim-bookworm@sha256:54c85f3c47607a77f32adec749d3c81d1348bf25833671f512b26a9b6d778cb3 AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential libpq-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -33,7 +30,7 @@ RUN uv sync --frozen --no-dev
 # ------------------------------------------------------------------------------
 # Stage 2: Frontend assets – compile Tailwind CSS (standalone CLI, pinned + SHA256)
 # ------------------------------------------------------------------------------
-FROM ${DEBIAN_IMAGE} AS assets
+FROM debian:bookworm-slim@sha256:3783cc01769c7b2b1b83a5c5ad96c815348e28ed7da68e2e3687004faa906251 AS assets
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /build
@@ -47,7 +44,7 @@ RUN mkdir -p src/atem/presentation/static/css && sh scripts/build-css.sh
 # ------------------------------------------------------------------------------
 # Stage 3: Runtime image (non-root, no compilers, no curl)
 # ------------------------------------------------------------------------------
-FROM ${PYTHON_IMAGE} AS runner
+FROM python:3.12-slim-bookworm@sha256:54c85f3c47607a77f32adec749d3c81d1348bf25833671f512b26a9b6d778cb3 AS runner
 
 RUN groupadd -r atem && useradd -r -g atem -d /app -s /sbin/nologin atem
 

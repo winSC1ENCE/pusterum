@@ -1,0 +1,48 @@
+# Weekly update PRs into develop (TDR-0008). Merged like any change: develop → main → automatic
+# deployment (ADR-0005). PostgreSQL: Dependabot updates docker/backup/Dockerfile only – run
+# scripts/sync-image-pins.sh on that PR (tests/test_image_pins.py fails until then).
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    target-branch: develop
+    schedule: &weekly
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Zurich
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 5
+    groups:
+      python-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: develop
+    schedule: *weekly
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directories: ["/", "/docker/caddy", "/docker/backup"]
+    target-branch: develop
+    schedule: *weekly
+    commit-message:
+      prefix: "chore(docker)"
+    groups:
+      docker-images:
+        patterns: ["*"]
+    ignore:
+      # Major PostgreSQL upgrades need a dump/restore of the data volume – deliberate, not weekly.
+      - dependency-name: postgres
+        update-types: ["version-update:semver-major"]
+      # The Python version is set in pyproject.toml (3.12); change it deliberately.
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: caddy
+        update-types: ["version-update:semver-major"]

@@ -139,3 +139,5 @@ Ablauf, Restore und Notfälle: [`docs/ops/runbook.md`](docs/ops/runbook.md) (ver
 Releases: PR `develop` → `main` (geschützt: PR + 6 Pflicht-Checks, **nur Merge-Commits**, kein Squash). Nach grüner CI
 setzt der Job `promote` den Branch `production`; ein systemd-Timer auf dem Server deployt ihn (`ops/deploy/`,
 Pull-Prinzip, Health-Check + Rollback, ADR-0005). Nie direkt auf `main` oder `production` pushen.
+Updates: Dependabot-PRs nach `develop` (TDR-0008). Basis-Images nur als `FROM image:tag@sha256:…`
+(kein `ARG`); PostgreSQL-Pins mit `scripts/sync-image-pins.sh` angleichen (`tests/test_image_pins.py`).

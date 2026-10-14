@@ -15,7 +15,7 @@ Arbeitsliste in der vereinbarten Reihenfolge. Betriebsschritte auf dem Server st
 | 5 | `develop` → `main`, Server auf `main` (Runbook 1.12) | erledigt |
 | 6 | Automatisches Deployment bei Push auf `main` (ADR-0005, Runbook 1.13) | erledigt |
 | 7 | Schrift: Mindestgrössen anheben + Regler «Schrift A− A+» | erledigt |
-| 8 | Updates der Container-Images: wöchentlicher CI-Lauf + Renovate/Dependabot | offen |
+| 8 | Updates der Container-Images: wöchentlicher CI-Lauf + Dependabot (TDR-0008), Actions auf Node 24 | erledigt |
 | 9 | Backup-Container: Zombie-Prozesse würden `pids_limit` füllen → Backups fallen aus | erledigt |
 
 ## Details
@@ -80,8 +80,10 @@ gespeichert nur lokal im Browser (`localStorage`, kein Cookie).
 
 ### 8 · Updates der Container-Images
 
-Basis-Images (Python, PostgreSQL, Caddy, Backup) sind per Digest gepinnt – `apt` auf dem Server
-aktualisiert sie nicht (Runbook 6). Umsetzung:
+**Erledigt 2026-10-14** (TDR-0008): Dependabot statt Renovate (keine Dritt-App), Dockerfiles mit
+direkten `FROM`-Pins, PostgreSQL-Pins per Test + `scripts/sync-image-pins.sh`, Actions auf Node 24.
+Ursprünglicher Plan: Basis-Images (Python, PostgreSQL, Caddy, Backup) sind per Digest gepinnt – `apt`
+auf dem Server aktualisiert sie nicht (Runbook 6). Umsetzung:
 - `ci.yml`: zusätzlicher Trigger `schedule:` (wöchentlich) – der Trivy-Scan meldet dann neue,
   behebbare CVEs der Images, auch ohne Push.
 - Renovate (oder Dependabot) für Docker-Digests, `uv` und GitHub-Actions; vorher prüfen, ob das
@@ -117,7 +119,6 @@ Fix: `init: true` für `backup` und `restore` (Docker-Init räumt ab; lokal nach
 
 - Benachrichtigung bei fehlgeschlagenem Deployment (heute nur im Server-Journal), z. B. Ping an
   einen Uptime-/Healthcheck-Dienst aus `pusterum-deploy.sh`.
-- GitHub-Actions-Pins auf Versionen mit Node 24 anheben (Warnung «Node.js 20 is deprecated»).
 - Litestar-Deprecations (~20 000 Warnungen in `pytest`): Pfadparameter mit `FromPath[…]` bzw.
   `Annotated[…, PathParameter()]` und Dependencies mit `NamedDependency[…]` deklarieren – sonst
   Bruch mit Litestar 3.0.

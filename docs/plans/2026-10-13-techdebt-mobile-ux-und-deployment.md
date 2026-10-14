@@ -99,7 +99,8 @@ Fix: `init: true` für `backup` und `restore` (Docker-Init räumt ab; lokal nach
 
 ## Später (erfasst, nicht eingeplant)
 
-- **Server: Zeitzone prüfen und Update-Zeit vor den Neustart legen.** Meldung 2026-10-14 06:30 CEST:
+- ~~**Server: Zeitzone prüfen und Update-Zeit vor den Neustart legen.**~~ **Erledigt 2026-10-14**
+  (Cloud config + Runbook 6.1; Updates 04:30, Neustart 05:30). Meldung 2026-10-14 06:30 CEST:
   «The system will reboot at Thu 2026-10-15 05:30 CEST». **Geprüft 2026-10-14:** Zeitzone stimmt
   (`timedatectl` → `Europe/Zurich (CEST, +0200)`); `apt-daily-upgrade.timer` lief 06:03, nächster
   Lauf 06:57 – also immer *nach* dem Neustart-Fenster 05:30 → jeder Neustart wartet bis ~23 h.

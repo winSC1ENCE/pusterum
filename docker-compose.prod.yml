@@ -100,6 +100,9 @@ services:
     build:
       context: docker/backup
     container_name: atem_backup
+    # crond (PID 1) does not reap restic's finished ssh processes; the zombies count towards
+    # pids_limit and would eventually stop backups. Docker's init reaps them.
+    init: true
     env_file:
       - db.env
       - backup.env
@@ -119,6 +122,7 @@ services:
   #   docker compose -f docker-compose.prod.yml --profile restore run --rm restore restore.sh latest --yes
   restore:
     profiles: ["restore"]
+    init: true
     build:
       context: docker/backup
     env_file:

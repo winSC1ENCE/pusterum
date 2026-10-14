@@ -24,6 +24,9 @@ GitHub seit 2026-09-16 nicht mehr unterstützt.
 * PostgreSQL kommt an Stellen vor, die Dependabot nicht liest (`docker-compose.prod.yml`, CI-
   Service-Container). Quelle ist `docker/backup/Dockerfile`; `tests/test_image_pins.py` erkennt
   Abweichungen, `scripts/sync-image-pins.sh` gleicht sie auf dem Update-PR an.
+* `.github/dependabot.yml` ohne YAML-Anker/-Aliase: gültiges YAML und Schema, aber der
+  Dependabot-Parser lehnt sonst die ganze Datei ab («YAML aliases are not supported»).
+  `tests/test_image_pins.py` prüft das.
 * Die CI läuft zusätzlich **wöchentlich** (Montag, auf `main`) und manuell: pip-audit und der
   Trivy-Image-Scan melden neue CVEs auch ohne Push (GitHub benachrichtigt bei Fehlschlag).
 * Alle Actions auf Node-24-Versionen gehoben (weiterhin per Commit-SHA gepinnt).

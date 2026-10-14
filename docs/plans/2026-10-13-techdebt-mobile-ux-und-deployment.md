@@ -115,11 +115,11 @@ Fix: `init: true` für `backup` und `restore` (Docker-Init räumt ab; lokal nach
   kein Konflikt, da nur der Neustart stört).
 - HEAD-Anfragen auf Seiten (z. B. `curl -I https://www.pusterum.be/`) liefern 405 statt 200.
   Für Besucher irrelevant, aber Uptime-Monitore prüfen teils per HEAD → Fehlalarm. GET-Routen
-  auch für HEAD freigeben (Litestar) oder Monitor auf GET stellen. → Geplant: nicht umsetzen,
-  Überwachung per GET ([Plan](2026-10-14-ausfall-benachrichtigung.md)).
-- Benachrichtigung bei fehlgeschlagenem Deployment (heute nur im Server-Journal), z. B. Ping an
-  einen Uptime-/Healthcheck-Dienst aus `pusterum-deploy.sh`. → Geplant:
-  [`2026-10-14-ausfall-benachrichtigung.md`](2026-10-14-ausfall-benachrichtigung.md).
+  auch für HEAD freigeben (Litestar) oder Monitor auf GET stellen. → **Bewusst nicht umgesetzt:**
+  die Überwachung prüft per GET ([Plan](2026-10-14-ausfall-benachrichtigung.md)).
+- ~~Benachrichtigung bei fehlgeschlagenem Deployment (heute nur im Server-Journal), z. B. Ping an
+  einen Uptime-/Healthcheck-Dienst aus `pusterum-deploy.sh`.~~ **Erledigt** (v1.0.0):
+  [`2026-10-14-ausfall-benachrichtigung.md`](2026-10-14-ausfall-benachrichtigung.md), ADR-0005.
 - Litestar-Deprecations (~20 000 Warnungen in `pytest`): Pfadparameter mit `FromPath[…]` bzw.
   `Annotated[…, PathParameter()]` und Dependencies mit `NamedDependency[…]` deklarieren – sonst
   Bruch mit Litestar 3.0.

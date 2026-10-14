@@ -57,6 +57,18 @@ jobs:
       - name: Vulture
         run: uv run vulture src
 
+      # Release PR develop → main: new SemVer version with a CHANGELOG.md section (TDR-0009)
+      - name: Release version not yet tagged
+        if: github.event_name == 'pull_request' && github.base_ref == 'main'
+        run: |
+          version="$(scripts/release-notes.sh --version)"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" >/dev/null; then
+            echo "::error file=pyproject.toml::v$version is already released – bump [project].version and move the CHANGELOG.md entries from «Unreleased» to «## [x.y.z] – date» (TDR-0009)"
+            exit 1
+          fi
+          scripts/release-notes.sh "$version" >/dev/null
+          echo "Release v$version" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Export production requirements
         run: uv export --frozen --no-dev --no-emit-project --format requirements-txt > requirements.txt
       - name: Dependency vulnerability audit (pip-audit)
@@ -262,3 +274,16 @@ jobs:
           fi
           git push origin "$GITHUB_SHA:refs/heads/production"
           echo "production → ${GITHUB_SHA::7} (server deploys within ~5 min)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Tag and publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(scripts/release-notes.sh --version)"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" >/dev/null; then
+            echo "::warning::v$version already exists – no new release (version not bumped)"
+            exit 0
+          fi
+          scripts/release-notes.sh "$version" > "$RUNNER_TEMP/release-notes.md"
+          gh release create "v$version" --target "$GITHUB_SHA" --title "PUSTERUM v$version" \
+            --notes-file "$RUNNER_TEMP/release-notes.md"
+          echo "Release v$version → ${GITHUB_SHA::7}" >> "$GITHUB_STEP_SUMMARY"

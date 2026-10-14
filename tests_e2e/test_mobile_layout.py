@@ -74,10 +74,17 @@ def test_font_size_control_in_mobile_menu_persists(page: Page, server_url: str) 
     assert box is not None and box["x"] + box["width"] <= PHONE_WIDTH
 
     page.get_by_role("button", name="Menü öffnen").click()
-    menu.get_by_role("button", name="Normale Schriftgrösse").click()
+    smaller = menu.get_by_role("button", name="Schrift verkleinern")
+    smaller.click()
+    assert page.evaluate(ROOT_FONT_SIZE) == "18px"
+    expect(smaller).to_be_enabled()  # middle step: both directions possible
+    expect(larger).to_be_enabled()
+    smaller.click()
     assert page.evaluate(ROOT_FONT_SIZE) == "16px"
     assert page.evaluate("localStorage.getItem('pusterum_font_scale')") is None
-    expect(menu.get_by_role("button", name="Schrift verkleinern")).to_be_disabled()
+    expect(smaller).to_be_disabled()
+    # Only − and + (no separate reset button)
+    expect(menu.get_by_role("button", name="Normale Schriftgrösse")).to_have_count(0)
     assert_clean(page)
 
 

@@ -1,7 +1,8 @@
 /**
- * Discreet font size control «Schrift A− A A+» (mobile menu and footer) – Alpine component for
- * the CSP build. Scales the root font size (Tailwind uses rem) via html[data-font-scale]; the
- * choice stays in this browser only (localStorage, no cookie, nothing sent to the server).
+ * Discreet font size control «Schrift A− A+» (mobile menu and footer, three steps) – Alpine
+ * component for the CSP build. Scales the root font size (Tailwind uses rem) via
+ * html[data-font-scale]; the choice stays in this browser only (localStorage, no cookie,
+ * nothing sent to the server).
  */
 const FONT_SCALE_KEY = "pusterum_font_scale";
 const FONT_SCALE_MAX = 2;
@@ -14,9 +15,6 @@ document.addEventListener("alpine:init", () => {
         },
         smaller() {
             this.apply(this.level - 1);
-        },
-        reset() {
-            this.apply(0);
         },
         larger() {
             this.apply(this.level + 1);
@@ -37,9 +35,6 @@ document.addEventListener("alpine:init", () => {
         },
         sync(event) {
             this.level = event.detail;
-        },
-        isLevel(level) {
-            return this.level === level;
         },
         get atMin() {
             return this.level === 0;

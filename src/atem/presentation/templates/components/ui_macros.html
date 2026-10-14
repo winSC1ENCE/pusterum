@@ -36,7 +36,7 @@
 </li>
 {% endmacro %}
 
-{# Discreet font size control «Schrift A− A A+» for the mobile menu and the footer.
+{# Discreet font size control «Schrift A− A+» (three steps) for the mobile menu and the footer.
    Logic: static/js/components/font-size.js (both instances stay in sync). Buttons are 44 px
    touch targets. #}
 {% macro font_size_control(dark=false) %}
@@ -44,7 +44,6 @@
 <div x-data="fontSize" @font-size-changed.window="sync($event)" class="flex items-center gap-2" role="group" aria-label="Schriftgrösse">
     <span class="text-xs mr-1 {{ 'text-slate-400' if dark else 'text-theme-text-muted' }}">Schrift</span>
     <button type="button" @click="smaller" :disabled="atMin" class="{{ btn }} text-sm" aria-label="Schrift verkleinern">A−</button>
-    <button type="button" @click="reset" class="{{ btn }} text-base" aria-label="Normale Schriftgrösse">A</button>
     <button type="button" @click="larger" :disabled="atMax" class="{{ btn }} text-lg" aria-label="Schrift vergrössern">A+</button>
 </div>
 {% endmacro %}

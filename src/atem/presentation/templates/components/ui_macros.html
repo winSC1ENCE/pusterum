@@ -36,14 +36,22 @@
 </li>
 {% endmacro %}
 
-{# Discreet font size control «Schrift A− A+» (three steps) for the mobile menu and the footer.
-   Logic: static/js/components/font-size.js (both instances stay in sync). Buttons are 44 px
-   touch targets. #}
-{% macro font_size_control(dark=false) %}
-{% set btn = 'w-11 h-11 rounded-full border font-semibold transition-colors flex items-center justify-center disabled:opacity-40 disabled:cursor-default ' ~ ('border-slate-700 text-slate-200 hover:bg-slate-800' if dark else 'border-theme text-theme-text-main hover:bg-theme-secondary/30') %}
-<div x-data="fontSize" @font-size-changed.window="sync($event)" class="flex items-center gap-2" role="group" aria-label="Schriftgrösse">
-    <span class="text-xs mr-1 {{ 'text-slate-400' if dark else 'text-theme-text-muted' }}">Schrift</span>
-    <button type="button" @click="smaller" :disabled="atMin" class="{{ btn }} text-sm" aria-label="Schrift verkleinern">A−</button>
-    <button type="button" @click="larger" :disabled="atMax" class="{{ btn }} text-lg" aria-label="Schrift vergrössern">A+</button>
+{# Discreet font size control for the mobile menu and the footer: one flat pill
+   «A · · · A» – small A = smaller, large A = larger, dots show the step (three steps).
+   Logic: static/js/components/font-size.js (both instances stay in sync). 44 px touch targets. #}
+{% macro font_size_control(dark=false, center=false) %}
+{% set btn = 'w-11 h-11 rounded-full flex items-center justify-center font-heading leading-none transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-30 disabled:cursor-default ' ~ ('text-slate-200 hover:bg-white/10 focus-visible:ring-slate-400' if dark else 'text-theme-text-main hover:bg-slate-900/5 focus-visible:ring-theme-primary') %}
+<div x-data="fontSize" @font-size-changed.window="sync($event)" class="flex flex-col gap-1.5 {{ 'items-center' if center else 'items-start' }}">
+    <span class="text-xs {{ 'text-slate-400' if dark else 'text-theme-text-muted' }}">Schriftgrösse</span>
+    <div role="group" aria-label="Schriftgrösse" class="inline-flex items-center rounded-full {{ 'bg-white/5' if dark else 'bg-slate-900/5' }}">
+        <button type="button" @click="smaller($event)" :disabled="atMin" class="{{ btn }} text-sm" aria-label="Schrift verkleinern">A</button>
+        <span class="flex items-center gap-1.5 px-1 {{ 'text-slate-200' if dark else 'text-theme-primary' }}" aria-hidden="true">
+            <span class="w-1.5 h-1.5 rounded-full bg-current" :class="dotClass(0)"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-current" :class="dotClass(1)"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-current" :class="dotClass(2)"></span>
+        </span>
+        <button type="button" @click="larger($event)" :disabled="atMax" class="{{ btn }} text-xl" aria-label="Schrift vergrössern">A</button>
+    </div>
+    <span class="sr-only" aria-live="polite" x-text="levelText"></span>
 </div>
 {% endmacro %}

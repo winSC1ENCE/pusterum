@@ -144,6 +144,14 @@ Version nur in `pyproject.toml` (`[project].version`, SemVer). Changelog: `CHANG
 - Die CI erzwingt das: `tests/test_versioning.py` prüft pyproject, `uv.lock` und Changelog. PRs
   nach `main` scheitern, wenn `v<version>` schon existiert.
 - Tags `vX.Y.Z` und GitHub-Releases erstellt nur die CI (Job `promote`). Nie von Hand taggen.
+- **Nach `main` nur `develop` oder `hotfix/*`.** Der CI-Schritt «Source branch allowed for main»
+  steckt im Pflicht-Check und blockiert alle anderen Branches. Feature- und Fix-Branches gehen
+  immer nach `develop`.
+- **Hotfix** (dringend, `develop` nicht releasebereit):
+  - Branch `hotfix/<thema>` von `main` anlegen;
+  - Fix committen, PATCH-Version erhöhen und Changelog nachführen;
+  - PR → `main`;
+  - danach `main` → `develop` zurückführen (PR oder Merge), damit Version und Fix nicht verloren gehen.
 
 ## Deployment
 

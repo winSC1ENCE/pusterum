@@ -17,11 +17,24 @@ SEED_SIZE_MIN, SEED_SIZE_MAX, SEED_SIZE_DEFAULT = 20, 120, 48
 SEED_OPACITY_MIN, SEED_OPACITY_MAX, SEED_OPACITY_DEFAULT = 10, 100, 80
 # Background photos of the «Atmende Blume» exercise (subtle: never fully opaque)
 KIDS_PHOTO_OPACITY_MIN, KIDS_PHOTO_OPACITY_MAX, KIDS_PHOTO_OPACITY_DEFAULT = 0, 80, 30
+# Sticky header background: 0 = pure glass (blur only), 100 = opaque
+HEADER_OPACITY_MIN, HEADER_OPACITY_MAX, HEADER_OPACITY_DEFAULT = 0, 100, 60
 
 
 def is_hex_color(value: str) -> bool:
     """Return True for a valid CSS hex colour."""
     return bool(_HEX_COLOR_RE.fullmatch(value))
+
+
+def hex_to_rgb_channels(value: str) -> str:
+    """``#4A6C50`` → ``74 108 80`` – the form Tailwind needs for opacity steps
+    (``rgb(var(--x) / <alpha-value>)``). An alpha part of the hex colour is dropped."""
+    if not is_hex_color(value):
+        raise ValueError(f"not a hex colour: {value!r}")
+    digits = value[1:]
+    if len(digits) in (3, 4):
+        digits = "".join(c * 2 for c in digits)
+    return " ".join(str(int(digits[i : i + 2], 16)) for i in (0, 2, 4))
 
 
 class FontFamily(StrEnum):
@@ -131,6 +144,7 @@ class ThemeConfig(BaseEntity):
     dandelion_seed_size: int = SEED_SIZE_DEFAULT  # px, SEED_SIZE_MIN..SEED_SIZE_MAX
     dandelion_seed_opacity: int = SEED_OPACITY_DEFAULT  # %, SEED_OPACITY_MIN..SEED_OPACITY_MAX
     kids_photo_opacity: int = KIDS_PHOTO_OPACITY_DEFAULT  # %, KIDS_PHOTO_OPACITY_MIN..MAX
+    header_opacity: int = HEADER_OPACITY_DEFAULT  # %, HEADER_OPACITY_MIN..MAX
 
     def apply_palette(self, preset_key: "ColorPresetKey") -> None:
         """Take over all colours of a preset palette (falls back to Salbei & Sand)."""

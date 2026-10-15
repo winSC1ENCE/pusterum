@@ -30,6 +30,7 @@
     data-seed-size="{{ theme.dandelion_seed_size }}"
     data-seed-opacity="{{ theme.dandelion_seed_opacity }}"
     data-kids-photo-opacity="{{ theme.kids_photo_opacity }}"
+    data-header-opacity="{{ theme.header_opacity }}"
     @htmx:before-request="startSaving()"
     @htmx:after-request="flashSaved()"
 >
@@ -538,6 +539,39 @@
                         <div class="flex items-center gap-3">
                             <input type="color" id="border_color" name="border_color" value="{{ theme.border_color }}" class="w-10 h-10 rounded-lg cursor-pointer border border-slate-300 p-0.5">
                             <input type="text" value="{{ theme.border_color }}" oninput="document.getElementById('border_color').value = this.value" class="w-full px-3 py-2 text-xs font-mono border border-slate-200 rounded-lg">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sticky header: glass effect (0 %) … opaque (100 %) -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row gap-4 items-stretch">
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="header_opacity_input" class="text-xs font-bold text-slate-800 uppercase tracking-wider">Kopfzeile: Deckkraft</label>
+                            <span class="text-xs font-bold font-mono px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md" x-text="headerOpacity + ' %'">{{ theme.header_opacity }} %</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="5"
+                            id="header_opacity_input"
+                            name="header_opacity"
+                            value="{{ theme.header_opacity }}"
+                            x-model.number="headerOpacity"
+                            class="w-full accent-emerald-600 cursor-pointer h-2.5 bg-slate-200 rounded-lg appearance-none"
+                        />
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                            <span>0 % (Glas-Effekt)</span>
+                            <span>60 % (Standard)</span>
+                            <span>100 % (Deckend)</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-2">Wie stark der Seiteninhalt beim Scrollen durch die oben fixierte Menüleiste schimmert (immer leicht verwischt).</p>
+                    </div>
+                    <div class="relative w-full sm:w-36 h-24 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0" title="Vorschau: Menüleiste über Bild">
+                        <img src="/static/images/practice_interior.png" alt="" class="absolute inset-0 w-full h-full object-cover" />
+                        <div class="absolute inset-x-0 top-0 h-10 backdrop-blur-md border-b border-theme flex items-center px-3" :style="headerPreviewStyle">
+                            <span class="font-heading text-sm font-bold text-theme-primary">PUSTERUM</span>
                         </div>
                     </div>
                 </div>

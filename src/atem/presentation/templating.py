@@ -4,7 +4,7 @@ import hashlib
 from pathlib import Path
 from typing import Any
 
-from litestar.contrib.jinja import JinjaTemplateEngine
+from litestar.plugins.jinja import JinjaTemplateEngine
 
 from atem.infrastructure.database.seed.content_defaults import content_default, count_numbered_keys
 from atem.presentation.rich_text import render_rich_text

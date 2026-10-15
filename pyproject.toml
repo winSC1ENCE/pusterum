@@ -1,6 +1,6 @@
 [project]
 name = "atem"
-version = "1.0.1"
+version = "1.1.0"
 description = "Webapplikation für PUSTERUM – Praxis für Atem- und Körpertherapie (Litestar, PostgreSQL, HTMX, Tailwind, Clean Architecture)"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -164,6 +164,9 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 addopts = "-v --cov=src/atem --cov-report=term-missing --cov-report=xml --cov-fail-under=90"
+# Litestar deprecations become errors: what Litestar 3 removes must not creep back in (Dependabot
+# would otherwise only reveal it on the major upgrade).
+filterwarnings = ["error::litestar.exceptions.LitestarDeprecationWarning"]
 
 [tool.coverage.run]
 source = ["src/atem"]

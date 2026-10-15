@@ -12,6 +12,30 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+## [1.1.0] – 2026-10-15
+
+Die Gestaltung wirkt jetzt vollständig wie vorgesehen, und die Kopfzeile lässt sich im Design-Studio
+einstellen. Beim Deployment läuft eine Datenbank-Migration automatisch (neue Einstellung, Startwert 60 %).
+
+### Hinzugefügt
+
+- Design-Studio: Deckkraft der Kopfzeile einstellbar (Regler «Kopfzeile: Deckkraft», 0 % = Glas-Effekt,
+  100 % = deckend; Standard 60 %). Der Seiteninhalt schimmert beim Scrollen wieder verwischt durch.
+
+### Geändert
+
+- Architektur-Dokumentation auf den aktuellen Stand gebracht (Klassen- und Sequenzdiagramme, neu:
+  Ablauf von Release, Deployment und Alarmierung).
+- Technische Vorbereitung auf Litestar 3: Abhängigkeiten und Pfadparameter sind ausdrücklich
+  deklariert, die Tests laufen ohne Veraltet-Warnungen (vorher rund 20 000). Für Besucher ändert sich
+  nichts.
+
+### Behoben
+
+- Farbabstufungen der Gestaltung wirken jetzt wie vorgesehen: zarte Hintergründe hinter Logo, Symbolen und
+  Häkchen, Hover im Menü. Auf der druckbaren Kinderkarte erscheinen Rahmen
+  und Kartenfarben korrekt.
+
 ## [1.0.1] – 2026-10-15
 
 Wartungs-Release: aktualisierte Abhängigkeiten und robustere Pipeline. Für Besucher ändert sich nichts.

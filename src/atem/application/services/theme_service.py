@@ -11,6 +11,8 @@ from atem.application.dto.theme import (
 from atem.domain.interfaces.theme_repository import IThemeRepository
 from atem.domain.models.theme import (
     DANDELION_MODE_DEFINITIONS,
+    HEADER_OPACITY_MAX,
+    HEADER_OPACITY_MIN,
     KIDS_PHOTO_OPACITY_MAX,
     KIDS_PHOTO_OPACITY_MIN,
     PRESET_SHAPES,
@@ -25,6 +27,7 @@ from atem.domain.models.theme import (
     FontFamily,
     ShapeType,
     ThemeConfig,
+    hex_to_rgb_channels,
     is_hex_color,
 )
 
@@ -82,6 +85,7 @@ class ThemeService:
         theme.dandelion_seed_size = dto.dandelion_seed_size
         theme.dandelion_seed_opacity = dto.dandelion_seed_opacity
         theme.kids_photo_opacity = dto.kids_photo_opacity
+        theme.header_opacity = dto.header_opacity
         logger.info("admin_action", action="theme_custom", preset=dto.preset_key.value)
         return self._to_dto(await self._repository.save_theme(theme))
 
@@ -132,6 +136,7 @@ class ThemeService:
         photo_opacity = min(
             max(theme.kids_photo_opacity, KIDS_PHOTO_OPACITY_MIN), KIDS_PHOTO_OPACITY_MAX
         )
+        header_opacity = min(max(theme.header_opacity, HEADER_OPACITY_MIN), HEADER_OPACITY_MAX)
 
         def color(name: str) -> str:
             value = str(getattr(theme, name))
@@ -152,12 +157,24 @@ class ThemeService:
             --theme-text-main: {color("text_main_color")};
             --theme-text-muted: {color("text_muted_color")};
             --theme-border: {color("border_color")};
+            /* RGB channels for Tailwind opacity steps (bg-theme-primary/20 …) */
+            --theme-primary-rgb: {hex_to_rgb_channels(color("primary_color"))};
+            --theme-primary-hover-rgb: {hex_to_rgb_channels(color("primary_hover"))};
+            --theme-secondary-rgb: {hex_to_rgb_channels(color("secondary_color"))};
+            --theme-accent-rgb: {hex_to_rgb_channels(color("accent_color"))};
+            --theme-bg-rgb: {hex_to_rgb_channels(color("background_color"))};
+            --theme-surface-rgb: {hex_to_rgb_channels(color("surface_color"))};
+            --theme-surface-muted-rgb: {hex_to_rgb_channels(color("surface_muted"))};
+            --theme-text-main-rgb: {hex_to_rgb_channels(color("text_main_color"))};
+            --theme-text-muted-rgb: {hex_to_rgb_channels(color("text_muted_color"))};
+            --theme-border-rgb: {hex_to_rgb_channels(color("border_color"))};
             --theme-shape-radius: {shape_def.css_border_radius};
             --font-heading: '{font(theme.heading_font, FontFamily.LORA)}', serif;
             --font-body: '{font(theme.body_font, FontFamily.PLUS_JAKARTA_SANS)}', sans-serif;
             --dandelion-seed-size: {size}px;
             --dandelion-seed-opacity: {opacity / 100.0:.2f};
             --kids-photo-opacity: {photo_opacity / 100.0:.2f};
+            --header-bg-opacity: {header_opacity / 100.0:.2f};
         }}
         """
 

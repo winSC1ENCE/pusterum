@@ -4,6 +4,8 @@ import re
 from typing import Any
 
 from litestar import Controller, Request, get, post
+from litestar.di import NamedDependency
+from litestar.params import FromPath
 from litestar.response import Template
 
 from atem.application.dto.content import SaveContentBlockRequestDTO
@@ -53,7 +55,10 @@ class AdminContentController(Controller):
 
     @post("/{key:str}/save")
     async def save_content_block(
-        self, request: Request[Any, Any, Any], content_service: ContentService, key: str
+        self,
+        request: Request[Any, Any, Any],
+        content_service: NamedDependency[ContentService],
+        key: FromPath[str],
     ) -> Template:
         """Save a new version and return the re-rendered editable block."""
         data = await _request_data(request)
@@ -78,7 +83,9 @@ class AdminContentController(Controller):
         )
 
     @get("/{key:str}/history")
-    async def get_content_history(self, content_service: ContentService, key: str) -> Template:
+    async def get_content_history(
+        self, content_service: NamedDependency[ContentService], key: FromPath[str]
+    ) -> Template:
         """Version history (audit trail) for the history modal."""
         return Template(
             template_name="admin/version_history_modal_content.html",
@@ -89,9 +96,9 @@ class AdminContentController(Controller):
     async def restore_content_version(
         self,
         request: Request[Any, Any, Any],
-        content_service: ContentService,
-        key: str,
-        version_number: int,
+        content_service: NamedDependency[ContentService],
+        key: FromPath[str],
+        version_number: FromPath[int],
     ) -> Template:
         """Restore an older version as the newest one.
 

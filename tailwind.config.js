@@ -12,17 +12,23 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // RGB channels (theme.css, ThemeService) so opacity steps like bg-theme-primary/20 work
         theme: {
-          primary: "var(--theme-primary, #4A6C50)",
-          "primary-hover": "var(--theme-primary-hover, #3C5641)",
-          secondary: "var(--theme-secondary, #CEDECF)",
-          accent: "var(--theme-accent, #7FA485)",
-          bg: "var(--theme-bg, #FAF8F5)",
-          surface: "var(--theme-surface, #FFFFFF)",
-          "surface-muted": "var(--theme-surface-muted, #F3EFE8)",
-          "text-main": "var(--theme-text-main, #1E293B)",
-          "text-muted": "var(--theme-text-muted, #64748B)",
-          border: "var(--theme-border, #E6DED1)",
+          primary: "rgb(var(--theme-primary-rgb, 74 108 80) / <alpha-value>)",
+          "primary-hover": "rgb(var(--theme-primary-hover-rgb, 60 86 65) / <alpha-value>)",
+          secondary: "rgb(var(--theme-secondary-rgb, 206 222 207) / <alpha-value>)",
+          accent: "rgb(var(--theme-accent-rgb, 127 164 133) / <alpha-value>)",
+          bg: "rgb(var(--theme-bg-rgb, 250 248 245) / <alpha-value>)",
+          surface: "rgb(var(--theme-surface-rgb, 255 255 255) / <alpha-value>)",
+          "surface-muted": "rgb(var(--theme-surface-muted-rgb, 243 239 232) / <alpha-value>)",
+          "text-main": "rgb(var(--theme-text-main-rgb, 30 41 59) / <alpha-value>)",
+          "text-muted": "rgb(var(--theme-text-muted-rgb, 100 116 139) / <alpha-value>)",
+          border: "rgb(var(--theme-border-rgb, 230 222 209) / <alpha-value>)",
+          // Aliases used in the templates: border-theme / divide-theme, bg-theme-main|card|muted
+          DEFAULT: "rgb(var(--theme-border-rgb, 230 222 209) / <alpha-value>)",
+          main: "rgb(var(--theme-bg-rgb, 250 248 245) / <alpha-value>)",
+          card: "rgb(var(--theme-surface-rgb, 255 255 255) / <alpha-value>)",
+          muted: "rgb(var(--theme-surface-muted-rgb, 243 239 232) / <alpha-value>)",
         },
       },
       fontFamily: {

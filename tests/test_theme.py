@@ -11,6 +11,7 @@ from atem.domain.models.theme import (
     ColorPresetKey,
     DandelionEffectMode,
     ShapeType,
+    hex_to_rgb_channels,
 )
 from atem.infrastructure.database.models.theme import ThemeConfigModel
 from atem.infrastructure.database.repositories.sqlalchemy_theme_repository import (
@@ -204,6 +205,28 @@ def test_theme_css_variable_generation(theme_service: ThemeService) -> None:
     assert "--theme-bg: #FAF8F5" in css
     assert "--font-heading: 'Lora', serif" in css
     assert "--theme-shape-radius:" in css
+    # RGB channels for Tailwind opacity steps (bg-theme-primary/20 …)
+    assert "--theme-primary-rgb: 74 108 80;" in css
+    assert "--theme-text-main-rgb: 30 41 59;" in css
+    assert css.count("-rgb:") == 10
+
+
+@pytest.mark.parametrize(
+    ("value", "channels"),
+    [
+        ("#4A6C50", "74 108 80"),
+        ("#fff", "255 255 255"),
+        ("#0F0A", "0 255 0"),
+        ("#00000080", "0 0 0"),
+    ],
+)
+def test_hex_to_rgb_channels(value: str, channels: str) -> None:
+    assert hex_to_rgb_channels(value) == channels
+
+
+def test_hex_to_rgb_channels_rejects_non_hex() -> None:
+    with pytest.raises(ValueError, match="hex"):
+        hex_to_rgb_channels("red; }")
 
 
 @pytest.mark.asyncio
@@ -233,10 +256,9 @@ async def test_admin_design_routes_and_presets(
     }
     login_res = await app_client.post("/admin/login", data=login_data, follow_redirects=False)
     assert login_res.status_code == 302
-    session_cookies = login_res.cookies
 
     # 4. Access Design Studio with session cookies
-    design_page = await app_client.get("/admin/design", cookies=session_cookies)
+    design_page = await app_client.get("/admin/design")
     assert design_page.status_code == 200
     assert "Corporate Design Studio" in design_page.text
     assert "Lavendel &amp; Nebel" in design_page.text or "Lavendel & Nebel" in design_page.text
@@ -246,7 +268,6 @@ async def test_admin_design_routes_and_presets(
     preset_post = await app_client.post(
         "/admin/design/preset",
         data={"preset_key": "lavendel_nebel"},
-        cookies=session_cookies,
         follow_redirects=True,
     )
     assert preset_post.status_code == 200
@@ -255,7 +276,6 @@ async def test_admin_design_routes_and_presets(
     shape_post = await app_client.post(
         "/admin/design/shape",
         data={"shape_type": "soft_pebble"},
-        cookies=session_cookies,
         follow_redirects=True,
     )
     assert shape_post.status_code == 200
@@ -268,7 +288,6 @@ async def test_admin_design_routes_and_presets(
             "dandelion_seed_size": "56",
             "dandelion_seed_opacity": "90",
         },
-        cookies=session_cookies,
         follow_redirects=True,
     )
     assert dandelion_post.status_code == 200
@@ -292,7 +311,7 @@ async def test_admin_design_autosave_and_guards(
         "password": "admin-secure-init-pass-change-me",
     }
     login_res = await app_client.post("/admin/login", data=login_data, follow_redirects=False)
-    session_cookies = login_res.cookies
+    assert login_res.status_code == 302  # client keeps the session cookie
 
     # 1. Apply custom design including sliders
     custom_post = await app_client.post(
@@ -313,7 +332,6 @@ async def test_admin_design_autosave_and_guards(
             "dandelion_seed_size": "60",
             "dandelion_seed_opacity": "85",
         },
-        cookies=session_cookies,
         follow_redirects=True,
     )
     assert custom_post.status_code == 200
@@ -327,7 +345,6 @@ async def test_admin_design_autosave_and_guards(
             "dandelion_seed_opacity": "88",
         },
         headers={"hx-request": "true"},
-        cookies=session_cookies,
     )
     assert htmx_post.status_code == 204
     active_theme = await theme_service.get_active_theme()
@@ -338,7 +355,6 @@ async def test_admin_design_autosave_and_guards(
     await app_client.post(
         "/admin/design/preset",
         data={"preset_key": "salbei_sand"},
-        cookies=session_cookies,
     )
     salbei_post = await app_client.post(
         "/admin/design/custom",
@@ -353,7 +369,6 @@ async def test_admin_design_autosave_and_guards(
             "body_font": "Rubik",
         },
         headers={"hx-request": "true"},
-        cookies=session_cookies,
     )
     assert salbei_post.status_code == 204
     active_theme = await theme_service.get_active_theme()
@@ -365,7 +380,6 @@ async def test_admin_design_autosave_and_guards(
         "/admin/design/preset",
         data={"preset_key": "lavendel_nebel"},
         headers={"hx-request": "true"},
-        cookies=session_cookies,
     )
     assert preset_htmx.status_code == 204
 
@@ -373,7 +387,6 @@ async def test_admin_design_autosave_and_guards(
         "/admin/design/shape",
         data={"shape_type": "zen_circle"},
         headers={"hx-request": "true"},
-        cookies=session_cookies,
     )
     assert shape_htmx.status_code == 204
 
@@ -382,7 +395,6 @@ async def test_admin_design_autosave_and_guards(
         "/admin/design/preset",
         data={"preset_key": "invalid_key"},
         headers={"hx-request": "true"},
-        cookies=session_cookies,
     )
     assert invalid_preset.status_code == 204
 
@@ -390,7 +402,6 @@ async def test_admin_design_autosave_and_guards(
         "/admin/design/shape",
         data={"shape_type": "invalid_shape"},
         headers={"hx-request": "true"},
-        cookies=session_cookies,
     )
     assert invalid_shape.status_code == 204
 
@@ -402,7 +413,6 @@ async def test_admin_design_autosave_and_guards(
             "dandelion_seed_opacity": "not_an_int",
         },
         headers={"hx-request": "true"},
-        cookies=session_cookies,
     )
     assert invalid_dandelion.status_code == 204
 
@@ -509,3 +519,32 @@ async def test_all_dandelion_mode_combinations_and_rendering(
                     assert "Geführte Atem-Pause" in html
                 elif m == DandelionEffectMode.WHISPER_TRAIL:
                     assert 'x-data="whisperTrail"' in html
+
+
+async def test_header_opacity_is_adjustable_clamped_and_kept(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    """Design Studio slider «Kopfzeile: Deckkraft» drives the glass effect of the sticky header."""
+    assert "--header-bg-opacity: 0.60;" in (await app_client.get("/theme.css")).text  # default
+    home = (await app_client.get("/")).text
+    assert "bg-theme-main/[var(--header-bg-opacity,0.6)] backdrop-blur-md" in home
+
+    await app_client.post(
+        "/admin/login",
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
+    )
+    assert 'name="header_opacity"' in (await app_client.get("/admin/design")).text
+
+    await app_client.post("/admin/design/custom", data={"header_opacity": "20"})
+    assert "--header-bg-opacity: 0.20;" in (await app_client.get("/theme.css")).text
+
+    # Out-of-range values are clamped instead of failing the auto-save
+    await app_client.post("/admin/design/custom", data={"header_opacity": "150"})
+    assert "--header-bg-opacity: 1.00;" in (await app_client.get("/theme.css")).text
+
+    # Presets, ambient modes and colour saves without the field keep the value
+    await app_client.post("/admin/design/custom", data={"header_opacity": "35"})
+    await app_client.post("/admin/design/preset", data={"preset_key": "lavendel_nebel"})
+    await app_client.post("/admin/design/dandelion", data={"dandelion_modes": "disabled"})
+    await app_client.post("/admin/design/custom", data={"primary_color": "#4A6C50"})
+    assert "--header-bg-opacity: 0.35;" in (await app_client.get("/theme.css")).text

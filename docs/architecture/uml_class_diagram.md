@@ -1,6 +1,6 @@
 # UML-Klassendiagramm – PUSTERUM
 
-> Stand 2026-10-04 (nach Go-Live-Härtung). Einzige Quelle für das Diagramm ist diese Datei (Mermaid).
+> Stand 2026-10-15 (v1.1). Gegen den Code geprüft. Einzige Quelle für das Diagramm ist diese Datei (Mermaid).
 > Abhängigkeiten zeigen ausschliesslich nach innen: Presentation → Application → Domain ← Infrastructure.
 
 ```mermaid
@@ -19,20 +19,31 @@ classDiagram
             +str password_hash
             +UserRole role
             +bool totp_enabled
+            +int totp_last_used_step
             +int session_version
             +int failed_login_count
             +datetime locked_until
+            +bool must_change_password
             +is_locked(now) bool
+            +trusts_device(claim) bool
             +register_failed_login(now)
             +register_successful_login(now)
             +revoke_sessions()
         }
+        class DeviceClaim {
+            <<value>>
+            +UUID user_id
+            +str device_id
+            +datetime issued_at
+        }
         class ContactMessage {
             +str sender_name
             +str sender_email
+            +str sender_phone
             +str subject
             +str message
             +MessageStatus status
+            +str notes
             +str ip_address
             +str email_hash
             +bool confirmation_sent
@@ -44,24 +55,33 @@ classDiagram
             +str current_content
         }
         class ContentBlockVersion {
+            <<immutable>>
+            +UUID id
             +str block_key
             +int version_number
             +str content
             +str author_name
+            +datetime created_at
         }
         class ServiceOffering {
             +str title
             +str slug
             +int duration_minutes
             +float price_chf
+            +int sort_order
             +bool is_active
         }
         class ThemeConfig {
             +ColorPresetKey preset_key
-            +str primary_color
+            +str primary_color … border_color
             +str heading_font
+            +str body_font
             +ShapeType active_shape
             +list~DandelionEffectMode~ dandelion_modes
+            +int dandelion_seed_size
+            +int dandelion_seed_opacity
+            +int kids_photo_opacity
+            +int header_opacity
             +apply_palette(preset_key)
         }
         class IUserRepository
@@ -80,7 +100,8 @@ classDiagram
     BaseEntity <|-- User
     BaseEntity <|-- ContactMessage
     BaseEntity <|-- ContentBlock
-    BaseEntity <|-- ContentBlockVersion
+    ContentBlock "1" --> "*" ContentBlockVersion : Versionen (ADR-0002)
+    User ..> DeviceClaim : vertrautes Gerät
     BaseEntity <|-- ServiceOffering
     BaseEntity <|-- ThemeConfig
 
@@ -90,13 +111,17 @@ classDiagram
             +authenticate(dto, ip) LoginResultDTO
             +verify_second_factor(user_id, code, ip)
             +confirm_totp_setup(user_id, secret, code) list
+            +disable_totp(user_id, password)
+            +regenerate_recovery_codes(user_id, password)
             +change_password(user_id, current, new)
             +logout(user_id)
             +get_session_user(user_id, version)
+            +reset_totp(email) / unlock(email) / create_admin(email, pw)
         }
         class ContactService {
             +create_captcha_challenge() dict
             +submit_contact_form(dto, ip, captcha)
+            +list_messages(…)
             +update_message_status(id, status)
             +delete_message(id)
             +purge_expired(retention)
@@ -104,11 +129,13 @@ classDiagram
         class ContentService {
             +seed_defaults() int
             +get_content_map()
+            +get_block_history(key)
             +save_block_content(key, dto, author)
             +restore_block_version(key, version, author)
         }
         class OfferingService {
             +list_services(include_inactive)
+            +booking_subjects()
             +create_service(form)
             +update_service(id, form)
             +delete_service(id)
@@ -116,9 +143,10 @@ classDiagram
         class ThemeService {
             +set_preset(key)
             +set_shape(shape)
-            +apply_dandelion_modes(modes, size, opacity)
+            +apply_dandelion_modes(modes, size, opacity, kids_photo_opacity)
             +update_theme(dto)
-            +generate_css_variables(theme) str
+            +generate_css_variables(theme) str  %% Hex + RGB-Kanäle, Regler-Werte
+
         }
         class MediaService {
             +store_upload(raw) MediaItem
@@ -130,6 +158,7 @@ classDiagram
     AuthService --> IPasswordHasher
     AuthService --> ISecretCipher
     AuthService --> ITotpProvider
+    AuthService --> IEmailService
     ContactService --> IContactRepository
     ContactService --> IEmailService
     ContactService --> ICaptcha
@@ -223,5 +252,11 @@ classDiagram
   per Name auf ORM-Spalten; Repositories committen nie (Transaktion gehört dem Request bzw. der CLI).
 * **Presentation**: Alle Admin-Controller ausser dem Login-Ablauf tragen den Guard `require_admin`
   (Regressionstest `tests/test_route_guards.py`). Middleware-Kette: Security-Header → Host-Prüfung →
-  Proxy-IP → Rate-Limit → Session; CSRF über Litestar `CSRFConfig`.
+  Proxy-IP → Rate-Limit → Session (signiertes Cookie); CSRF über Litestar `CSRFConfig`.
+  Vertraute Geräte: signiertes Cookie (`security/device_cookie.py` → `DeviceClaim`).
+* **Dependency Injection**: Provider in `presentation/app.py`; Handler und Provider deklarieren
+  Abhängigkeiten als `NamedDependency[…]` und Pfadparameter als `FromPath[…]` (Litestar 3).
+* **Theme**: `ThemeService.generate_css_variables` liefert `/theme.css` – Farben als Hex **und**
+  RGB-Kanäle (`--theme-*-rgb`, Tailwind-Deckkraftstufen) sowie die Regler-Werte des Design-Studios
+  (Samen, Kinderfotos, Kopfzeile).
 * Standardtexte: `infrastructure/database/seed/content_defaults.py` (Seed + Template-Fallback).

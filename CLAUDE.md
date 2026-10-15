@@ -86,6 +86,9 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
 
 ## Sicherheitsregeln (Admin & Formulare)
 
+- Handler- und Provider-Parameter explizit deklarieren (Litestar 3): Dependencies als
+  `NamedDependency[Typ]` (`litestar.di`), Pfadparameter als `FromPath[Typ]` (`litestar.params`).
+  `LitestarDeprecationWarning` lässt die Tests scheitern.
 - Neue Admin-Routen gehören in einen Controller mit `guards = [require_admin]`
   (`presentation/security/admin_auth.py`) und in `ADMIN_CONTROLLERS` – nie eigene Session-Prüfungen schreiben.
   `tests/test_route_guards.py` erkennt ungeschützte `/admin`-Routen automatisch.
@@ -114,6 +117,9 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
   Statements oder Globals (`window`, `document`, `Math`) – Logik in `Alpine.data`-Komponenten unter
   `static/js/components/`; Werte über `data-*`-Attribute übergeben.
 - Theme-Variablen kommen aus `GET /theme.css`; Schriften sind lokal (`static/fonts`, `static/css/fonts.css`).
+- Theme-Farben in Templates nur als Tailwind-Klassen (`bg-theme-primary/20`, `border-theme`, …):
+  `tailwind.config.js` nutzt die RGB-Kanäle `--theme-*-rgb` (Deckkraft-Stufen). Neue Theme-Farbe =
+  Hex- **und** `-rgb`-Variable in `ThemeService.generate_css_variables` + Eintrag in der Tailwind-Config.
 - Browser-Tests: `uv run pytest tests_e2e --no-cov` (Playwright; prüft CSP-Verletzungen und JS-Fehler).
 
 ## Dokumentation & Governance

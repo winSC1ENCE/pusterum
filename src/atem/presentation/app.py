@@ -10,9 +10,8 @@ from typing import Any
 import structlog
 from litestar import Litestar, Request
 from litestar.config.csrf import CSRFConfig
-from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.datastructures import State
-from litestar.di import Provide
+from litestar.di import NamedDependency, Provide
 from litestar.exceptions import NotAuthorizedException
 from litestar.logging.config import LoggingConfig
 from litestar.middleware import DefineMiddleware
@@ -20,6 +19,7 @@ from litestar.middleware.rate_limit import RateLimitConfig
 from litestar.middleware.session.client_side import CookieBackendConfig
 from litestar.openapi.config import OpenAPIConfig
 from litestar.openapi.spec import Contact
+from litestar.plugins.jinja import JinjaTemplateEngine
 from litestar.static_files import create_static_files_router
 from litestar.template.config import TemplateConfig
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
@@ -101,63 +101,75 @@ async def provide_password_hasher() -> IPasswordHasher:
     return Argon2PasswordHasher()
 
 
-async def provide_email_service(settings: Settings) -> IEmailService:
+async def provide_email_service(settings: NamedDependency[Settings]) -> IEmailService:
     """Provide email service based on configuration."""
     if settings.MAIL_ENABLED:
         return SmtpEmailService(settings=settings)
     return MockEmailService()
 
 
-async def provide_offering_repository(db_session: AsyncSession) -> IOfferingRepository:
+async def provide_offering_repository(
+    db_session: NamedDependency[AsyncSession],
+) -> IOfferingRepository:
     """Provide the offering repository (IOfferingRepository)."""
     return SqlAlchemyOfferingRepository(session=db_session)
 
 
-async def provide_contact_repository(db_session: AsyncSession) -> IContactRepository:
+async def provide_contact_repository(
+    db_session: NamedDependency[AsyncSession],
+) -> IContactRepository:
     """Provide contact repository implementing IContactRepository ABC."""
     return SqlAlchemyContactRepository(session=db_session)
 
 
-async def provide_user_repository(db_session: AsyncSession) -> IUserRepository:
+async def provide_user_repository(db_session: NamedDependency[AsyncSession]) -> IUserRepository:
     """Provide user repository implementing IUserRepository ABC."""
     return SqlAlchemyUserRepository(session=db_session)
 
 
-async def provide_theme_repository(db_session: AsyncSession) -> IThemeRepository:
+async def provide_theme_repository(db_session: NamedDependency[AsyncSession]) -> IThemeRepository:
     """Provide theme repository implementing IThemeRepository ABC."""
     return SqlAlchemyThemeRepository(session=db_session)
 
 
-async def provide_content_repository(db_session: AsyncSession) -> IContentRepository:
+async def provide_content_repository(
+    db_session: NamedDependency[AsyncSession],
+) -> IContentRepository:
     """Provide content repository implementing IContentRepository ABC."""
     return SqlAlchemyContentRepository(session=db_session)
 
 
-async def provide_theme_service(theme_repository: IThemeRepository) -> ThemeService:
+async def provide_theme_service(
+    theme_repository: NamedDependency[IThemeRepository],
+) -> ThemeService:
     """Provide ThemeService."""
     return ThemeService(theme_repository=theme_repository)
 
 
-async def provide_content_service(content_repository: IContentRepository) -> ContentService:
+async def provide_content_service(
+    content_repository: NamedDependency[IContentRepository],
+) -> ContentService:
     """Provide ContentService."""
     return ContentService(content_repository=content_repository)
 
 
-async def provide_offering_service(offering_repository: IOfferingRepository) -> OfferingService:
+async def provide_offering_service(
+    offering_repository: NamedDependency[IOfferingRepository],
+) -> OfferingService:
     """Provide OfferingService."""
     return OfferingService(repository=offering_repository)
 
 
 async def provide_contact_service(
-    contact_repository: IContactRepository,
-    email_service: IEmailService,
-    settings: Settings,
+    contact_repository: NamedDependency[IContactRepository],
+    email_service: NamedDependency[IEmailService],
+    settings: NamedDependency[Settings],
 ) -> ContactService:
     """Provide ContactService with ALTCHA captcha and configured abuse limits."""
     return build_contact_service(contact_repository, email_service, settings)
 
 
-async def provide_media_service(settings: Settings) -> MediaService:
+async def provide_media_service(settings: NamedDependency[Settings]) -> MediaService:
     """Provide MediaService (uploads into the persistent media volume)."""
     return MediaService(
         sanitizer=PillowImageSanitizer(),
@@ -167,10 +179,10 @@ async def provide_media_service(settings: Settings) -> MediaService:
 
 
 async def provide_auth_service(
-    user_repository: IUserRepository,
-    password_hasher: IPasswordHasher,
-    email_service: IEmailService,
-    settings: Settings,
+    user_repository: NamedDependency[IUserRepository],
+    password_hasher: NamedDependency[IPasswordHasher],
+    email_service: NamedDependency[IEmailService],
+    settings: NamedDependency[Settings],
 ) -> AuthService:
     """Provide AuthService (TOTP seeds encrypted with a key derived from SECRET_KEY)."""
     return AuthService(

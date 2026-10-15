@@ -4,6 +4,7 @@ from typing import Any
 
 import segno
 from litestar import Controller, Request, get, post
+from litestar.di import NamedDependency
 from litestar.response import Template
 from markupsafe import Markup
 
@@ -74,8 +75,8 @@ class AdminSecurityController(Controller):
     async def security_page(
         self,
         request: Request[Any, Any, Any],
-        auth_service: AuthService,
-        theme_service: ThemeService,
+        auth_service: NamedDependency[AuthService],
+        theme_service: NamedDependency[ThemeService],
     ) -> Template:
         """Overview of password, 2FA status and recovery codes."""
         return await self._render(request, auth_service, theme_service)
@@ -84,8 +85,8 @@ class AdminSecurityController(Controller):
     async def change_password(
         self,
         request: Request[Any, Any, Any],
-        auth_service: AuthService,
-        theme_service: ThemeService,
+        auth_service: NamedDependency[AuthService],
+        theme_service: NamedDependency[ThemeService],
         data: FormData,
     ) -> Template:
         """Change the password (revokes sessions on all other devices)."""
@@ -116,8 +117,8 @@ class AdminSecurityController(Controller):
     async def start_totp(
         self,
         request: Request[Any, Any, Any],
-        auth_service: AuthService,
-        theme_service: ThemeService,
+        auth_service: NamedDependency[AuthService],
+        theme_service: NamedDependency[ThemeService],
     ) -> Template:
         """Generate a new secret and show the QR code for the authenticator app."""
         user = await self._current(request)
@@ -134,8 +135,8 @@ class AdminSecurityController(Controller):
     async def confirm_totp(
         self,
         request: Request[Any, Any, Any],
-        auth_service: AuthService,
-        theme_service: ThemeService,
+        auth_service: NamedDependency[AuthService],
+        theme_service: NamedDependency[ThemeService],
         data: FormData,
     ) -> Template:
         """Activate 2FA after the first valid code; show the recovery codes once."""
@@ -176,8 +177,8 @@ class AdminSecurityController(Controller):
     async def disable_totp(
         self,
         request: Request[Any, Any, Any],
-        auth_service: AuthService,
-        theme_service: ThemeService,
+        auth_service: NamedDependency[AuthService],
+        theme_service: NamedDependency[ThemeService],
         data: FormData,
     ) -> Template:
         """Disable 2FA (not allowed where 2FA is mandatory)."""
@@ -204,8 +205,8 @@ class AdminSecurityController(Controller):
     async def regenerate_recovery_codes(
         self,
         request: Request[Any, Any, Any],
-        auth_service: AuthService,
-        theme_service: ThemeService,
+        auth_service: NamedDependency[AuthService],
+        theme_service: NamedDependency[ThemeService],
         data: FormData,
     ) -> Template:
         """Replace all recovery codes and show the new ones once."""

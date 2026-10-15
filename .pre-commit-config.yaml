@@ -12,15 +12,21 @@ repos:
       - id: check-added-large-files
       - id: check-merge-conflict
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.4
-    hooks:
-      - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
-      - id: ruff-format
-
+  # ruff, mypy & co. run from uv.lock – the same versions as in CI (Dependabot updates them there)
   - repo: local
     hooks:
+      - id: ruff
+        name: ruff (lint)
+        entry: uv run ruff check --fix --exit-non-zero-on-fix
+        language: system
+        types: [python]
+
+      - id: ruff-format
+        name: ruff (format)
+        entry: uv run ruff format
+        language: system
+        types: [python]
+
       - id: gitleaks
         name: gitleaks (secret scan)
         entry: gitleaks detect --source . -v

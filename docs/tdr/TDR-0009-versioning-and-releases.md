@@ -38,6 +38,10 @@ Stand wann live ging und was er enthielt.
   * Die Release-Notes sind der Changelog-Abschnitt (`scripts/release-notes.sh`).
   * Der Tag zeigt damit genau auf den Commit, den der Server deployt.
   * Existiert der Tag schon, gibt es nur eine Warnung.
+* **Quell-Branches für `main`:** nur `develop` (Release) und `hotfix/*` aus diesem Repo. Das
+  prüft der Schritt «Source branch allowed for main» im Pflicht-Check. Rulesets können den
+  Quell-Branch nicht einschränken. Das Ruleset hat keine Bypass-Liste, also gilt das auch für
+  Admins.
 * **Dependabot-PRs** gehen nach `develop` und brauchen keinen eigenen Eintrag. Der nächste Release
   fasst sie als PATCH oder MINOR zusammen («Abhängigkeiten aktualisiert»).
 

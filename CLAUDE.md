@@ -144,6 +144,14 @@ Version nur in `pyproject.toml` (`[project].version`, SemVer). Changelog: `CHANG
 - Die CI erzwingt das: `tests/test_versioning.py` prüft pyproject, `uv.lock` und Changelog. PRs
   nach `main` scheitern, wenn `v<version>` schon existiert.
 - Tags `vX.Y.Z` und GitHub-Releases erstellt nur die CI (Job `promote`). Nie von Hand taggen.
+- **Nach `main` nur `develop` oder `hotfix/*`.** Der CI-Schritt «Source branch allowed for main»
+  steckt im Pflicht-Check und blockiert alle anderen Branches. Feature- und Fix-Branches gehen
+  immer nach `develop`.
+- **Hotfix** (dringend, `develop` nicht releasebereit):
+  - Branch `hotfix/<thema>` von `main` anlegen;
+  - Fix committen, PATCH-Version erhöhen und Changelog nachführen;
+  - PR → `main`;
+  - danach `main` → `develop` zurückführen (PR oder Merge), damit Version und Fix nicht verloren gehen.
 
 ## Deployment
 
@@ -159,4 +167,4 @@ Releases: PR `develop` → `main` (geschützt: PR + 6 Pflicht-Checks, **nur Merg
 setzt der Job `promote` den Branch `production`; ein systemd-Timer auf dem Server deployt ihn (`ops/deploy/`,
 Pull-Prinzip, Health-Check + Rollback, ADR-0005). Nie direkt auf `main` oder `production` pushen.
 Updates: Dependabot-PRs nach `develop` (TDR-0008). Basis-Images nur als `FROM image:tag@sha256:…`
-(kein `ARG`); PostgreSQL-Pins mit `scripts/sync-image-pins.sh` angleichen (`tests/test_image_pins.py`).
+(kein `ARG`); PostgreSQL-Pins und Caddy-Builder mit `scripts/sync-image-pins.sh` angleichen (`tests/test_image_pins.py`).

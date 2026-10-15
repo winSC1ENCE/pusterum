@@ -57,6 +57,22 @@ jobs:
       - name: Vulture
         run: uv run vulture src
 
+      # Only develop (release) and hotfix/* reach main – part of a required check, so GitHub
+      # blocks the merge (rulesets cannot restrict the source branch)
+      - name: Source branch allowed for main
+        if: github.event_name == 'pull_request' && github.base_ref == 'main'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [ "$HEAD_REPO" = "$GITHUB_REPOSITORY" ]; then
+            case "$HEAD_REF" in
+              develop | hotfix/*) echo "PR $HEAD_REF → main allowed" && exit 0 ;;
+            esac
+          fi
+          echo "::error::Only develop or hotfix/* may be merged into main, not '$HEAD_REPO:$HEAD_REF'. Change the PR base to develop (Edit next to the title)."
+          exit 1
+
       # Release PR develop → main: new SemVer version with a CHANGELOG.md section (TDR-0009)
       - name: Release version not yet tagged
         if: github.event_name == 'pull_request' && github.base_ref == 'main'
@@ -207,10 +223,24 @@ jobs:
           tags: pusterum/app:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      # Own cache scopes: the Caddy Go build (~100 module downloads) only reruns when its
+      # Dockerfile changes – fewer chances for a flaky download to fail a release.
       - name: Build Caddy image (rate limiting)
-        run: docker build -t pusterum/caddy:ci docker/caddy
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: docker/caddy
+          load: true
+          tags: pusterum/caddy:ci
+          cache-from: type=gha,scope=caddy
+          cache-to: type=gha,scope=caddy,mode=max
       - name: Build backup image
-        run: docker build -t pusterum/backup:ci docker/backup
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: docker/backup
+          load: true
+          tags: pusterum/backup:ci
+          cache-from: type=gha,scope=backup
+          cache-to: type=gha,scope=backup,mode=max
 
       - name: Trivy vulnerability scan (app image)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0

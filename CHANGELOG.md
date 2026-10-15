@@ -12,17 +12,26 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+## [1.0.1] – 2026-10-15
+
+Wartungs-Release: aktualisierte Abhängigkeiten und robustere Pipeline. Für Besucher ändert sich nichts.
+
+### Geändert
+
+- Abhängigkeiten aktualisiert (erste Dependabot-Runde):
+  - Python-Pakete, u. a. SQLAlchemy 2.1, asyncpg, alembic, pydantic, cryptography und granian;
+  - Basis-Images für Python und Debian;
+  - Reverse-Proxy Caddy 2.10 → 2.11 (Laufzeit- und Build-Image).
+- Dependabot-Updates von Caddy ziehen auch das Build-Image nach (Test und
+  `scripts/sync-image-pins.sh`).
+- Nach `main` lassen sich nur noch `develop` (Release) und `hotfix/*` mergen. Die CI blockiert
+  andere Branches.
+- Entwicklung: ruff läuft im pre-commit-Hook in derselben Version wie in der CI.
+
 ### Behoben
 
 - CI: Das Caddy-Image wird mit Cache gebaut, Downloads werden bei Netzwerkfehlern wiederholt.
   Daran war der erste Lauf von Release v1.0.0 gescheitert.
-
-### Geändert
-
-- Dependabot-Updates von Caddy ziehen auch das Build-Image nach (Test und `scripts/sync-image-pins.sh`).
-
-- Nach `main` lassen sich nur noch `develop` (Release) und `hotfix/*` mergen. Die CI blockiert
-  andere Branches.
 
 ## [1.0.0] – 2026-10-14
 

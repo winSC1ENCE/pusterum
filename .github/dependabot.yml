@@ -1,6 +1,8 @@
 # Weekly update PRs into develop (TDR-0008). Merged like any change: develop → main → automatic
-# deployment (ADR-0005). PostgreSQL: Dependabot updates docker/backup/Dockerfile only – run
-# scripts/sync-image-pins.sh on that PR (tests/test_image_pins.py fails until then).
+# deployment (ADR-0005). PostgreSQL (only docker/backup/Dockerfile is updated) and Caddy (only
+# the runtime image, not the builder): run scripts/sync-image-pins.sh on that PR
+# (tests/test_image_pins.py fails until then). uv always raises the lower bounds in
+# pyproject.toml to the locked version (no versioning-strategy for uv) – that is intended.
 # No YAML anchors/aliases (&x / *x): Dependabot refuses the whole file.
 version: 2
 updates:

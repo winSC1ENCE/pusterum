@@ -24,6 +24,13 @@ GitHub seit 2026-09-16 nicht mehr unterstützt.
 * PostgreSQL kommt an Stellen vor, die Dependabot nicht liest (`docker-compose.prod.yml`, CI-
   Service-Container). Quelle ist `docker/backup/Dockerfile`; `tests/test_image_pins.py` erkennt
   Abweichungen, `scripts/sync-image-pins.sh` gleicht sie auf dem Update-PR an.
+* Caddy: Dependabot hebt nur das Laufzeit-Image (`caddy:X.Y-alpine`), nicht die Builder-Variante
+  (`caddy:X.Y-builder-alpine`), die die tatsächlich kompilierte Caddy-Version bestimmt (erstmals
+  bei 2.10 → 2.11 aufgefallen). Der Test verlangt dieselbe Version, das Skript zieht den Builder
+  samt Digest nach.
+* `uv` kennt bei Dependabot keine `versioning-strategy`: Updates heben immer auch die Untergrenze in
+  `pyproject.toml` auf die gelockte Version. Gewollt (Untergrenze = getesteter Stand); die ersten
+  PRs, die nur Untergrenzen nachziehen, werden gemergt.
 * `.github/dependabot.yml` ohne YAML-Anker/-Aliase: gültiges YAML und Schema, aber der
   Dependabot-Parser lehnt sonst die ganze Datei ab («YAML aliases are not supported»).
   `tests/test_image_pins.py` prüft das.

@@ -120,6 +120,7 @@ Fix: `init: true` für `backup` und `restore` (Docker-Init räumt ab; lokal nach
 - ~~Benachrichtigung bei fehlgeschlagenem Deployment (heute nur im Server-Journal), z. B. Ping an
   einen Uptime-/Healthcheck-Dienst aus `pusterum-deploy.sh`.~~ **Erledigt** (v1.0.0):
   [`2026-10-14-ausfall-benachrichtigung.md`](2026-10-14-ausfall-benachrichtigung.md), ADR-0005.
-- Litestar-Deprecations (~20 000 Warnungen in `pytest`): Pfadparameter mit `FromPath[…]` bzw.
+- ~~Litestar-Deprecations (~20 000 Warnungen in `pytest`): Pfadparameter mit `FromPath[…]` bzw.
   `Annotated[…, PathParameter()]` und Dependencies mit `NamedDependency[…]` deklarieren – sonst
-  Bruch mit Litestar 3.0.
+  Bruch mit Litestar 3.0.~~ **Erledigt 2026-10-15:** 0 Warnungen; `LitestarDeprecationWarning` ist
+  in pytest ein Fehler (`pyproject.toml`).

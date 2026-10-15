@@ -5,6 +5,7 @@ from typing import Annotated, Any
 
 from litestar import Controller, get, post
 from litestar.datastructures import UploadFile
+from litestar.di import NamedDependency
 from litestar.enums import RequestEncodingType
 from litestar.params import Body
 
@@ -20,14 +21,16 @@ class AdminMediaController(Controller):
     include_in_schema = False
 
     @get("/list")
-    async def list_images(self, media_service: MediaService) -> list[dict[str, Any]]:
+    async def list_images(
+        self, media_service: NamedDependency[MediaService]
+    ) -> list[dict[str, Any]]:
         """Uploaded images and bundled theme images."""
         return [asdict(item) for item in media_service.list_images()]
 
     @post("/upload")
     async def upload_image(
         self,
-        media_service: MediaService,
+        media_service: NamedDependency[MediaService],
         data: Annotated[UploadFile, Body(media_type=RequestEncodingType.MULTI_PART)],
     ) -> dict[str, Any]:
         """Upload an image: content is verified and re-encoded (no SVG, no metadata)."""

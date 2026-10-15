@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 import structlog
 from litestar import Controller, Request, get, post
+from litestar.di import NamedDependency
 from litestar.enums import RequestEncodingType
 from litestar.exceptions import NotFoundException
 from litestar.params import Body
@@ -57,10 +58,10 @@ class PublicController(Controller):
     async def index(
         self,
         request: Request[Any, Any, Any],
-        offering_service: OfferingService,
-        theme_service: ThemeService,
-        content_service: ContentService,
-        settings: Settings,
+        offering_service: NamedDependency[OfferingService],
+        theme_service: NamedDependency[ThemeService],
+        content_service: NamedDependency[ContentService],
+        settings: NamedDependency[Settings],
     ) -> Template:
         """Render single-page breath therapy website with in-context inline editing for admins."""
         services = await offering_service.list_services()
@@ -84,7 +85,7 @@ class PublicController(Controller):
         )
 
     @get("/theme.css", include_in_schema=False)
-    async def theme_stylesheet(self, theme_service: ThemeService) -> Response[str]:
+    async def theme_stylesheet(self, theme_service: NamedDependency[ThemeService]) -> Response[str]:
         """Theme CSS variables as a stylesheet (no inline <style> → strict CSP).
 
         Pages reference it as ``/theme.css?v=<content hash>``, so it can be cached forever.
@@ -97,7 +98,9 @@ class PublicController(Controller):
         )
 
     @get("/altcha/challenge", cache=False)
-    async def altcha_challenge(self, contact_service: ContactService) -> Response[dict[str, Any]]:
+    async def altcha_challenge(
+        self, contact_service: NamedDependency[ContactService]
+    ) -> Response[dict[str, Any]]:
         """Issue a proof-of-work challenge for the contact form widget."""
         return Response(
             content=contact_service.create_captcha_challenge(),
@@ -108,9 +111,9 @@ class PublicController(Controller):
     async def handle_contact_form(
         self,
         request: Request[Any, Any, Any],
-        contact_service: ContactService,
-        offering_service: OfferingService,
-        settings: Settings,
+        contact_service: NamedDependency[ContactService],
+        offering_service: NamedDependency[OfferingService],
+        settings: NamedDependency[Settings],
         data: Annotated[dict[str, str], Body(media_type=RequestEncodingType.URL_ENCODED)],
     ) -> Template:
         """Handle the HTMX contact form; answers with the form card partial only."""
@@ -161,8 +164,8 @@ class PublicController(Controller):
     async def impressum(
         self,
         request: Request[Any, Any, Any],
-        theme_service: ThemeService,
-        content_service: ContentService,
+        theme_service: NamedDependency[ThemeService],
+        content_service: NamedDependency[ContentService],
     ) -> Template:
         """Render Impressum (Legal Notice)."""
         theme = await theme_service.get_active_theme()
@@ -182,7 +185,9 @@ class PublicController(Controller):
 
     @get("/atmende-blume/karte")
     async def kids_breathing_card(
-        self, theme_service: ThemeService, content_service: ContentService
+        self,
+        theme_service: NamedDependency[ThemeService],
+        content_service: NamedDependency[ContentService],
     ) -> Template:
         """Printable A5 card of the children's breathing exercise «Atmende Blume»."""
         theme = await theme_service.get_active_theme()
@@ -202,8 +207,8 @@ class PublicController(Controller):
     async def datenschutz(
         self,
         request: Request[Any, Any, Any],
-        theme_service: ThemeService,
-        content_service: ContentService,
+        theme_service: NamedDependency[ThemeService],
+        content_service: NamedDependency[ContentService],
     ) -> Template:
         """Render Privacy Policy."""
         theme = await theme_service.get_active_theme()

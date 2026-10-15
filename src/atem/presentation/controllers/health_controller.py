@@ -2,6 +2,7 @@
 
 import structlog
 from litestar import Controller, get
+from litestar.di import NamedDependency
 from litestar.response import Response
 from litestar.status_codes import HTTP_200_OK, HTTP_503_SERVICE_UNAVAILABLE
 from sqlalchemy import text
@@ -23,7 +24,9 @@ class HealthController(Controller):
         return {"status": "ok"}
 
     @get("/ready", cache=False)
-    async def check_readiness(self, db_session: AsyncSession) -> Response[dict[str, str]]:
+    async def check_readiness(
+        self, db_session: NamedDependency[AsyncSession]
+    ) -> Response[dict[str, str]]:
         """Readiness probe – verifies the database connection with ``SELECT 1``."""
         try:
             await db_session.execute(text("SELECT 1"))

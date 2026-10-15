@@ -4,6 +4,8 @@ from typing import Any
 from uuid import UUID
 
 from litestar import Controller, Request, get, post
+from litestar.di import NamedDependency
+from litestar.params import FromPath
 from litestar.response import Response, Template
 
 from atem.application.services.contact_service import ContactService
@@ -26,9 +28,9 @@ class AdminDashboardController(Controller):
     async def dashboard(
         self,
         request: Request[Any, Any, Any],
-        offering_service: OfferingService,
-        contact_service: ContactService,
-        theme_service: ThemeService,
+        offering_service: NamedDependency[OfferingService],
+        contact_service: NamedDependency[ContactService],
+        theme_service: NamedDependency[ThemeService],
     ) -> Template:
         """Overview: offerings and the latest contact messages."""
         return await admin_page(
@@ -41,7 +43,10 @@ class AdminDashboardController(Controller):
 
     @post("/messages/{message_id:uuid}/status")
     async def update_message_status(
-        self, contact_service: ContactService, message_id: UUID, data: FormData
+        self,
+        contact_service: NamedDependency[ContactService],
+        message_id: FromPath[UUID],
+        data: FormData,
     ) -> Template:
         """Change the processing status of an inquiry (HTMX, returns the table row)."""
         try:
@@ -53,7 +58,7 @@ class AdminDashboardController(Controller):
 
     @post("/messages/{message_id:uuid}/delete")
     async def delete_message(
-        self, contact_service: ContactService, message_id: UUID
+        self, contact_service: NamedDependency[ContactService], message_id: FromPath[UUID]
     ) -> Response[bytes]:
         """Permanently delete an inquiry (HTMX removes the row)."""
         await contact_service.delete_message(message_id)

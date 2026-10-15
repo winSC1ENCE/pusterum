@@ -1,6 +1,6 @@
 [project]
 name = "atem"
-version = "1.0.0"
+version = "1.0.1"
 description = "Webapplikation für PUSTERUM – Praxis für Atem- und Körpertherapie (Litestar, PostgreSQL, HTMX, Tailwind, Clean Architecture)"
 readme = "README.md"
 requires-python = ">=3.12"

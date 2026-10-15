@@ -321,7 +321,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "aiosqlite", specifier = ">=0.20.0" },
-    { name = "bandit", extras = ["toml"], specifier = ">=1.8.0" },
+    { name = "bandit", extras = ["toml"], specifier = ">=1.9.4" },
     { name = "deptry", specifier = ">=0.21.2" },
     { name = "granian", extras = ["reload"], specifier = ">=1.7.0" },
     { name = "licensecheck", specifier = ">=2024.3" },

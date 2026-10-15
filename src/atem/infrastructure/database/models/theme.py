@@ -42,4 +42,5 @@ class ThemeConfigModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     dandelion_seed_size: Mapped[int] = mapped_column(default=48, nullable=False)
     dandelion_seed_opacity: Mapped[int] = mapped_column(default=80, nullable=False)
     kids_photo_opacity: Mapped[int] = mapped_column(default=30, nullable=False)
+    header_opacity: Mapped[int] = mapped_column(default=60, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

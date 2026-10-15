@@ -12,6 +12,11 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+### Hinzugefügt
+
+- Design-Studio: Deckkraft der Kopfzeile einstellbar (Regler «Kopfzeile: Deckkraft», 0 % = Glas-Effekt,
+  100 % = deckend; Standard 60 %). Der Seiteninhalt schimmert beim Scrollen wieder verwischt durch.
+
 ### Geändert
 
 - Technische Vorbereitung auf Litestar 3: Abhängigkeiten und Pfadparameter sind ausdrücklich

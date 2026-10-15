@@ -10,6 +10,7 @@ document.addEventListener("alpine:init", () => {
         seedSize: 48,
         seedOpacity: 80,
         kidsPhotoOpacity: 30,
+        headerOpacity: 60,
         saveStatus: "Gespeichert",
         isSaving: false,
         init() {
@@ -20,6 +21,7 @@ document.addEventListener("alpine:init", () => {
             this.seedSize = Number(data.seedSize || 48);
             this.seedOpacity = Number(data.seedOpacity || 80);
             this.kidsPhotoOpacity = Number(data.kidsPhotoOpacity ?? 30);
+            this.headerOpacity = Number(data.headerOpacity ?? 60);
         },
         isModeActive(key) {
             return this.activeModes.includes(key);
@@ -44,6 +46,9 @@ document.addEventListener("alpine:init", () => {
         },
         get activeModesValue() {
             return this.activeModes.join(",");
+        },
+        get headerPreviewStyle() {
+            return { backgroundColor: `rgb(var(--theme-bg-rgb, 250 248 245) / ${this.headerOpacity / 100})` };
         },
         get photoPreviewStyle() {
             return { opacity: this.kidsPhotoOpacity / 100 };

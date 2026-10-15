@@ -11,6 +11,8 @@ from atem.application.dto.theme import (
 from atem.domain.interfaces.theme_repository import IThemeRepository
 from atem.domain.models.theme import (
     DANDELION_MODE_DEFINITIONS,
+    HEADER_OPACITY_MAX,
+    HEADER_OPACITY_MIN,
     KIDS_PHOTO_OPACITY_MAX,
     KIDS_PHOTO_OPACITY_MIN,
     PRESET_SHAPES,
@@ -83,6 +85,7 @@ class ThemeService:
         theme.dandelion_seed_size = dto.dandelion_seed_size
         theme.dandelion_seed_opacity = dto.dandelion_seed_opacity
         theme.kids_photo_opacity = dto.kids_photo_opacity
+        theme.header_opacity = dto.header_opacity
         logger.info("admin_action", action="theme_custom", preset=dto.preset_key.value)
         return self._to_dto(await self._repository.save_theme(theme))
 
@@ -133,6 +136,7 @@ class ThemeService:
         photo_opacity = min(
             max(theme.kids_photo_opacity, KIDS_PHOTO_OPACITY_MIN), KIDS_PHOTO_OPACITY_MAX
         )
+        header_opacity = min(max(theme.header_opacity, HEADER_OPACITY_MIN), HEADER_OPACITY_MAX)
 
         def color(name: str) -> str:
             value = str(getattr(theme, name))
@@ -170,6 +174,7 @@ class ThemeService:
             --dandelion-seed-size: {size}px;
             --dandelion-seed-opacity: {opacity / 100.0:.2f};
             --kids-photo-opacity: {photo_opacity / 100.0:.2f};
+            --header-bg-opacity: {header_opacity / 100.0:.2f};
         }}
         """
 

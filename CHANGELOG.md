@@ -19,6 +19,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ### Geändert
 
+- Dependabot-Updates von Caddy ziehen auch das Build-Image nach (Test und `scripts/sync-image-pins.sh`).
+
 - Nach `main` lassen sich nur noch `develop` (Release) und `hotfix/*` mergen. Die CI blockiert
   andere Branches.
 

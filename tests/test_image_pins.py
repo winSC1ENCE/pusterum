@@ -40,3 +40,14 @@ def test_dependabot_config_has_no_yaml_aliases() -> None:
     lines = (ROOT / ".github/dependabot.yml").read_text().splitlines()
     offending = [line for line in lines if anchor_or_alias.search(line.split("#")[0])]
     assert not offending, f"Dependabot cannot parse YAML anchors/aliases: {offending}"
+
+
+def test_caddy_builder_matches_the_runtime_version() -> None:
+    """The builder variant compiles Caddy; Dependabot only bumps the runtime image (TDR-0008)."""
+    dockerfile = (ROOT / "docker/caddy/Dockerfile").read_text()
+    builder = re.findall(r"^FROM caddy:([\d.]+)-builder-alpine@", dockerfile, re.M)
+    runtime = re.findall(r"^FROM caddy:([\d.]+)-alpine@", dockerfile, re.M)
+    assert len(builder) == len(runtime) == 1, dockerfile
+    assert builder == runtime, (
+        f"caddy builder {builder[0]} ≠ runtime {runtime[0]} – run scripts/sync-image-pins.sh"
+    )

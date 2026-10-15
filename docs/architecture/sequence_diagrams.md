@@ -1,6 +1,6 @@
 # Sequenzdiagramme – PUSTERUM
 
-> Stand 2026-10-04 (nach Go-Live-Härtung). Mermaid ist die einzige Quelle.
+> Stand 2026-10-15 (v1.1). Mermaid ist die einzige Quelle.
 
 ---
 
@@ -44,6 +44,9 @@ sequenceDiagram
 
     B->>P: GET /altcha/challenge
     P->>CAP: create_challenge() (HMAC-signiert, Ablauf 20 min)
+    alt Challenge nicht ladbar (z. B. Firmen-Proxy, 403)
+        P-->>B: Hinweis «Sicherheitsprüfung nicht geladen» + mailto-Link der Praxis
+    end
     P-->>B: Challenge → Web-Worker löst Proof-of-Work
     B->>P: POST /contact (HTMX, CSRF-Header, form_token, altcha)
     P->>P: Zeit-Token prüfen (≥ 3 s, ≤ 2 h)
@@ -138,6 +141,7 @@ sequenceDiagram
     participant G as granian (2 Worker)
     participant BK as backup (cron)
     participant SB as Backup-Speicher (SFTP)
+    participant HC as Healthcheck-Dienst
 
     D->>E: Container start
     E->>AL: alembic upgrade head (Advisory-Lock)
@@ -145,10 +149,54 @@ sequenceDiagram
     E->>G: exec granian
     Note over G: Settings-Validierung: Start verweigert bei Dev-Secret,<br/>DEBUG, Platzhaltern, Mail ohne TLS
     loop täglich 02:30
+        BK->>HC: Ping /start
         BK->>BK: pg_dump + /media
         BK->>SB: restic backup (verschlüsselt) + forget 7/4/6
+        BK->>HC: Ping ok (bei Fehler /fail, ausbleibend → Alarm)
     end
     loop sonntags
         BK->>SB: restic check --read-data-subset=5%
     end
+```
+
+---
+
+## 6. Release & automatisches Deployment mit Alarmierung (ADR-0005, TDR-0009)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Dev as Entwickler
+    participant GH as GitHub (develop / main)
+    participant CI as GitHub Actions
+    participant PR as Branch production
+    participant T as Server: Deploy-Timer (5 min)
+    participant App as Website (/health/ready)
+    participant HC as Healthcheck-Dienst
+    actor O as Betreiber (Mail / Push)
+
+    Dev->>GH: PR develop → main (Version + CHANGELOG)
+    GH->>CI: Pflicht-Checks (Lint, Tests, E2E, Migrationen, Images)<br/>nur develop / hotfix/*, Version noch nicht getaggt
+    Dev->>GH: Merge (Merge-Commit)
+    GH->>CI: push main → alle Jobs grün
+    CI->>PR: promote: Fast-Forward
+    CI->>GH: Tag vX.Y.Z + GitHub-Release (Notes aus CHANGELOG)
+    loop alle 5 Minuten
+        T->>PR: git fetch
+        alt neuer Commit
+            T->>T: merge --ff-only, docker compose up -d --build
+            T->>App: Health-Check (bis 5 min)
+            alt gesund
+                T->>HC: Ping ok («Deployment … erfolgreich»)
+            else ungesund
+                T->>T: Rollback auf vorherigen Commit
+                T->>HC: Ping /fail (Meldung)
+                HC-->>O: Alarm
+            end
+        else nichts Neues
+            T->>App: Live-Check
+            T->>HC: Ping ok / fail
+        end
+    end
+    Note over HC,O: Bleiben Pings aus (Server/Timer weg) → Alarm nach Karenzzeit
 ```

@@ -6,8 +6,11 @@ Alle Diagramme werden ausschliesslich mit **Mermaid** direkt in Markdown gepfleg
 | Dokument | Inhalt |
 | :--- | :--- |
 | [`uml_class_diagram.md`](uml_class_diagram.md) | Schichten, Entitäten, Ports, Adapter, Controller |
-| [`sequence_diagrams.md`](sequence_diagrams.md) | Seitenaufruf (CSP), Kontaktformular (ALTCHA), Admin-Login (2FA), Inline-Editing, Start & Backups |
-| [`../ops/runbook.md`](../ops/runbook.md) | Betrieb: Erstinstallation, Deployment, Backups/Restore, Notfälle |
+| [`sequence_diagrams.md`](sequence_diagrams.md) | Seitenaufruf (CSP), Kontaktformular (ALTCHA), Admin-Login (2FA), Inline-Editing, Start & Backups, Release & Deployment mit Alarmierung |
+| [`../ops/runbook.md`](../ops/runbook.md) | Betrieb: Erstinstallation, Deployment, Backups/Restore, Notfälle (verschlüsselt) |
+| [`../ops/private/systemuebersicht.md`](../ops/private/systemuebersicht.md) | Gesamtsystem mit Anbietern und Abhängigkeiten, ArchiMate-artig (verschlüsselt) |
+| [`../ops/private/wartung.md`](../ops/private/wartung.md) | Wiederkehrende Wartung mit Protokoll (verschlüsselt) |
+| [`../../CHANGELOG.md`](../../CHANGELOG.md) | Versionen und Änderungen (TDR-0009) |
 
 ## Entscheidungen
 

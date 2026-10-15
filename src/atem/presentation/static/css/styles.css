@@ -82,44 +82,8 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     color: var(--theme-text-main, #1E293B);
 }
 
-/* Dynamic Theme Utilities */
-.bg-theme-main {
-    background-color: var(--theme-bg, #FAF8F5);
-}
-
-.bg-theme-surface,
-.bg-theme-card {
-    background-color: var(--theme-surface, #FFFFFF);
-}
-
-.bg-theme-muted {
-    background-color: var(--theme-surface-muted, #F3EFE8);
-}
-
-.text-theme-primary {
-    color: var(--theme-primary, #4A6C50);
-}
-
-.text-theme-text-main {
-    color: var(--theme-text-main, #1E293B);
-}
-
-.text-theme-text-muted {
-    color: var(--theme-text-muted, #64748B);
-}
-
-.bg-theme-primary {
-    background-color: var(--theme-primary, #4A6C50);
-}
-
-.bg-theme-secondary {
-    background-color: var(--theme-secondary, #CEDECF);
-}
-
-.border-theme {
-    border-color: var(--theme-border, #E6DED1);
-}
-
+/* Theme colour utilities (bg-theme-*, text-theme-*, border-theme …) come from Tailwind
+   (tailwind.config.js, RGB channels from theme.css) – opacity steps like /30 included. */
 .shape-organic {
     border-radius: var(--theme-shape-radius, 42% 58% 70% 30% / 45% 45% 55% 55%);
     transition: border-radius 0.6s ease;

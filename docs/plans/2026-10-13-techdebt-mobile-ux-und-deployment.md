@@ -101,9 +101,12 @@ Fix: `init: true` für `backup` und `restore` (Docker-Init räumt ab; lokal nach
 
 ## Später (erfasst, nicht eingeplant)
 
-- Theme-Farben (`tailwind.config.js`: `var(--theme-…)`) unterstützen keine Deckkraft-Stufen →
+- ~~Theme-Farben (`tailwind.config.js`: `var(--theme-…)`) unterstützen keine Deckkraft-Stufen →
   Klassen wie `bg-theme-secondary/50` werden nicht erzeugt und wirken nicht (z. B. Kreis um das
-  Logo, Hover im Menü). Lösung: Theme-Variablen als RGB-Kanäle + `rgb(var(--…) / <alpha-value>)`.
+  Logo, Hover im Menü). Lösung: Theme-Variablen als RGB-Kanäle + `rgb(var(--…) / <alpha-value>)`.~~
+  **Erledigt 2026-10-15:** `--theme-*-rgb` aus `ThemeService`, Aliase `border-theme`,
+  `bg-theme-main|card|muted` in Tailwind statt von Hand in `styles.css` (wirken so auch auf der
+  Druckkarte, die nur `app.css` lädt).
 - ~~**Server: Zeitzone prüfen und Update-Zeit vor den Neustart legen.**~~ **Erledigt 2026-10-14**
   (Cloud config + Runbook 6.1; Updates 04:30, Neustart 05:30). Meldung 2026-10-14 06:30 CEST:
   «The system will reboot at Thu 2026-10-15 05:30 CEST». **Geprüft 2026-10-14:** Zeitzone stimmt

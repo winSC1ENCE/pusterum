@@ -25,6 +25,7 @@ from atem.domain.models.theme import (
     FontFamily,
     ShapeType,
     ThemeConfig,
+    hex_to_rgb_channels,
     is_hex_color,
 )
 
@@ -152,6 +153,17 @@ class ThemeService:
             --theme-text-main: {color("text_main_color")};
             --theme-text-muted: {color("text_muted_color")};
             --theme-border: {color("border_color")};
+            /* RGB channels for Tailwind opacity steps (bg-theme-primary/20 …) */
+            --theme-primary-rgb: {hex_to_rgb_channels(color("primary_color"))};
+            --theme-primary-hover-rgb: {hex_to_rgb_channels(color("primary_hover"))};
+            --theme-secondary-rgb: {hex_to_rgb_channels(color("secondary_color"))};
+            --theme-accent-rgb: {hex_to_rgb_channels(color("accent_color"))};
+            --theme-bg-rgb: {hex_to_rgb_channels(color("background_color"))};
+            --theme-surface-rgb: {hex_to_rgb_channels(color("surface_color"))};
+            --theme-surface-muted-rgb: {hex_to_rgb_channels(color("surface_muted"))};
+            --theme-text-main-rgb: {hex_to_rgb_channels(color("text_main_color"))};
+            --theme-text-muted-rgb: {hex_to_rgb_channels(color("text_muted_color"))};
+            --theme-border-rgb: {hex_to_rgb_channels(color("border_color"))};
             --theme-shape-radius: {shape_def.css_border_radius};
             --font-heading: '{font(theme.heading_font, FontFamily.LORA)}', serif;
             --font-body: '{font(theme.body_font, FontFamily.PLUS_JAKARTA_SANS)}', sans-serif;

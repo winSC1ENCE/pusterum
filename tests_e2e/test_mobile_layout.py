@@ -122,3 +122,14 @@ def test_font_size_change_keeps_footer_control_in_place(
     # Dots show the step: two of three filled
     expect(footer.locator('[role="group"] .opacity-90')).to_have_count(2)
     assert_clean(page)
+
+
+def test_theme_colour_opacity_steps_apply(page: Page, server_url: str) -> None:
+    """``hover:bg-theme-secondary/30`` needs theme colours as RGB channels (tailwind.config.js)."""
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto(server_url + "/")
+    page.get_by_role("button", name="Menü öffnen").click()
+    link = page.get_by_role("link", name="Kontakt & Standort").filter(visible=True)
+    link.hover()
+    expect(link).to_have_css("background-color", "rgba(206, 222, 207, 0.3)")
+    assert_clean(page)

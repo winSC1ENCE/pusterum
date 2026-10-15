@@ -57,6 +57,22 @@ jobs:
       - name: Vulture
         run: uv run vulture src
 
+      # Only develop (release) and hotfix/* reach main – part of a required check, so GitHub
+      # blocks the merge (rulesets cannot restrict the source branch)
+      - name: Source branch allowed for main
+        if: github.event_name == 'pull_request' && github.base_ref == 'main'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [ "$HEAD_REPO" = "$GITHUB_REPOSITORY" ]; then
+            case "$HEAD_REF" in
+              develop | hotfix/*) echo "PR $HEAD_REF → main allowed" && exit 0 ;;
+            esac
+          fi
+          echo "::error::Only develop or hotfix/* may be merged into main, not '$HEAD_REPO:$HEAD_REF'. Change the PR base to develop (Edit next to the title)."
+          exit 1
+
       # Release PR develop → main: new SemVer version with a CHANGELOG.md section (TDR-0009)
       - name: Release version not yet tagged
         if: github.event_name == 'pull_request' && github.base_ref == 'main'

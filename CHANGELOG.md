@@ -17,6 +17,11 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 - CI: Das Caddy-Image wird mit Cache gebaut, Downloads werden bei Netzwerkfehlern wiederholt.
   Daran war der erste Lauf von Release v1.0.0 gescheitert.
 
+### Geändert
+
+- Nach `main` lassen sich nur noch `develop` (Release) und `hotfix/*` mergen. Die CI blockiert
+  andere Branches.
+
 ## [1.0.0] – 2026-10-14
 
 Erste versionierte Ausgabe. Die Website ist seit dem 2026-10-13 unter `www.pusterum.be` live.

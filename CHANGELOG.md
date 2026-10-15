@@ -18,6 +18,12 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
   deklariert, die Tests laufen ohne Veraltet-Warnungen (vorher rund 20 000). Für Besucher ändert sich
   nichts.
 
+### Behoben
+
+- Farbabstufungen der Gestaltung wirken jetzt wie vorgesehen: zarte Hintergründe hinter Logo, Symbolen und
+  Häkchen, Hover im Menü, halbtransparente Kopfzeile. Auf der druckbaren Kinderkarte erscheinen Rahmen
+  und Kartenfarben korrekt.
+
 ## [1.0.1] – 2026-10-15
 
 Wartungs-Release: aktualisierte Abhängigkeiten und robustere Pipeline. Für Besucher ändert sich nichts.

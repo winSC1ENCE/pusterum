@@ -11,6 +11,7 @@ from atem.domain.models.theme import (
     ColorPresetKey,
     DandelionEffectMode,
     ShapeType,
+    hex_to_rgb_channels,
 )
 from atem.infrastructure.database.models.theme import ThemeConfigModel
 from atem.infrastructure.database.repositories.sqlalchemy_theme_repository import (
@@ -204,6 +205,28 @@ def test_theme_css_variable_generation(theme_service: ThemeService) -> None:
     assert "--theme-bg: #FAF8F5" in css
     assert "--font-heading: 'Lora', serif" in css
     assert "--theme-shape-radius:" in css
+    # RGB channels for Tailwind opacity steps (bg-theme-primary/20 …)
+    assert "--theme-primary-rgb: 74 108 80;" in css
+    assert "--theme-text-main-rgb: 30 41 59;" in css
+    assert css.count("-rgb:") == 10
+
+
+@pytest.mark.parametrize(
+    ("value", "channels"),
+    [
+        ("#4A6C50", "74 108 80"),
+        ("#fff", "255 255 255"),
+        ("#0F0A", "0 255 0"),
+        ("#00000080", "0 0 0"),
+    ],
+)
+def test_hex_to_rgb_channels(value: str, channels: str) -> None:
+    assert hex_to_rgb_channels(value) == channels
+
+
+def test_hex_to_rgb_channels_rejects_non_hex() -> None:
+    with pytest.raises(ValueError, match="hex"):
+        hex_to_rgb_channels("red; }")
 
 
 @pytest.mark.asyncio

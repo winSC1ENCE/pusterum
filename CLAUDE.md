@@ -117,6 +117,9 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
   Statements oder Globals (`window`, `document`, `Math`) – Logik in `Alpine.data`-Komponenten unter
   `static/js/components/`; Werte über `data-*`-Attribute übergeben.
 - Theme-Variablen kommen aus `GET /theme.css`; Schriften sind lokal (`static/fonts`, `static/css/fonts.css`).
+- Theme-Farben in Templates nur als Tailwind-Klassen (`bg-theme-primary/20`, `border-theme`, …):
+  `tailwind.config.js` nutzt die RGB-Kanäle `--theme-*-rgb` (Deckkraft-Stufen). Neue Theme-Farbe =
+  Hex- **und** `-rgb`-Variable in `ThemeService.generate_css_variables` + Eintrag in der Tailwind-Config.
 - Browser-Tests: `uv run pytest tests_e2e --no-cov` (Playwright; prüft CSP-Verletzungen und JS-Fehler).
 
 ## Dokumentation & Governance

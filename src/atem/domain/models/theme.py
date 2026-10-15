@@ -24,6 +24,17 @@ def is_hex_color(value: str) -> bool:
     return bool(_HEX_COLOR_RE.fullmatch(value))
 
 
+def hex_to_rgb_channels(value: str) -> str:
+    """``#4A6C50`` → ``74 108 80`` – the form Tailwind needs for opacity steps
+    (``rgb(var(--x) / <alpha-value>)``). An alpha part of the hex colour is dropped."""
+    if not is_hex_color(value):
+        raise ValueError(f"not a hex colour: {value!r}")
+    digits = value[1:]
+    if len(digits) in (3, 4):
+        digits = "".join(c * 2 for c in digits)
+    return " ".join(str(int(digits[i : i + 2], 16)) for i in (0, 2, 4))
+
+
 class FontFamily(StrEnum):
     """Allowlist of self-hosted font families selectable in the design studio."""
 

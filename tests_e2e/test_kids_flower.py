@@ -240,7 +240,9 @@ def test_design_studio_photo_opacity_slider(page: Page, server_url: str) -> None
     slider = page.locator("#kids_photo_opacity_input")
     with page.expect_response(lambda r: "/admin/design/dandelion" in r.url):
         slider.fill("60")
-    expect(page.get_by_text("60 %", exact=True)).to_be_visible()
+    # Scoped to this slider's card – the header-opacity slider also shows «60 %» by default
+    card = page.locator("div.flex-grow").filter(has=slider)
+    expect(card.get_by_text("60 %", exact=True)).to_be_visible()
     assert_clean(page)
 
     page.goto(server_url + "/")

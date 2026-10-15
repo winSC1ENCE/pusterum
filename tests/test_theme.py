@@ -519,3 +519,32 @@ async def test_all_dandelion_mode_combinations_and_rendering(
                     assert "Geführte Atem-Pause" in html
                 elif m == DandelionEffectMode.WHISPER_TRAIL:
                     assert 'x-data="whisperTrail"' in html
+
+
+async def test_header_opacity_is_adjustable_clamped_and_kept(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    """Design Studio slider «Kopfzeile: Deckkraft» drives the glass effect of the sticky header."""
+    assert "--header-bg-opacity: 0.60;" in (await app_client.get("/theme.css")).text  # default
+    home = (await app_client.get("/")).text
+    assert "bg-theme-main/[var(--header-bg-opacity,0.6)] backdrop-blur-md" in home
+
+    await app_client.post(
+        "/admin/login",
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
+    )
+    assert 'name="header_opacity"' in (await app_client.get("/admin/design")).text
+
+    await app_client.post("/admin/design/custom", data={"header_opacity": "20"})
+    assert "--header-bg-opacity: 0.20;" in (await app_client.get("/theme.css")).text
+
+    # Out-of-range values are clamped instead of failing the auto-save
+    await app_client.post("/admin/design/custom", data={"header_opacity": "150"})
+    assert "--header-bg-opacity: 1.00;" in (await app_client.get("/theme.css")).text
+
+    # Presets, ambient modes and colour saves without the field keep the value
+    await app_client.post("/admin/design/custom", data={"header_opacity": "35"})
+    await app_client.post("/admin/design/preset", data={"preset_key": "lavendel_nebel"})
+    await app_client.post("/admin/design/dandelion", data={"dandelion_modes": "disabled"})
+    await app_client.post("/admin/design/custom", data={"primary_color": "#4A6C50"})
+    assert "--header-bg-opacity: 0.35;" in (await app_client.get("/theme.css")).text

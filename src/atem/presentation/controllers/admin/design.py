@@ -10,6 +10,8 @@ from litestar.response import Redirect, Response, Template
 from atem.application.dto.theme import UpdateThemeRequestDTO
 from atem.application.services.theme_service import ThemeService
 from atem.domain.models.theme import (
+    HEADER_OPACITY_MAX,
+    HEADER_OPACITY_MIN,
     ColorPresetKey,
     DandelionEffectMode,
     ShapeType,
@@ -140,6 +142,13 @@ class AdminDesignController(Controller):
                 ),
                 "kids_photo_opacity": parse_int(
                     data, "kids_photo_opacity", current.kids_photo_opacity
+                ),
+                "header_opacity": min(
+                    max(
+                        parse_int(data, "header_opacity", current.header_opacity),
+                        HEADER_OPACITY_MIN,
+                    ),
+                    HEADER_OPACITY_MAX,
                 ),
             }
         )

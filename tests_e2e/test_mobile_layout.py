@@ -1,5 +1,7 @@
 """Mobile layout: menu reachable without zooming, anchor jumps land below the header, contrast."""
 
+import re
+
 import pytest
 from playwright.sync_api import Page, expect
 
@@ -132,4 +134,14 @@ def test_theme_colour_opacity_steps_apply(page: Page, server_url: str) -> None:
     link = page.get_by_role("link", name="Kontakt & Standort").filter(visible=True)
     link.hover()
     expect(link).to_have_css("background-color", "rgba(206, 222, 207, 0.3)")
+    assert_clean(page)
+
+
+def test_header_is_frosted_glass(page: Page, server_url: str) -> None:
+    """Default header: 60 % theme background plus blur, so content shimmers through."""
+    page.goto(server_url + "/")
+    header = page.locator("header").first
+    # Colour depends on the active palette (other tests switch presets) – the alpha is what counts
+    expect(header).to_have_css("background-color", re.compile(r"rgba\(\d+, \d+, \d+, 0\.6\)"))
+    assert "blur" in header.evaluate("el => getComputedStyle(el).backdropFilter")
     assert_clean(page)

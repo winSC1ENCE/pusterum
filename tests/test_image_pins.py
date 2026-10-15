@@ -48,6 +48,6 @@ def test_caddy_builder_matches_the_runtime_version() -> None:
     builder = re.findall(r"^FROM caddy:([\d.]+)-builder-alpine@", dockerfile, re.M)
     runtime = re.findall(r"^FROM caddy:([\d.]+)-alpine@", dockerfile, re.M)
     assert len(builder) == len(runtime) == 1, dockerfile
-    assert (
-        builder == runtime
-    ), f"caddy builder {builder[0]} ≠ runtime {runtime[0]} – run scripts/sync-image-pins.sh"
+    assert builder == runtime, (
+        f"caddy builder {builder[0]} ≠ runtime {runtime[0]} – run scripts/sync-image-pins.sh"
+    )

@@ -3,6 +3,7 @@
 from typing import Any
 
 from litestar import Controller, Request, get, post
+from litestar.di import NamedDependency
 from litestar.response import Redirect, Template
 from pydantic import ValidationError
 
@@ -46,7 +47,7 @@ class AdminAuthController(Controller):
 
     @get("/login")
     async def login_page(
-        self, request: Request[Any, Any, Any], theme_service: ThemeService
+        self, request: Request[Any, Any, Any], theme_service: NamedDependency[ThemeService]
     ) -> Template | Redirect:
         """Render the login form (or skip it when already logged in)."""
         if await load_session_user(request):
@@ -57,8 +58,8 @@ class AdminAuthController(Controller):
     async def process_login(
         self,
         request: Request[Any, Any, Any],
-        auth_service: AuthService,
-        theme_service: ThemeService,
+        auth_service: NamedDependency[AuthService],
+        theme_service: NamedDependency[ThemeService],
         data: FormData,
     ) -> Template | Redirect:
         """Verify the password; continue with the second factor if enabled."""
@@ -80,7 +81,7 @@ class AdminAuthController(Controller):
 
     @get("/login/verify")
     async def verify_page(
-        self, request: Request[Any, Any, Any], theme_service: ThemeService
+        self, request: Request[Any, Any, Any], theme_service: NamedDependency[ThemeService]
     ) -> Template | Redirect:
         """Render the second-factor form."""
         if pending_second_factor_user_id(request) is None:
@@ -91,8 +92,8 @@ class AdminAuthController(Controller):
     async def process_verify(
         self,
         request: Request[Any, Any, Any],
-        auth_service: AuthService,
-        theme_service: ThemeService,
+        auth_service: NamedDependency[AuthService],
+        theme_service: NamedDependency[ThemeService],
         data: FormData,
     ) -> Template | Redirect:
         """Verify the TOTP or recovery code and issue the authenticated session."""
@@ -111,7 +112,9 @@ class AdminAuthController(Controller):
         return Redirect(path="/admin", cookies=[device_cookie(user.id)])
 
     @post("/logout")
-    async def logout(self, request: Request[Any, Any, Any], auth_service: AuthService) -> Redirect:
+    async def logout(
+        self, request: Request[Any, Any, Any], auth_service: NamedDependency[AuthService]
+    ) -> Redirect:
         """Revoke all sessions of the user and clear the cookie."""
         user = await load_session_user(request)
         if user is not None:

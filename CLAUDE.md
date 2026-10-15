@@ -86,6 +86,9 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
 
 ## Sicherheitsregeln (Admin & Formulare)
 
+- Handler- und Provider-Parameter explizit deklarieren (Litestar 3): Dependencies als
+  `NamedDependency[Typ]` (`litestar.di`), Pfadparameter als `FromPath[Typ]` (`litestar.params`).
+  `LitestarDeprecationWarning` lässt die Tests scheitern.
 - Neue Admin-Routen gehören in einen Controller mit `guards = [require_admin]`
   (`presentation/security/admin_auth.py`) und in `ADMIN_CONTROLLERS` – nie eigene Session-Prüfungen schreiben.
   `tests/test_route_guards.py` erkennt ungeschützte `/admin`-Routen automatisch.

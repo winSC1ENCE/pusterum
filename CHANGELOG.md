@@ -12,6 +12,12 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+### Geändert
+
+- Technische Vorbereitung auf Litestar 3: Abhängigkeiten und Pfadparameter sind ausdrücklich
+  deklariert, die Tests laufen ohne Veraltet-Warnungen (vorher rund 20 000). Für Besucher ändert sich
+  nichts.
+
 ## [1.0.1] – 2026-10-15
 
 Wartungs-Release: aktualisierte Abhängigkeiten und robustere Pipeline. Für Besucher ändert sich nichts.

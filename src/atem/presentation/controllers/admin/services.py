@@ -4,6 +4,8 @@ from typing import Any
 from uuid import UUID
 
 from litestar import Controller, Request, get, post
+from litestar.di import NamedDependency
+from litestar.params import FromPath
 from litestar.response import Redirect, Template
 from pydantic import ValidationError
 
@@ -67,8 +69,8 @@ class AdminServicesController(Controller):
     async def services_page(
         self,
         request: Request[Any, Any, Any],
-        offering_service: OfferingService,
-        theme_service: ThemeService,
+        offering_service: NamedDependency[OfferingService],
+        theme_service: NamedDependency[ThemeService],
     ) -> Template:
         """List all offerings with edit forms."""
         return await self._render(request, offering_service, theme_service)
@@ -77,8 +79,8 @@ class AdminServicesController(Controller):
     async def create_service(
         self,
         request: Request[Any, Any, Any],
-        offering_service: OfferingService,
-        theme_service: ThemeService,
+        offering_service: NamedDependency[OfferingService],
+        theme_service: NamedDependency[ThemeService],
         data: FormData,
     ) -> Template | Redirect:
         """Create a new offering."""
@@ -94,9 +96,9 @@ class AdminServicesController(Controller):
     async def update_service(
         self,
         request: Request[Any, Any, Any],
-        offering_service: OfferingService,
-        theme_service: ThemeService,
-        service_id: UUID,
+        offering_service: NamedDependency[OfferingService],
+        theme_service: NamedDependency[ThemeService],
+        service_id: FromPath[UUID],
         data: FormData,
     ) -> Template | Redirect:
         """Update an existing offering."""
@@ -107,7 +109,9 @@ class AdminServicesController(Controller):
         return Redirect(path="/admin/services?saved=1")
 
     @post("/{service_id:uuid}/delete")
-    async def delete_service(self, offering_service: OfferingService, service_id: UUID) -> Redirect:
+    async def delete_service(
+        self, offering_service: NamedDependency[OfferingService], service_id: FromPath[UUID]
+    ) -> Redirect:
         """Delete an offering."""
         await offering_service.delete_service(service_id)
         return Redirect(path="/admin/services?saved=1")

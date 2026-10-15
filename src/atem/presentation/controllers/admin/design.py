@@ -4,6 +4,7 @@ from typing import Any
 
 import structlog
 from litestar import Controller, Request, get, post
+from litestar.di import NamedDependency
 from litestar.response import Redirect, Response, Template
 
 from atem.application.dto.theme import UpdateThemeRequestDTO
@@ -46,7 +47,7 @@ class AdminDesignController(Controller):
 
     @get("")
     async def design_studio(
-        self, request: Request[Any, Any, Any], theme_service: ThemeService
+        self, request: Request[Any, Any, Any], theme_service: NamedDependency[ThemeService]
     ) -> Template:
         """Render the design studio."""
         return await admin_page(
@@ -60,7 +61,10 @@ class AdminDesignController(Controller):
 
     @post("/preset")
     async def apply_preset(
-        self, request: Request[Any, Any, Any], theme_service: ThemeService, data: FormData
+        self,
+        request: Request[Any, Any, Any],
+        theme_service: NamedDependency[ThemeService],
+        data: FormData,
     ) -> Response[bytes] | Redirect:
         """Apply one of the pastel colour presets."""
         try:
@@ -71,7 +75,10 @@ class AdminDesignController(Controller):
 
     @post("/shape")
     async def apply_shape(
-        self, request: Request[Any, Any, Any], theme_service: ThemeService, data: FormData
+        self,
+        request: Request[Any, Any, Any],
+        theme_service: NamedDependency[ThemeService],
+        data: FormData,
     ) -> Response[bytes] | Redirect:
         """Apply one of the organic shapes."""
         try:
@@ -82,7 +89,10 @@ class AdminDesignController(Controller):
 
     @post("/dandelion")
     async def apply_dandelion_modes(
-        self, request: Request[Any, Any, Any], theme_service: ThemeService, data: FormData
+        self,
+        request: Request[Any, Any, Any],
+        theme_service: NamedDependency[ThemeService],
+        data: FormData,
     ) -> Response[bytes] | Redirect:
         """Apply the multi-select ambient modes and the seed sliders."""
         current = await theme_service.get_active_theme()
@@ -98,7 +108,10 @@ class AdminDesignController(Controller):
 
     @post("/custom")
     async def apply_custom_theme(
-        self, request: Request[Any, Any, Any], theme_service: ThemeService, data: FormData
+        self,
+        request: Request[Any, Any, Any],
+        theme_service: NamedDependency[ThemeService],
+        data: FormData,
     ) -> Response[bytes] | Redirect:
         """Save custom colours and typography; shape and ambient modes are preserved."""
         current = await theme_service.get_active_theme()

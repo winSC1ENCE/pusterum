@@ -207,10 +207,24 @@ jobs:
           tags: pusterum/app:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      # Own cache scopes: the Caddy Go build (~100 module downloads) only reruns when its
+      # Dockerfile changes – fewer chances for a flaky download to fail a release.
       - name: Build Caddy image (rate limiting)
-        run: docker build -t pusterum/caddy:ci docker/caddy
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: docker/caddy
+          load: true
+          tags: pusterum/caddy:ci
+          cache-from: type=gha,scope=caddy
+          cache-to: type=gha,scope=caddy,mode=max
       - name: Build backup image
-        run: docker build -t pusterum/backup:ci docker/backup
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: docker/backup
+          load: true
+          tags: pusterum/backup:ci
+          cache-from: type=gha,scope=backup
+          cache-to: type=gha,scope=backup,mode=max
 
       - name: Trivy vulnerability scan (app image)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0

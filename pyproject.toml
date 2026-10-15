@@ -9,7 +9,7 @@ authors = [
     { name = "PUSTERUM", email = "info@pusterum.be" }
 ]
 dependencies = [
-    "litestar[jinja,structlog]>=2.14.0",
+    "litestar[jinja,structlog]>=2.24.0",
     "sqlalchemy[asyncio]>=2.1.4",
     "asyncpg>=0.32.0",
     "alembic>=1.20.0",

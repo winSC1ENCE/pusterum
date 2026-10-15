@@ -45,7 +45,7 @@ dev = [
     "aiosqlite>=0.20.0",
     "pytest-playwright>=0.10.0",
     "pip-audit>=2.7",
-    "granian[reload]>=1.7.0",
+    "granian[reload]>=2.8.4",
 ]
 
 [build-system]

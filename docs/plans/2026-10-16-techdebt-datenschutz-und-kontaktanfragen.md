@@ -27,7 +27,7 @@ Aufwand: **S** bis halber Tag, **M** 1-2 Tage, **L** mehr.
 | 14 | Auskunfts-Export pro Person (JSON) | P2 | S | 4 | offen |
 | 15 | Anfragetext verschlüsselt in der Datenbank | P3 | M | - | offen |
 | 16 | Seite «Admin-Konten» (letzter Login, 2FA, aktiv) | P3 | S | 2 | offen |
-| 17 | Gedankenstriche im Repo vs. METAS-Regel | P3 | S | Entscheid | offen |
+| 17 | Gedankenstriche im Repo vs. METAS-Regel | P3 | S | METAS-Einstellungen | Ausnahme beantragt |
 
 ## Details
 
@@ -134,12 +134,20 @@ Name, E-Mail und Betreff beschränkt.
 Nur lesend: E-Mail, aktiv, 2FA eingerichtet, letzter Login. Hilft bei der halbjährlichen Kontrolle im
 Wartungsplan.
 
-### 17 · Gedankenstriche (P3, Entscheid offen)
+### 17 · Gedankenstriche (P3, Ausnahme beantragt)
 
-Die METAS-Richtlinie verbietet Gedankenstriche (U+2013, U+2014) in Dateien. Das Repo nutzt sie in
-Texten, und das Changelog-Format (Überschrift `## [x.y.z]`, Gedankenstrich, Datum) ist in `tests/test_versioning.py` und
-`scripts/release-notes.sh` fest verankert. Entscheid: nur neue Inhalte ohne Gedankenstrich, oder Format,
-Test und bestehende Texte umstellen. Seitentexte für Besucher sind davon getrennt zu betrachten.
+Die METAS-Richtlinie für Claude Code verbietet Gedankenstriche (U+2013, U+2014) in Ausgaben und
+Dateien (Grund: Windows PowerShell 5.1). Das Repo nutzt sie seit Beginn: 425 Vorkommen, davon
+sichtbare Seitentexte (`content_defaults.py`, Templates), Datenmigrationen, Doku und das
+Changelog-Format (Überschrift `## [x.y.z]`, Gedankenstrich, Datum), auf das sich
+`tests/test_versioning.py` und `scripts/release-notes.sh` verlassen.
+
+* **Entscheid 2026-10-16** (Projektverantwortlicher): Ausnahme für dieses Projekt beantragen
+  (Linux-Webprojekt, keine PowerShell-Skripte, deutsche Typografie der Website).
+* **Bis die Ausnahme in den zentralen Einstellungen umgesetzt ist:** keine neuen Gedankenstriche,
+  Bestehendes bleibt unverändert (keine lokale Umgehung der Vorgabe).
+* **Danach:** Punkt schliessen. Wird die Ausnahme abgelehnt: Changelog-Format, Test und Skript auf
+  `-` umstellen; Seitentexte nur nach Freigabe der Praxisinhaberin per Datenmigration (TDR-0003).
 
 ## Offene Entscheide
 
@@ -149,7 +157,7 @@ Test und bestehende Texte umstellen. Seitentexte für Besucher sind davon getren
 | Benachrichtigungsmail mit oder ohne Text | ohne Text | Praxisinhaberin |
 | Namen der Status | Neu, In Bearbeitung, Beantwortet, Erledigt, Spam | Praxisinhaberin |
 | Freiwilliges Verzeichnis | ja, kurz | Betreiber |
-| Gedankenstriche | nur neue Inhalte | Betreiber |
+| Gedankenstriche | Ausnahme beantragt (2026-10-16), bis dahin keine neuen | Betreiber / METAS |
 | Juristische Prüfung des Löschkonzepts | ja, vor Umsetzung von #4-#8 | Betreiber |
 
 ## Weitere Befunde (klein, ohne eigene Nummer)

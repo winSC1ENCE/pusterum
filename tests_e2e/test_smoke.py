@@ -210,3 +210,38 @@ def test_accounts_overview_from_dashboard(page: Page, server_url: str) -> None:
     page.set_viewport_size({"width": 390, "height": 844})
     expect(table.get_by_text("Letzte Anmeldung:")).to_be_visible()  # card layout on phones
     assert_clean(page)
+
+
+def test_contact_message_workflow(page: Page, server_url: str) -> None:
+    """TDR-0010: find a message, open it, close it and delete it."""
+    page.goto(server_url + "/#kontakt")
+    page.fill("#sender_name", "Workflow Test")
+    page.fill("#sender_email", "workflow@example.ch")
+    page.fill("#message", "Guten Tag, das ist eine Testanfrage für den Ablauf.")
+    page.locator("altcha-widget input[type=checkbox]").check()
+    expect(page.locator('input[name="altcha"]')).to_have_value(re.compile(".+"), timeout=15000)
+    page.get_by_role("button", name="Nachricht absenden").click()
+    expect(page.get_by_text("Vielen Dank für Ihre Nachricht!")).to_be_visible()
+
+    _login(page, server_url)
+    page.goto(server_url + "/admin")
+    page.get_by_test_id("all-messages-link").click()
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.get_by_label("Suche (Name, E-Mail, Betreff)").fill("workflow@example.ch")
+    page.get_by_role("button", name="Anzeigen").click()
+    expect(page.get_by_test_id("message-total")).to_contain_text("1 Anfrage")
+    page.get_by_test_id("message-list").get_by_text("Workflow Test").click()
+
+    expect(page.get_by_test_id("message-status")).to_contain_text("In Bearbeitung")
+    expect(page.get_by_test_id("message-text")).to_contain_text("Testanfrage")
+    page.get_by_role("button", name="Erledigt").click()
+    expect(page.get_by_test_id("message-status")).to_contain_text("Erledigt")
+    expect(page.get_by_test_id("message-history")).to_contain_text("In Bearbeitung → Erledigt")
+    assert_clean(page)
+
+    page.get_by_label("Diese Anfrage endgültig löschen").check()
+    page.get_by_role("button", name="Löschen", exact=True).click()
+    expect(page).to_have_url(re.compile(r"/admin/messages$"))
+    page.goto(server_url + "/admin/messages?status=all&q=workflow%40example.ch")
+    expect(page.get_by_test_id("message-total")).to_contain_text("0 Anfragen")
+    assert_clean(page)

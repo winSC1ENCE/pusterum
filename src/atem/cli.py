@@ -132,8 +132,7 @@ async def _purge() -> None:
     engine = create_engine()
     try:
         deleted = await purge_expired_data(create_session_factory(engine), settings)
-        days = settings.MESSAGE_RETENTION_DAYS
-        print(f"{deleted} Kontaktnachrichten älter als {days} Tage gelöscht.")
+        print(f"{deleted} Kontaktnachrichten nach Ablauf der Frist gelöscht.")
     finally:
         await engine.dispose()
 

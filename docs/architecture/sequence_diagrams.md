@@ -60,7 +60,7 @@ sequenceDiagram
         P-->>B: Formular-Karte mit Hinweis
     else ok
         CS->>R: create_message(…, email_hash)
-        CS->>MAIL: send_contact_notification (Reply-To = Besucher)
+        CS->>MAIL: send_contact_notification (Vorname, Betreff, Admin-Link; kein Text)
         MAIL-->>T: Neue Anfrage
         CS->>R: confirmation_sent_since(email_hash, 24 h)?
         CS->>MAIL: send_contact_confirmation(Adresse) – fester Text, max. 1×/Tag

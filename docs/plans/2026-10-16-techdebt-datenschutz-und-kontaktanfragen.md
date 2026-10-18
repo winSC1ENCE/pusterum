@@ -20,16 +20,16 @@ Aufwand: **S** bis halber Tag, **M** 1-2 Tage, **L** mehr.
 | 2 | Admin-Konto deaktivieren / löschen | P1 | S | - | umgesetzt |
 | 3 | Zähler im Dashboard falsch ab 51 Anfragen | P1 | S | - | umgesetzt |
 | 4 | Löschen auf Anfrage + Löschprotokoll + `reapply-deletions` | P1 | M | ADR-0006 | offen |
-| 5 | Fristen je Status, IP-Anonymisierung, Retention-Lauf einmal pro Tag | P1 | M | 4, TDR-0010 (Status) | teilweise: IP nach 7 Tagen, Lauf mit Lock umgesetzt; Fristen je Status offen |
+| 5 | Fristen je Status, IP-Anonymisierung, Retention-Lauf einmal pro Tag | P1 | M | 4, TDR-0010 (Status) | umgesetzt (feste Werte; im Admin einstellbar: später) |
 | 6 | Datenschutzerklärung + Hinweis im Kontaktformular | P1 | S | Entscheide 4/5/8 | offen |
 | 7 | Log-Fristen: journald 30 Tage, Proxy-Log mit gekürzter IP | P1 | S | - | umgesetzt (Server: Runbook 6.1 einmalig) |
-| 8 | Benachrichtigungsmail ohne Anfragetext | P1 | S | Entscheid Praxis | offen |
+| 8 | Benachrichtigungsmail ohne Anfragetext | P1 | S | Entscheid Praxis | umgesetzt (Vorname, Betreff, Link) |
 | 9 | Runbook: Auskunfts-/Löschbegehren, Datenpanne, Restore + `reapply-deletions` | P1 | S | 4 | umgesetzt (Runbook 7, vorerst mit `psql`; CLI folgt mit #4) |
 | 10 | Auftragsbearbeitung prüfen, Kurzverzeichnis (verschlüsselt) | P1 | S | - | offen |
-| 11 | Statusmodell + Verlauf (Migration) | P2 | M | TDR-0010 | offen |
-| 12 | Liste: Filter, Suche, Sortierung, Paging | P2 | M | 11 | offen |
-| 13 | Detailansicht: Notizen, Verlauf, «Antworten», Wiedervorlage | P2 | M | 11 | offen |
-| 14 | Auskunfts-Export pro Person (JSON) | P2 | S | 4 | offen |
+| 11 | Statusmodell + Verlauf (Migration) | P2 | M | TDR-0010 | umgesetzt (Migration 0019) |
+| 12 | Liste: Filter, Suche, Sortierung, Paging | P2 | M | 11 | umgesetzt (`/admin/messages`) |
+| 13 | Detailansicht: Notizen, Verlauf, «Antworten» | P2 | M | 11 | umgesetzt (ohne Wiedervorlage/Zuweisung, Entscheid Praxis) |
+| 14 | Auskunfts-Export pro Person (JSON) | P2 | S | 4 | umgesetzt (CLI und Detailansicht) |
 | 15 | Anfragetext verschlüsselt in der Datenbank | P3 | M | - | umgesetzt (TDR-0012, inkl. `export-person`) |
 | 16 | Seite «Admin-Konten» (letzter Login, 2FA, aktiv) | P3 | S | 2 | umgesetzt (`/admin/accounts`) |
 | 17 | Gedankenstriche im Repo vs. METAS-Regel | P3 | S | METAS-Einstellungen | Ausnahme beantragt |
@@ -154,7 +154,7 @@ scheitert an der eindeutigen E-Mail-Adresse. Umsetzung:
 * Reverse-Proxy-Zugriffslog: IP mit `ip_mask` kürzen oder das Zugriffslog abschalten; heute rotiert es
   nur nach Grösse.
 
-### 8 · Benachrichtigungsmail ohne Anfragetext (P1, Entscheid offen)
+### 8 · Benachrichtigungsmail ohne Anfragetext (P1, umgesetzt)
 
 Vorschlag nach ADR-0006: nur Vorname, Betreff und Link ins Admin. Entscheid der Praxisinhaberin:
 Komfort «Antworten aus dem Mailprogramm» gegen keine Kopie von Gesundheitsdaten im Postfach.
@@ -173,9 +173,10 @@ Betriebsordner vermerken. Ein kurzes freiwilliges Verzeichnis der Bearbeitungst�
 ### 11-13 · Verwaltung der Kontaktanfragen (P2, TDR-0010)
 
 * Status Neu, In Bearbeitung, Beantwortet, Erledigt, Spam mit Verlauf.
-* Liste mit Reitern, Suche, Zeitraum, Sortierung, Paging und Hinweisen («überfällig», «Wiedervorlage»,
-  «wird gelöscht am»).
-* Detailansicht mit Notizen, Verlauf, «Antworten» (`mailto:`), Wiedervorlage und Zuweisung.
+* Liste mit Reitern, Suche, Zeitraum, Sortierung, Paging und Hinweisen («überfällig», «wird gelöscht
+  am»).
+* Detailansicht mit Notizen, Verlauf und «Antworten» (`mailto:`).
+* Entscheid Praxis (2026-10-18): keine Wiedervorlage, keine Zuweisung.
 
 ### 14 · Auskunfts-Export (P2)
 
@@ -211,9 +212,9 @@ Changelog-Format (Überschrift `## [x.y.z]`, Gedankenstrich, Datum), auf das sic
 
 | Frage | Vorschlag | Wer |
 | :--- | :--- | :--- |
-| Fristen für Anfragen | Erledigt + 6 Monate, Spam 7 Tage, max. 12 Monate | Praxisinhaberin |
-| Benachrichtigungsmail mit oder ohne Text | ohne Text | Praxisinhaberin |
-| Namen der Status | Neu, In Bearbeitung, Beantwortet, Erledigt, Spam | Praxisinhaberin |
+| Fristen für Anfragen | entschieden 2026-10-18: Vorschlag übernommen; im Admin einstellbar später | Praxisinhaberin |
+| Benachrichtigungsmail mit oder ohne Text | entschieden 2026-10-18: ohne Text | Praxisinhaberin |
+| Namen der Status | entschieden 2026-10-18: Neu, In Bearbeitung, Beantwortet, Erledigt, Spam | Praxisinhaberin |
 | Freiwilliges Verzeichnis | ja, kurz | Betreiber |
 | Gedankenstriche | Ausnahme beantragt (2026-10-16), bis dahin keine neuen | Betreiber / METAS |
 | Juristische Prüfung des Löschkonzepts | ja, vor Umsetzung von #4-#8 | Betreiber |

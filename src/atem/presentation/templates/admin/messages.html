@@ -1,0 +1,86 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Kontaktanfragen | PUSTERUM Administration{% endblock %}
+
+{% set field = "rounded-lg border border-theme bg-theme-card px-3 py-2 text-sm text-theme-text-main" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-16 px-4 sm:px-6 lg:px-8 space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <h1 class="font-heading text-3xl font-bold text-theme-text-main">Kontaktanfragen</h1>
+            <p class="text-sm text-theme-text-muted mt-1">Zeiten in Schweizer Zeit. Erledigte Anfragen werden nach Ablauf der Frist automatisch gelöscht.</p>
+        </div>
+        <a href="/admin" class="px-4 py-2 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted">Zum Dashboard</a>
+    </div>
+
+    <nav class="flex flex-wrap gap-2" aria-label="Status" data-testid="status-tabs">
+        {% set tabs = [("open", "Offen", counts.open)] %}
+        {% for code, label in status_labels.items() %}{% set _ = tabs.append((code, label, counts[code])) %}{% endfor %}
+        {% set _ = tabs.append(("all", "Alle", counts.total)) %}
+        {% for code, label, count in tabs %}
+        {% set active = filters.status == code %}
+        <a href="?{{ dict(filters, status=code) | urlencode }}"
+           {% if active %}aria-current="page"{% endif %}
+           class="px-4 py-2 rounded-full border text-xs font-medium transition-colors {{ 'bg-theme-primary text-white border-theme-primary' if active else 'border-theme bg-theme-card text-theme-text-main hover:bg-theme-muted' }}">
+            {{ label }} <span class="{{ 'text-white/80' if active else 'text-theme-text-muted' }}">{{ count }}</span>
+        </a>
+        {% endfor %}
+    </nav>
+
+    <form method="GET" action="/admin/messages" class="bg-theme-card border border-theme rounded-3xl p-4 grid grid-cols-1 sm:grid-cols-6 gap-3 items-end" data-testid="message-filters">
+        <input type="hidden" name="status" value="{{ filters.status }}">
+        <label class="sm:col-span-2 text-xs text-theme-text-muted space-y-1">
+            <span class="block">Suche (Name, E-Mail, Betreff)</span>
+            <input type="search" name="q" value="{{ filters.q }}" maxlength="100" class="w-full {{ field }}">
+        </label>
+        <label class="text-xs text-theme-text-muted space-y-1">
+            <span class="block">Eingang von</span>
+            <input type="date" name="from" value="{{ filters.from }}" class="w-full {{ field }}">
+        </label>
+        <label class="text-xs text-theme-text-muted space-y-1">
+            <span class="block">bis</span>
+            <input type="date" name="to" value="{{ filters.to }}" class="w-full {{ field }}">
+        </label>
+        <label class="text-xs text-theme-text-muted space-y-1">
+            <span class="block">Sortierung</span>
+            <select name="sort" class="w-full {{ field }}">
+                {% for value, label in sort_labels.items() %}
+                <option value="{{ value }}" {% if filters.sort == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <div class="flex gap-2">
+            <button type="submit" class="flex-1 px-4 py-2 rounded-full bg-theme-primary text-white text-xs font-semibold hover-bg-theme-primary">Anzeigen</button>
+            <a href="/admin/messages" class="px-3 py-2 rounded-full border border-theme text-xs text-theme-text-main hover:bg-theme-muted" title="Filter zurücksetzen">&times;</a>
+        </div>
+    </form>
+
+    <div class="bg-theme-card border border-theme rounded-3xl overflow-hidden">
+        <div class="px-5 py-3 border-b border-theme text-xs text-theme-text-muted" data-testid="message-total">
+            {{ result.total }} {{ "Anfrage" if result.total == 1 else "Anfragen" }}{% if result.pages > 1 %}, Seite {{ result.page }} von {{ result.pages }}{% endif %}
+        </div>
+        {% if result.items %}
+        <ul class="divide-y divide-theme" data-testid="message-list">
+            {% for msg in result.items %}
+            {% include "admin/message_row.html" %}
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="px-5 py-12 text-center text-sm text-theme-text-muted">Keine Anfragen für diese Auswahl.</p>
+        {% endif %}
+    </div>
+
+    {% if result.pages > 1 %}
+    <nav class="flex justify-between items-center text-xs" aria-label="Seiten">
+        {% if result.page > 1 %}
+        <a href="?{{ dict(filters, page=result.page - 1) | urlencode }}" class="px-4 py-2 rounded-full border border-theme bg-theme-card text-theme-text-main hover:bg-theme-muted">&larr; Zurück</a>
+        {% else %}<span></span>{% endif %}
+        <span class="text-theme-text-muted">Seite {{ result.page }} von {{ result.pages }}</span>
+        {% if result.page < result.pages %}
+        <a href="?{{ dict(filters, page=result.page + 1) | urlencode }}" class="px-4 py-2 rounded-full border border-theme bg-theme-card text-theme-text-main hover:bg-theme-muted">Weiter &rarr;</a>
+        {% else %}<span></span>{% endif %}
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

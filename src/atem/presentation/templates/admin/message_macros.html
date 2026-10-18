@@ -1,0 +1,16 @@
+{# Shared bits of the contact message views (TDR-0010). #}
+{% macro status_badge(status) -%}
+{%- set colors = {
+    "NEW": "bg-amber-50 text-amber-900 border-amber-200",
+    "IN_PROGRESS": "bg-sky-50 text-sky-900 border-sky-200",
+    "REPLIED": "bg-emerald-50 text-emerald-800 border-emerald-200",
+    "DONE": "bg-slate-100 text-slate-600 border-slate-200",
+    "SPAM": "bg-rose-50 text-rose-800 border-rose-200",
+} -%}
+<span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium border whitespace-nowrap {{ colors[status.value] }}" data-status="{{ status.value }}">{{ status.label }}</span>
+{%- endmacro %}
+
+{% macro message_hints(msg) -%}
+{% if msg.overdue %}<span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-800 border border-red-200">überfällig</span>{% endif %}
+{% if msg.delete_after %}<span class="text-xs text-theme-text-muted">wird gelöscht am {{ msg.delete_after | local_datetime("%d.%m.%Y") }}</span>{% endif %}
+{%- endmacro %}

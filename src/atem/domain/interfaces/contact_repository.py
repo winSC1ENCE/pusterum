@@ -4,7 +4,13 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from uuid import UUID
 
-from atem.domain.models.contact import ContactMessage, MessageStatus
+from atem.domain.models.contact import (
+    ContactMessage,
+    ContactMessageEvent,
+    MessageQuery,
+    MessageStatus,
+    RetentionPolicy,
+)
 
 
 class IContactRepository(ABC):
@@ -15,14 +21,8 @@ class IContactRepository(ABC):
         """Store incoming contact inquiry."""
 
     @abstractmethod
-    async def get_messages(
-        self,
-        *,
-        status: MessageStatus | None = None,
-        limit: int = 50,
-        offset: int = 0,
-    ) -> list[ContactMessage]:
-        """Fetch contact messages with optional status filter and pagination."""
+    async def search_messages(self, query: MessageQuery) -> tuple[list[ContactMessage], int]:
+        """One page of messages matching the query, and the number of all matches."""
 
     @abstractmethod
     async def get_message_by_id(self, message_id: UUID) -> ContactMessage | None:
@@ -31,6 +31,14 @@ class IContactRepository(ABC):
     @abstractmethod
     async def update_message(self, message: ContactMessage) -> ContactMessage:
         """Persist status, notes and confirmation flag."""
+
+    @abstractmethod
+    async def add_event(self, event: ContactMessageEvent) -> None:
+        """Append an entry to the history of a message."""
+
+    @abstractmethod
+    async def list_events(self, message_id: UUID) -> list[ContactMessageEvent]:
+        """History of a message, oldest first, with the e-mail of the acting admin."""
 
     @abstractmethod
     async def delete_message(self, message_id: UUID) -> bool:
@@ -53,8 +61,8 @@ class IContactRepository(ABC):
         """Return True if a confirmation mail went to this address since the given time."""
 
     @abstractmethod
-    async def delete_messages_older_than(self, cutoff: datetime) -> int:
-        """Delete messages created before ``cutoff`` (retention); return the count."""
+    async def delete_expired(self, policy: RetentionPolicy, now: datetime) -> int:
+        """Delete messages whose retention period is over, with their history; return the count."""
 
     @abstractmethod
     async def anonymize_ips_older_than(self, cutoff: datetime) -> int:

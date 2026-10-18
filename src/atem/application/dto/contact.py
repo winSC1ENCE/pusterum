@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from atem.domain.models.contact import MessageStatus
+from atem.domain.models.contact import EventAction, MessageStatus
 
 # Single-line fields must not contain control characters (header injection, log forging).
 SINGLE_LINE = r"^[^\r\n\t\x00-\x1f\x7f]*$"
@@ -45,4 +45,33 @@ class ContactMessageResponseDTO(BaseModel):
     status: MessageStatus
     notes: str | None
     created_at: datetime
+    closed_at: datetime | None = None
     confirmation_sent: bool = False
+    # Filled by the service: when the retention job deletes it, and «Neu» for too long.
+    delete_after: datetime | None = None
+    overdue: bool = False
+
+
+class MessageEventDTO(BaseModel):
+    """One history entry for the detail view."""
+
+    created_at: datetime
+    action: EventAction
+    summary: str
+    actor_email: str | None
+
+
+class MessageDetailDTO(BaseModel):
+    """A message with its history."""
+
+    message: ContactMessageResponseDTO
+    events: list[MessageEventDTO]
+
+
+class MessagePageDTO(BaseModel):
+    """One page of the admin list."""
+
+    items: list[ContactMessageResponseDTO]
+    total: int
+    page: int
+    pages: int

@@ -144,6 +144,13 @@ class ContactService:
         messages = await self._repository.get_messages(status=status, limit=limit, offset=offset)
         return [ContactMessageResponseDTO.model_validate(m) for m in messages]
 
+    async def message_counts(self) -> dict[str, int]:
+        """Totals for the dashboard: ``total`` and one entry per status value (e.g. ``NEW``)."""
+        per_status = await self._repository.count_by_status()
+        counts = {status.value: per_status.get(status, 0) for status in MessageStatus}
+        counts["total"] = sum(per_status.values())
+        return counts
+
     async def update_message_status(
         self, message_id: UUID, status: MessageStatus
     ) -> ContactMessageResponseDTO:

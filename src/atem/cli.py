@@ -5,6 +5,10 @@ Usage (inside the container or locally with `uv run`)::
     python -m atem.cli create-admin --email vorname.name@example.ch
     python -m atem.cli reset-2fa --email vorname.name@example.ch
     python -m atem.cli unlock --email vorname.name@example.ch
+    python -m atem.cli reset-password --email vorname.name@example.ch [--require-change]
+    python -m atem.cli deactivate-admin --email vorname.name@example.ch
+    python -m atem.cli activate-admin --email vorname.name@example.ch
+    python -m atem.cli delete-admin --email vorname.name@example.ch [--yes]
     python -m atem.cli seed-content
     python -m atem.cli purge-messages
 """
@@ -69,6 +73,49 @@ async def _unlock(email: str) -> None:
         await engine.dispose()
 
 
+async def _reset_password(email: str, *, require_change: bool) -> None:
+    password = _read_password()
+    engine = create_engine()
+    try:
+        async with create_session_factory(engine)() as session:
+            await build_auth_service(session).reset_password(
+                email, password, require_change=require_change
+            )
+            await session.commit()
+        hint = " Beim nächsten Login muss es geändert werden." if require_change else ""
+        print(f"Passwort für «{email}» zurückgesetzt, alle Sitzungen beendet.{hint}")
+    finally:
+        await engine.dispose()
+
+
+async def _set_active(email: str, *, active: bool) -> None:
+    engine = create_engine()
+    try:
+        async with create_session_factory(engine)() as session:
+            await build_auth_service(session).set_active(email, active=active)
+            await session.commit()
+        state = "aktiviert" if active else "deaktiviert (alle Sitzungen beendet)"
+        print(f"Konto «{email}» {state}.")
+    finally:
+        await engine.dispose()
+
+
+async def _delete_admin(email: str) -> None:
+    engine = create_engine()
+    try:
+        async with create_session_factory(engine)() as session:
+            await build_auth_service(session).delete_admin(email)
+            await session.commit()
+        print(f"Konto «{email}» gelöscht.")
+    finally:
+        await engine.dispose()
+
+
+def _confirm_delete(email: str) -> bool:
+    answer = input(f"Konto «{email}» endgültig löschen? Tippen Sie «ja»: ")
+    return answer.strip().lower() == "ja"
+
+
 async def _purge() -> None:
     settings = get_settings()
     engine = create_engine()
@@ -103,6 +150,25 @@ def build_parser() -> argparse.ArgumentParser:
     unlock = sub.add_parser("unlock", help="Kontosperre nach Fehlversuchen sofort aufheben")
     unlock.add_argument("--email", required=True)
 
+    reset_pw = sub.add_parser(
+        "reset-password", help="Passwort zurücksetzen (vergessen); 2FA bleibt bestehen"
+    )
+    reset_pw.add_argument("--email", required=True)
+    reset_pw.add_argument(
+        "--require-change",
+        action="store_true",
+        help="vorläufiges Passwort: beim nächsten Login muss ein neues gewählt werden",
+    )
+
+    deactivate = sub.add_parser("deactivate-admin", help="Konto sperren (Person scheidet aus)")
+    deactivate.add_argument("--email", required=True)
+    activate = sub.add_parser("activate-admin", help="Deaktiviertes Konto wieder freigeben")
+    activate.add_argument("--email", required=True)
+
+    delete = sub.add_parser("delete-admin", help="Konto endgültig löschen")
+    delete.add_argument("--email", required=True)
+    delete.add_argument("--yes", action="store_true", help="ohne Rückfrage löschen")
+
     sub.add_parser("seed-content", help="Fehlende Standard-Inhalte ergänzen (idempotent)")
     sub.add_parser("purge-messages", help="Aufbewahrungsfrist durchsetzen (alte Daten löschen)")
     return parser
@@ -119,6 +185,15 @@ def main(argv: list[str] | None = None) -> int:
             asyncio.run(_reset_2fa(args.email))
         elif args.command == "unlock":
             asyncio.run(_unlock(args.email))
+        elif args.command == "reset-password":
+            asyncio.run(_reset_password(args.email, require_change=args.require_change))
+        elif args.command in ("deactivate-admin", "activate-admin"):
+            asyncio.run(_set_active(args.email, active=args.command == "activate-admin"))
+        elif args.command == "delete-admin":
+            if not args.yes and not _confirm_delete(args.email):
+                print("Abgebrochen, nichts gelöscht.")
+                return 1
+            asyncio.run(_delete_admin(args.email))
         elif args.command == "purge-messages":
             asyncio.run(_purge())
         elif args.command == "seed-content":

@@ -27,3 +27,7 @@ class IEmailService(ABC):
         self, recipient: str, ip_address: str, locked_until: datetime
     ) -> bool:
         """Tell an admin that logins from unknown devices are temporarily locked."""
+
+    @abstractmethod
+    async def send_password_reset_notice(self, recipient: str) -> bool:
+        """Tell an admin that the operator reset their password (fixed text, no secrets)."""

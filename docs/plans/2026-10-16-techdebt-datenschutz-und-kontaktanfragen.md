@@ -16,9 +16,9 @@ Aufwand: **S** bis halber Tag, **M** 1-2 Tage, **L** mehr.
 | U2 | Telefonnummer im Admin ausblendbar, Layout für beide Varianten | P0 | S | - | umgesetzt (v1.2.0) |
 | U3 | Mobile-Menü schliesst bei Klick ausserhalb, Backdrop, Escape | P0 | S | - | umgesetzt (v1.2.0) |
 | U4 | Zitate auf dem Handy per Wischen wechseln, Pfeiltasten | P0 | S | - | umgesetzt (v1.2.0) |
-| 1 | CLI `reset-password` | P1 | S | - | offen |
-| 2 | Admin-Konto deaktivieren / löschen | P1 | S | - | offen |
-| 3 | Zähler im Dashboard falsch ab 51 Anfragen | P1 | S | - | offen |
+| 1 | CLI `reset-password` | P1 | S | - | umgesetzt |
+| 2 | Admin-Konto deaktivieren / löschen | P1 | S | - | umgesetzt |
+| 3 | Zähler im Dashboard falsch ab 51 Anfragen | P1 | S | - | umgesetzt |
 | 4 | Löschen auf Anfrage + Löschprotokoll + `reapply-deletions` | P1 | M | ADR-0006 | offen |
 | 5 | Fristen je Status, IP-Anonymisierung, Retention-Lauf einmal pro Tag | P1 | M | 4, TDR-0010 (Status) | offen |
 | 6 | Datenschutzerklärung + Hinweis im Kontaktformular | P1 | S | Entscheide 4/5/8 | offen |

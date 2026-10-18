@@ -9,6 +9,7 @@ import pytest
 from litestar import Litestar
 from litestar.testing import AsyncTestClient
 from pydantic import ValidationError
+from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
 from atem.application.dto.contact import CreateContactMessageDTO
 from atem.application.services.contact_service import CAPTCHA_REQUIRED, ContactService
@@ -21,6 +22,9 @@ from atem.domain.exceptions import (
 from atem.domain.models.contact import ContactMessage, MessageStatus
 from atem.infrastructure.captcha.altcha_captcha import AltchaCaptcha
 from atem.infrastructure.config.settings import Settings
+from atem.infrastructure.database.repositories.sqlalchemy_contact_repository import (
+    SqlAlchemyContactRepository,
+)
 from atem.infrastructure.email.mock_email_service import MockEmailService
 from atem.infrastructure.email.smtp_email_service import CONFIRMATION_BODY, SmtpEmailService
 from atem.presentation.security.form_token import issue_form_token, verify_form_token
@@ -191,6 +195,20 @@ async def test_lockout_notice_mail(
     assert await disabled.send_lockout_notice("a@b.ch", "1.2.3.4", until) is True
 
 
+async def test_password_reset_notice_mail(
+    smtp_capture: list[tuple[EmailMessage, dict[str, Any]]],
+) -> None:
+    service = SmtpEmailService(_smtp_settings())
+    assert await service.send_password_reset_notice("stephanie@example.ch")
+    sent, _ = smtp_capture[0]
+    assert sent["To"] == "stephanie@example.ch"
+    assert "zurückgesetzt" in sent["Subject"]
+    assert "Betreiber" in sent.get_content()
+    assert await service.send_password_reset_notice("a\nBcc: x@y.ch") is False
+    disabled = SmtpEmailService(_smtp_settings(MAIL_ENABLED=False, SMTP_STARTTLS=False))
+    assert await disabled.send_password_reset_notice("a@b.ch") is True
+
+
 async def test_mail_build_and_delivery_failures_are_contained(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -286,3 +304,32 @@ async def test_admin_can_change_status_and_delete_messages(
     assert deleted.status_code == 200
     again = await app_client.post(f"/admin/messages/{message_id}/delete")
     assert again.status_code == 404
+
+
+async def test_dashboard_counts_all_messages_not_just_the_page(
+    app_client: AsyncTestClient[Litestar], async_engine: AsyncEngine
+) -> None:
+    """Tech-debt #3: totals come from COUNT queries, the table still shows the newest 50."""
+    async with async_sessionmaker(async_engine, expire_on_commit=False)() as session:
+        repository = SqlAlchemyContactRepository(session)
+        for i in range(55):
+            await repository.create_message(
+                ContactMessage(
+                    sender_name=f"Person {i}",
+                    sender_email=f"p{i}@example.ch",
+                    subject="Anfrage",
+                    message="Text",
+                    status=MessageStatus.NEW if i < 52 else MessageStatus.REPLIED,
+                )
+            )
+        await session.commit()
+        per_status = await repository.count_by_status()
+    assert per_status == {MessageStatus.NEW: 52, MessageStatus.REPLIED: 3}
+
+    await app_client.post(
+        "/admin/login",
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
+    )
+    page = (await app_client.get("/admin")).text
+    assert ">55</div>" in page and ">52</div>" in page
+    assert "neueste 50 von 55" in page

@@ -37,6 +37,10 @@ class IContactRepository(ABC):
         """Delete message by ID."""
 
     @abstractmethod
+    async def count_by_status(self) -> dict[MessageStatus, int]:
+        """Number of messages per status (statuses without messages may be missing)."""
+
+    @abstractmethod
     async def count_messages_from_ip(self, ip_address: str, since: datetime) -> int:
         """Count messages sent from an IP address since the given time (rate limiting)."""
 

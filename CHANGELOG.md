@@ -31,6 +31,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
   gelöscht.
 - Datenschutz: Die IP-Adresse einer Kontaktanfrage wird nach 7 Tagen entfernt (sie dient nur dem Schutz vor
   Massenanfragen).
+- Datenschutz: Nachrichtentext, Telefonnummer und Notizen von Kontaktanfragen werden verschlüsselt
+  gespeichert, auch bestehende. Für Auskunftsbegehren gibt es den Befehl `export-person`.
 
 ### Behoben
 

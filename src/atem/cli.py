@@ -11,18 +11,29 @@ Usage (inside the container or locally with `uv run`)::
     python -m atem.cli delete-admin --email vorname.name@example.ch [--yes]
     python -m atem.cli seed-content
     python -m atem.cli purge-messages
+    python -m atem.cli export-person --email person@example.ch > auskunft.json
 """
 
 import argparse
 import asyncio
 import getpass
+import json
 import os
 import sys
+from typing import TextIO, cast
 
 from atem.domain.exceptions import EntityNotFoundException, ValidationException
 from atem.infrastructure.config.settings import get_settings
 from atem.infrastructure.database.session import create_engine, create_session_factory
-from atem.presentation.bootstrap import build_auth_service, purge_expired_data, seed_content
+from atem.infrastructure.email.mock_email_service import MockEmailService
+from atem.infrastructure.logging.logger import setup_logging
+from atem.presentation.bootstrap import (
+    build_auth_service,
+    build_contact_repository,
+    build_contact_service,
+    purge_expired_data,
+    seed_content,
+)
 
 PASSWORD_ENV_VAR = "ATEM_ADMIN_PASSWORD"  # nosec B105 - env var name, not a secret
 
@@ -127,6 +138,21 @@ async def _purge() -> None:
         await engine.dispose()
 
 
+async def _export_person(email: str) -> None:
+    settings = get_settings()
+    engine = create_engine()
+    try:
+        async with create_session_factory(engine)() as session:
+            service = build_contact_service(
+                build_contact_repository(session, settings), MockEmailService(), settings
+            )
+            data = await service.export_person(email)
+        print(json.dumps(data, ensure_ascii=False, indent=2))
+        print(f"{len(data)} Anfragen exportiert.", file=sys.stderr)
+    finally:
+        await engine.dispose()
+
+
 async def _seed_content() -> None:
     engine = create_engine()
     try:
@@ -171,13 +197,31 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("seed-content", help="Fehlende Standard-Inhalte ergänzen (idempotent)")
     sub.add_parser("purge-messages", help="Aufbewahrungsfrist durchsetzen (alte Daten löschen)")
+    export = sub.add_parser(
+        "export-person", help="Alle Anfragen einer Person als JSON (Auskunftsbegehren)"
+    )
+    export.add_argument("--email", required=True)
     return parser
+
+
+class _Stderr:
+    """Logs go to stderr, stdout carries data (export-person > auskunft.json).
+
+    ``sys.stderr`` is looked up on every write, so a replaced stream (tests) is respected.
+    """
+
+    def write(self, text: str) -> int:
+        return sys.stderr.write(text)
+
+    def flush(self) -> None:
+        sys.stderr.flush()
 
 
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point; returns the process exit code."""
     args = build_parser().parse_args(argv)
-    get_settings()  # fail fast on insecure configuration
+    settings = get_settings()  # fail fast on insecure configuration
+    setup_logging(is_dev=settings.is_dev, stream=cast("TextIO", _Stderr()))
     try:
         if args.command == "create-admin":
             asyncio.run(_create_admin(args.email))
@@ -196,6 +240,8 @@ def main(argv: list[str] | None = None) -> int:
             asyncio.run(_delete_admin(args.email))
         elif args.command == "purge-messages":
             asyncio.run(_purge())
+        elif args.command == "export-person":
+            asyncio.run(_export_person(args.email))
         elif args.command == "seed-content":
             asyncio.run(_seed_content())
     except (ValidationException, EntityNotFoundException) as exc:

@@ -40,9 +40,6 @@ from atem.domain.interfaces.email_service import IEmailService
 from atem.domain.interfaces.password_hasher import IPasswordHasher
 from atem.infrastructure.config.settings import get_settings
 from atem.infrastructure.database.base import Base
-from atem.infrastructure.database.repositories.sqlalchemy_contact_repository import (
-    SqlAlchemyContactRepository,
-)
 from atem.infrastructure.database.repositories.sqlalchemy_content_repository import (
     SqlAlchemyContentRepository,
 )
@@ -59,7 +56,11 @@ from atem.infrastructure.email.mock_email_service import MockEmailService
 from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHasher
 from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
 from atem.presentation.app import create_app
-from atem.presentation.bootstrap import build_contact_service, build_secret_cipher
+from atem.presentation.bootstrap import (
+    build_contact_repository,
+    build_contact_service,
+    build_secret_cipher,
+)
 
 
 def make_image_bytes(image_format: str = "PNG", size: tuple[int, int] = (8, 8)) -> bytes:
@@ -135,7 +136,7 @@ async def content_service(db_session: AsyncSession) -> ContentService:
 def contact_service(db_session: AsyncSession, email_service: IEmailService) -> ContactService:
     """Contact service fixture with the real ALTCHA captcha."""
     return build_contact_service(
-        SqlAlchemyContactRepository(db_session), email_service, get_settings()
+        build_contact_repository(db_session, get_settings()), email_service, get_settings()
     )
 
 

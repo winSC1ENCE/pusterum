@@ -148,6 +148,25 @@ class ContactService:
         messages = await self._repository.get_messages(status=status, limit=limit, offset=offset)
         return [ContactMessageResponseDTO.model_validate(m) for m in messages]
 
+    async def export_person(self, email: str) -> list[dict[str, object]]:
+        """All stored data of one sender for an access request (Art. 25 DSG, runbook 7.1)."""
+        messages = await self._repository.find_by_sender_email(email)
+        logger.info("admin_action", action="person_exported", messages=len(messages))
+        return [
+            {
+                "eingang": m.created_at.isoformat() if m.created_at else None,
+                "name": m.sender_name,
+                "email": m.sender_email,
+                "telefon": m.sender_phone,
+                "betreff": m.subject,
+                "nachricht": m.message,
+                "status": m.status.value,
+                "notizen": m.notes,
+                "ip_adresse": m.ip_address,
+            }
+            for m in messages
+        ]
+
     async def message_counts(self) -> dict[str, int]:
         """Totals for the dashboard: ``total`` and one entry per status value (e.g. ``NEW``)."""
         per_status = await self._repository.count_by_status()

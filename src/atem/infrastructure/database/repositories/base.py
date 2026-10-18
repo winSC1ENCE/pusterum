@@ -30,21 +30,31 @@ class SqlAlchemyRepository[ModelT: Base, EntityT]:
     def _field_names(cls) -> tuple[str, ...]:
         return tuple(f.name for f in fields(cls.entity))
 
+    def _encode(self, name: str, value: Any) -> Any:  # noqa: ARG002 - hook for subclasses
+        """Convert an entity value to its stored form (identity; override e.g. to encrypt)."""
+        return value
+
+    def _decode(self, name: str, value: Any) -> Any:  # noqa: ARG002 - hook for subclasses
+        """Convert a stored value back to the entity value (identity; override to decrypt)."""
+        return value
+
     def _to_entity(self, model: ModelT) -> EntityT:
-        entity: EntityT = self.entity(**{n: getattr(model, n) for n in self._field_names()})
+        entity: EntityT = self.entity(
+            **{n: self._decode(n, getattr(model, n)) for n in self._field_names()}
+        )
         return entity
 
     def _apply(self, model: ModelT, entity: EntityT) -> None:
         for name in self._field_names():
             if name not in IMMUTABLE_FIELDS:
-                setattr(model, name, getattr(entity, name))
+                setattr(model, name, self._encode(name, getattr(entity, name)))
 
     async def _get(self, entity_id: UUID) -> EntityT | None:
         model = await self._session.get(self.model, entity_id)
         return self._to_entity(model) if model else None
 
     async def _add(self, entity: EntityT) -> EntityT:
-        model = self.model(**{n: getattr(entity, n) for n in self._field_names()})
+        model = self.model(**{n: self._encode(n, getattr(entity, n)) for n in self._field_names()})
         self._session.add(model)
         await self._session.flush()
         return self._to_entity(model)

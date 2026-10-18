@@ -18,9 +18,15 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
   Zeitraum, Sortierung und Seiten. Lange unbeantwortete Anfragen sind als «überfällig» markiert.
 - Detailansicht jeder Anfrage mit internen Notizen, Verlauf (wer hat wann was geändert), «Antworten»
   per Mailprogramm und Export aller Anfragen einer Adresse für Auskunftsbegehren.
+- Die aktuelle Version der Webseite steht unten im Footer.
+- Das Kontaktformular verlinkt auf die Datenschutzerklärung und bittet, keine ausführlichen
+  Gesundheitsangaben zu schreiben.
 
 ### Geändert
 
+- Neue Datenschutzerklärung nach den Empfehlungen des EDÖB: Kurzfassung zuoberst, Fristen je
+  Status, Empfänger und Länder, Gesundheitsangaben, Rechte mit Antwort innert 30 Tagen. Bereits
+  bearbeitete Abschnitte bleiben unverändert und sollten von Hand geprüft werden.
 - Neue Status: Neu, In Bearbeitung, Beantwortet, Erledigt, Spam. «Gelesen» wird zu «In Bearbeitung»,
   «Archiviert» zu «Erledigt». Beim ersten Öffnen wechselt eine neue Anfrage auf «In Bearbeitung».
 - Das Dashboard zeigt nur noch die neuesten offenen Anfragen und verlinkt auf die volle Liste.

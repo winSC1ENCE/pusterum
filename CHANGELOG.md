@@ -25,6 +25,11 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 - Betrieb: Befehle zum Zurücksetzen eines vergessenen Passworts (mit Sicherheitsmail an die Person) sowie
   zum Deaktivieren, Reaktivieren und Löschen von Admin-Konten. Das letzte aktive Konto ist geschützt.
 
+### Sicherheit
+
+- Datenschutz: Das Zugriffslog speichert IP-Adressen nur noch gekürzt, Server-Logs werden nach 30 Tagen
+  gelöscht.
+
 ### Behoben
 
 - Live-Editor: Nach dem Speichern wechselte bei einigen Feldern (z. B. Adresse) die Eingabeart.

@@ -22,7 +22,7 @@ Aufwand: **S** bis halber Tag, **M** 1-2 Tage, **L** mehr.
 | 4 | Löschen auf Anfrage + Löschprotokoll + `reapply-deletions` | P1 | M | ADR-0006 | offen |
 | 5 | Fristen je Status, IP-Anonymisierung, Retention-Lauf einmal pro Tag | P1 | M | 4, TDR-0010 (Status) | offen |
 | 6 | Datenschutzerklärung + Hinweis im Kontaktformular | P1 | S | Entscheide 4/5/8 | offen |
-| 7 | Log-Fristen: journald 30 Tage, Proxy-Log mit gekürzter IP | P1 | S | - | offen |
+| 7 | Log-Fristen: journald 30 Tage, Proxy-Log mit gekürzter IP | P1 | S | - | umgesetzt (Server: Runbook 6.1 einmalig) |
 | 8 | Benachrichtigungsmail ohne Anfragetext | P1 | S | Entscheid Praxis | offen |
 | 9 | Runbook: Auskunfts-/Löschbegehren, Datenpanne, Restore + `reapply-deletions` | P1 | S | 4 | offen |
 | 10 | Auftragsbearbeitung prüfen, Kurzverzeichnis (verschlüsselt) | P1 | S | - | offen |

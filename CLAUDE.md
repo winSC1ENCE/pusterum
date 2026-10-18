@@ -161,6 +161,19 @@ Version nur in `pyproject.toml` (`[project].version`, SemVer). Changelog: `CHANG
   - PR → `main`;
   - danach `main` → `develop` zurückführen (PR oder Merge), damit Version und Fix nicht verloren gehen.
 
+## Pull Requests und Merges
+
+- `main` und `develop` sind per Ruleset geschützt (`main-protect`, `develop-protect`): nur per PR,
+  6 Pflicht-Checks, nur Merge-Commits, kein Löschen, kein Force-Push.
+- **Merge-Befehle für den Benutzer immer mit Warten auf die Checks**, damit der Teststatus in der
+  Konsole sichtbar ist; Branch immer explizit nennen, kein `--auto`:
+
+  ```bash
+  gh pr checks <branch> --watch --fail-fast && gh pr merge <branch> --merge --delete-branch
+  ```
+
+- Der Benutzer pusht und mergt selbst; neue Branches mit `git switch --no-track -c …` anlegen.
+
 ## Deployment
 
 Domain: **www.pusterum.be** (`.be` = Bern, nicht Belgien); `pusterum.be` leitet per Caddy auf `www` um.

@@ -24,7 +24,7 @@ Aufwand: **S** bis halber Tag, **M** 1-2 Tage, **L** mehr.
 | 6 | Datenschutzerklärung + Hinweis im Kontaktformular | P1 | S | Entscheide 4/5/8 | offen |
 | 7 | Log-Fristen: journald 30 Tage, Proxy-Log mit gekürzter IP | P1 | S | - | umgesetzt (Server: Runbook 6.1 einmalig) |
 | 8 | Benachrichtigungsmail ohne Anfragetext | P1 | S | Entscheid Praxis | offen |
-| 9 | Runbook: Auskunfts-/Löschbegehren, Datenpanne, Restore + `reapply-deletions` | P1 | S | 4 | offen |
+| 9 | Runbook: Auskunfts-/Löschbegehren, Datenpanne, Restore + `reapply-deletions` | P1 | S | 4 | umgesetzt (Runbook 7, vorerst mit `psql`; CLI folgt mit #4) |
 | 10 | Auftragsbearbeitung prüfen, Kurzverzeichnis (verschlüsselt) | P1 | S | - | offen |
 | 11 | Statusmodell + Verlauf (Migration) | P2 | M | TDR-0010 | offen |
 | 12 | Liste: Filter, Suche, Sortierung, Paging | P2 | M | 11 | offen |

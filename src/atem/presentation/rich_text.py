@@ -64,3 +64,18 @@ def render_rich_text(source: str | None) -> Markup:
     text = source.replace("\r\n", "\n").replace("\r", "\n").strip()
     html = "".join(_render_block(block) for block in _PARAGRAPH_BREAK.split(text))
     return Markup(html)  # nosec B704 - every text fragment is escaped in _inline()
+
+
+_LINE_BREAK = re.compile(r"\r\n|\r|\n")
+
+
+def nl2br(source: str | None) -> Markup:
+    """Plain text with line breaks for ``text``/``textarea`` blocks (TDR-0011).
+
+    Escapes everything first and only then turns each line break into ``<br>``, so a stored
+    value can never inject markup. Leading/trailing breaks are dropped.
+    """
+    if not source:
+        return Markup("")
+    # Markup.join escapes every line itself; only the literal "<br>" is trusted markup.
+    return Markup("<br>").join(_LINE_BREAK.split(source.strip("\r\n")))

@@ -50,6 +50,9 @@ document.addEventListener("alpine:init", () => {
                 const targetRoot = this.$root || (this.$el ? this.$el.closest(".editable-block-container") : null) || this.$el;
                 const inputField = targetRoot ? targetRoot.querySelector("input[name='content'], textarea[name='content']") : null;
                 if (inputField) {
+                    if (inputField.tagName === "TEXTAREA" && inputField.rows === 1) {
+                        inputField.style.height = inputField.scrollHeight + "px";
+                    }
                     inputField.focus();
                     if (inputField.select && typeof inputField.select === "function") {
                         inputField.select();
@@ -59,6 +62,12 @@ document.addEventListener("alpine:init", () => {
         },
         cancelEdit() {
             this.isEditing = false;
+        },
+        // Single-line text blocks use a one-row textarea that grows with the content (TDR-0011)
+        autoGrow(event) {
+            const field = event.target;
+            field.style.height = "auto";
+            field.style.height = field.scrollHeight + "px";
         },
         // Rich-text toolbar: wrap the selection in markup (bold/italic/underline) or turn the
         // selected lines into a bullet list. Rendered server-side by presentation/rich_text.py.

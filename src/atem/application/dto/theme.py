@@ -85,6 +85,7 @@ class ThemeConfigDTO(BaseModel):
     dandelion_seed_opacity: int = Field(default=80, ge=10, le=100)
     kids_photo_opacity: KidsPhotoOpacity = KIDS_PHOTO_OPACITY_DEFAULT
     header_opacity: HeaderOpacity = HEADER_OPACITY_DEFAULT
+    show_phone: bool = True
 
     def has_dandelion_mode(self, mode: DandelionEffectMode | str) -> bool:
         """Check if a specific dandelion mode is active (used by templates)."""
@@ -125,3 +126,4 @@ class UpdateThemeRequestDTO(BaseModel):
     dandelion_seed_opacity: SeedOpacity = 80
     kids_photo_opacity: KidsPhotoOpacity = KIDS_PHOTO_OPACITY_DEFAULT
     header_opacity: HeaderOpacity = HEADER_OPACITY_DEFAULT
+    show_phone: bool = True

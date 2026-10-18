@@ -12,6 +12,21 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+### Hinzugefügt
+
+- Zitate lassen sich auf dem Handy durch Wischen wechseln, am Computer mit den Pfeiltasten. Nach einem
+  manuellen Wechsel bleibt das Zitat die vollen 7 Sekunden stehen.
+- Das Menü auf dem Handy schliesst sich auch durch Tippen ausserhalb (abgedunkelter Bereich) und mit
+  Escape. Für Screenreader ist erkennbar, ob es offen ist.
+- Zeilenumbrüche in allen Texten: Im Live-Editor macht Enter eine neue Zeile, auch in Titeln und kurzen
+  Texten (gespeichert wird mit Alt+S oder «Speichern»). Auf der Website erscheint der Umbruch genau so.
+- Design-Studio: Schalter «Kontakt: Telefonnummer anzeigen». Ausgeschaltet verschwindet die Nummer im
+  Kontaktbereich und im Impressum, bleibt aber gespeichert und im Live-Editor bearbeitbar.
+
+### Behoben
+
+- Live-Editor: Nach dem Speichern wechselte bei einigen Feldern (z. B. Adresse) die Eingabeart.
+
 ## [1.1.0] – 2026-10-15
 
 Die Gestaltung wirkt jetzt vollständig wie vorgesehen, und die Kopfzeile lässt sich im Design-Studio

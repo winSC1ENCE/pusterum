@@ -70,11 +70,42 @@ def test_admin_login_and_inline_edit(page: Page, server_url: str) -> None:
     page.goto(server_url + "/")
     title = page.locator("#content-block-hero-title")
     title.dblclick()
-    field = title.locator("input[name=content]")
+    field = title.locator("textarea[name=content]")  # single-line blocks grow (TDR-0011)
     field.fill("PUSTERUM – E2E")
     field.press("Alt+s")
     expect(page.locator("#content-block-hero-title")).to_contain_text("PUSTERUM – E2E")
     assert_clean(page)
+
+
+def test_line_break_in_title_renders_as_br(page: Page, server_url: str) -> None:
+    """TDR-0011: Enter in a single-line block inserts a line break, the page shows <br>."""
+    _login(page, server_url)
+    page.goto(server_url + "/")
+    title = page.locator("#content-block-hero-title")
+    title.dblclick()
+    field = title.locator("textarea[name=content]")
+    field.fill("PUSTERUM")
+    field.press("End")
+    height_one_line = field.evaluate("el => el.offsetHeight")
+    field.press("Enter")  # new line, not submit
+    field.type("Raum zum Atmen")
+    expect(field).to_be_visible()
+    assert field.evaluate("el => el.offsetHeight") > height_one_line  # the field grew
+    field.press("Alt+s")
+    expect(title).to_contain_text("Raum zum Atmen")
+    assert "PUSTERUM<br>Raum zum Atmen" in title.inner_html()
+
+    page.context.clear_cookies()
+    page.goto(server_url + "/")
+    assert "PUSTERUM<br>Raum zum Atmen" in page.locator("h1").first.inner_html()
+    assert_clean(page)
+
+    _login(page, server_url)  # restore a plain title for the other tests
+    page.goto(server_url + "/")
+    page.locator("#content-block-hero-title").dblclick()
+    page.locator("#content-block-hero-title textarea[name=content]").fill("PUSTERUM")
+    page.locator("#content-block-hero-title textarea[name=content]").press("Alt+s")
+    expect(page.locator("#content-block-hero-title")).not_to_contain_text("Raum zum Atmen")
 
 
 def test_rich_text_toolbar_formats_directions(page: Page, server_url: str) -> None:

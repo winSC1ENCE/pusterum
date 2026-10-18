@@ -1,6 +1,6 @@
 # TDR-0011: Zeilenumbrüche in Inhaltsblöcken
 
-* **Status:** proposed
+* **Status:** accepted (umgesetzt 2026-10-18)
 * **Date:** 2026-10-18
 * **Author:** Betreiber (Technik)
 * **Scope:** Macro `editable()` (`templates/components/editable_block.html`), Jinja-Filter

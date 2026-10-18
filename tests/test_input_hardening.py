@@ -124,6 +124,44 @@ async def test_render_hints_are_sanitised(app_client: AsyncTestClient[Litestar])
     assert '<p class="">Sicherer Titel</p>' in response.text
 
 
+async def test_line_breaks_render_as_br_after_escaping(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    """TDR-0011: text and textarea blocks keep line breaks, markup stays escaped."""
+    await _login(app_client)
+    response = await app_client.post(
+        "/admin/content/hero.title/save",
+        data={"content": "Raum zum\nAtmen <em>x</em>", "tag": "h1", "field_type": "text"},
+    )
+    assert response.status_code == 200
+    assert "Raum zum<br>Atmen &lt;em&gt;x&lt;/em&gt;" in response.text
+    # The single-line text block is edited in a growing textarea (Enter = new line)
+    assert 'name="field_type" value="text"' in response.text
+    assert '@input="autoGrow($event)"' in response.text
+
+    app_client.cookies.clear()
+    public = (await app_client.get("/")).text
+    assert "Raum zum<br>Atmen &lt;em&gt;x&lt;/em&gt;" in public
+
+
+async def test_editor_type_from_template_survives_saving(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    """practice.address is seeded as text but edited as textarea; saving keeps the editor."""
+    await _login(app_client)
+    kept = await app_client.post(
+        "/admin/content/practice.address/save",
+        data={"content": "Strasse 1\n3000 Bern", "field_type": "textarea", "rows": "3"},
+    )
+    assert 'name="field_type" value="textarea"' in kept.text
+    unknown = await app_client.post(
+        "/admin/content/practice.address/save",
+        data={"content": "Strasse 1\n3000 Bern", "field_type": "<script>"},
+    )
+    assert "&lt;script&gt;" not in unknown.text and "<script>" not in unknown.text
+    assert 'name="field_type" value="text"' in unknown.text  # falls back to the seeded type
+
+
 async def test_editor_passes_values_to_javascript_as_json(
     app_client: AsyncTestClient[Litestar],
 ) -> None:

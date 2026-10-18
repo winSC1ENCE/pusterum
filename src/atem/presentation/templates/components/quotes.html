@@ -27,7 +27,15 @@
             @mouseleave="resume()"
             @focusin="pause()"
             @focusout="resume()"
-            class="relative"
+            @touchstart.passive="onTouchStart($event)"
+            @touchend="onTouchEnd($event)"
+            @keydown.arrow-right="showNext()"
+            @keydown.arrow-left="showPrev()"
+            tabindex="0"
+            role="region"
+            aria-roledescription="Karussell"
+            aria-label="Zitate - wischen oder Pfeiltasten zum Wechseln"
+            class="relative touch-pan-y focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-primary/40 rounded-2xl"
         >
             <div class="grid" aria-live="polite">
                 {% for i in range(1, quote_count + 1) %}

@@ -145,6 +145,7 @@ class ThemeConfig(BaseEntity):
     dandelion_seed_opacity: int = SEED_OPACITY_DEFAULT  # %, SEED_OPACITY_MIN..SEED_OPACITY_MAX
     kids_photo_opacity: int = KIDS_PHOTO_OPACITY_DEFAULT  # %, KIDS_PHOTO_OPACITY_MIN..MAX
     header_opacity: int = HEADER_OPACITY_DEFAULT  # %, HEADER_OPACITY_MIN..MAX
+    show_phone: bool = True  # practice phone visible on the public site
 
     def apply_palette(self, preset_key: "ColorPresetKey") -> None:
         """Take over all colours of a preset palette (falls back to Salbei & Sand)."""

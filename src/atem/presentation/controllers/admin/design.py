@@ -143,6 +143,10 @@ class AdminDesignController(Controller):
                 "kids_photo_opacity": parse_int(
                     data, "kids_photo_opacity", current.kids_photo_opacity
                 ),
+                # Unchecked boxes are not submitted; the marker says the field was in the form
+                "show_phone": data.get("show_phone") == "1"
+                if data.get("show_phone_field")
+                else current.show_phone,
                 "header_opacity": min(
                     max(
                         parse_int(data, "header_opacity", current.header_opacity),

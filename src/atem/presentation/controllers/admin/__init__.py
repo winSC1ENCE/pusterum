@@ -6,6 +6,7 @@ from atem.presentation.controllers.admin.content import AdminContentController
 from atem.presentation.controllers.admin.dashboard import AdminDashboardController
 from atem.presentation.controllers.admin.design import AdminDesignController
 from atem.presentation.controllers.admin.media import AdminMediaController
+from atem.presentation.controllers.admin.messages import AdminMessagesController
 from atem.presentation.controllers.admin.security import AdminSecurityController
 from atem.presentation.controllers.admin.services import AdminServicesController
 
@@ -14,6 +15,7 @@ ADMIN_CONTROLLERS = (
     AdminSecurityController,
     AdminAccountsController,
     AdminDashboardController,
+    AdminMessagesController,
     AdminDesignController,
     AdminContentController,
     AdminMediaController,

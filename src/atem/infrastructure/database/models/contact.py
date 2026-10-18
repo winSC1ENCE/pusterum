@@ -1,12 +1,13 @@
 """SQLAlchemy ORM Models for Contact Messages."""
 
 from datetime import datetime
+from uuid import UUID
 
-from sqlalchemy import Boolean, DateTime, Index, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, Text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
-from atem.domain.models.contact import MessageStatus
+from atem.domain.models.contact import DeletionReason, EventAction, MessageStatus
 from atem.infrastructure.database.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 
@@ -14,7 +15,10 @@ class ContactMessageModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     """Database table for contact messages."""
 
     __tablename__ = "contact_messages"
-    __table_args__ = (Index("ix_contact_messages_ip_created", "ip_address", "created_at"),)
+    __table_args__ = (
+        Index("ix_contact_messages_ip_created", "ip_address", "created_at"),
+        Index("ix_contact_messages_status_created", "status", "created_at"),
+    )
 
     sender_name: Mapped[str] = mapped_column(String(120), nullable=False)
     sender_email: Mapped[str] = mapped_column(String(150), nullable=False, index=True)
@@ -26,12 +30,47 @@ class ContactMessageModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         SAEnum(MessageStatus, native_enum=False, length=20),
         default=MessageStatus.NEW,
         nullable=False,
-        index=True,
     )
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
     email_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     confirmation_sent: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+
+class ContactMessageEventModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
+    """History of a contact message (status changes, note edits); no message content."""
+
+    __tablename__ = "contact_message_events"
+
+    message_id: Mapped[UUID] = mapped_column(
+        ForeignKey("contact_messages.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    action: Mapped[EventAction] = mapped_column(
+        SAEnum(EventAction, native_enum=False, length=20), nullable=False
+    )
+    old_value: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    new_value: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Kept when the admin account is deleted (history shows «gelöschtes Konto»).
+    actor_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+
+
+class DeletionLogModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
+    """Deleted messages (IDs and address hash only), re-applied after a restore (ADR-0006)."""
+
+    __tablename__ = "deletion_log"
+
+    # No foreign key: the message is gone; the ID must survive to delete it again after a restore.
+    message_id: Mapped[UUID] = mapped_column(nullable=False, index=True)
+    reason: Mapped[DeletionReason] = mapped_column(
+        SAEnum(DeletionReason, native_enum=False, length=20), nullable=False
+    )
+    email_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    actor_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
 
 
 class UsedCaptchaChallengeModel(Base):

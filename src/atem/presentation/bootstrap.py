@@ -16,6 +16,7 @@ from atem.application.services.content_service import ContentService
 from atem.domain.exceptions import ValidationException
 from atem.domain.interfaces.contact_repository import IContactRepository
 from atem.domain.interfaces.email_service import IEmailService
+from atem.domain.models.contact import RetentionPolicy
 from atem.infrastructure.captcha.altcha_captcha import AltchaCaptcha
 from atem.infrastructure.config.settings import Settings, get_settings
 from atem.infrastructure.database.repositories.sqlalchemy_contact_repository import (
@@ -82,13 +83,23 @@ def build_contact_service(
             per_ip_hour=settings.CONTACT_MAX_PER_IP_HOUR,
             per_ip_day=settings.CONTACT_MAX_PER_IP_DAY,
         ),
+        retention=retention_policy(settings),
+    )
+
+
+def retention_policy(settings: Settings) -> RetentionPolicy:
+    """Retention periods of contact messages from the settings."""
+    return RetentionPolicy(
+        done=timedelta(days=settings.MESSAGE_RETENTION_DONE_DAYS),
+        spam=timedelta(days=settings.MESSAGE_RETENTION_SPAM_DAYS),
+        max_age=timedelta(days=settings.MESSAGE_RETENTION_DAYS),
     )
 
 
 async def purge_expired_data(
     session_factory: async_sessionmaker[AsyncSession], settings: Settings
 ) -> int:
-    """Data retention: delete old contact messages, captcha and login-attempt records.
+    """Data retention: delete expired contact messages, captcha and login-attempt records.
 
     On PostgreSQL a transaction-scoped advisory lock keeps the workers from running it at the
     same time (each granian worker has its own daily loop); a worker that does not get the
@@ -105,7 +116,7 @@ async def purge_expired_data(
         service = build_contact_service(
             build_contact_repository(session, settings), MockEmailService(), settings
         )
-        deleted = await service.purge_expired(timedelta(days=settings.MESSAGE_RETENTION_DAYS))
+        deleted = await service.purge_expired()
         await SqlAlchemyUserRepository(session).delete_login_attempts_older_than(
             datetime.now(UTC) - LOGIN_ATTEMPT_RETENTION
         )

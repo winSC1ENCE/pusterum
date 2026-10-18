@@ -27,7 +27,7 @@ Clean Architecture unter `src/atem/` (Abhängigkeiten zeigen nur nach innen):
   Seeds), E-Mail, Security (Argon2, Fernet, TOTP), Captcha, Media (Pillow).
 - `presentation/` – `app.py` (Factory `create_app`), `bootstrap.py`, Controller (Admin als Paket
   `controllers/admin/`), `security/` (Guard, Header, Host, Proxy, Form-Token), `errors.py`, Templates, Static.
-- `cli.py` - `python -m atem.cli {create-admin|reset-password|deactivate-admin|activate-admin|delete-admin|reset-2fa|unlock|seed-content|purge-messages|export-person}`.
+- `cli.py` - `python -m atem.cli {create-admin|reset-password|deactivate-admin|activate-admin|delete-admin|reset-2fa|unlock|seed-content|purge-messages|export-person|forget-person|reapply-deletions}`.
 
 ## Befehle
 
@@ -82,6 +82,8 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
   Anerkennungen) erfinden – das pflegt die Praxisinhaberin im Admin.
 - Kontaktanfragen: `message`, `sender_phone`, `notes` sind verschlüsselt (Fernet, Schlüssel aus
   `SECRET_KEY`, TDR-0012); Repository immer über `build_contact_repository()` erzeugen.
+- Kontaktanfragen-Status, Verlauf und Fristen: TDR-0010 (`MessageStatus`, `RetentionPolicy`); Admin unter
+  `/admin/messages`. Neue Status brauchen Migration und Frist.
 - Das DB-Schema gehört **ausschliesslich Alembic** (Baseline `0000_initial_schema`). Schema-Änderungen immer
   als neue Revision; `alembic check` muss „No new upgrade operations“ melden. `create_all` nur in Tests.
 - `.env*`-Dateien sind für Claude gesperrt – Vorlagen liegen in `config/*.example`.

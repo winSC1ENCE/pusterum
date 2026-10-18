@@ -24,6 +24,7 @@ from litestar.static_files import create_static_files_router
 from litestar.template.config import TemplateConfig
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
+from atem import __version__
 from atem.application.services.auth_service import AuthService
 from atem.application.services.contact_service import ContactService
 from atem.application.services.content_service import ContentService
@@ -328,7 +329,7 @@ def create_app() -> Litestar:
         if settings.is_production_like
         else OpenAPIConfig(
             title="PUSTERUM API",
-            version="0.1.0",
+            version=__version__,
             description="Clean Architecture API für PUSTERUM – Praxis für Atem- und Körpertherapie",
             contact=Contact(
                 name="PUSTERUM", email="info@pusterum.be", url="https://www.pusterum.be"

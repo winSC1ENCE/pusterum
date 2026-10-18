@@ -64,8 +64,8 @@
                 <a href="/admin/design" class="text-[11px] text-theme-primary hover:underline mt-1 block">Design bearbeiten &rarr;</a>
             </div>
             <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
-                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Eingegangene Anfragen</span>
-                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ message_counts.total }}</div>
+                <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Offene Anfragen</span>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ message_counts.open }}</div>
             </div>
             <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
                 <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Aktive Angebote</span>
@@ -77,39 +77,24 @@
             </div>
         </div>
 
-        <!-- Contact Inquiries Table -->
+        <!-- Open contact inquiries -->
         <div class="bg-theme-card rounded-3xl border border-theme shadow-sm overflow-hidden mb-12">
-            <div class="p-6 border-b border-theme flex justify-between items-center bg-theme-muted/50">
-                <h2 class="font-heading text-xl text-theme-text-main font-bold">Neueste Kontaktanfragen</h2>
-                <span class="text-xs text-theme-text-muted font-medium">{% if message_counts.total > messages|length %}neueste {{ messages|length }} von {{ message_counts.total }}{% else %}{{ messages|length }} Einträge{% endif %}</span>
+            <div class="p-6 border-b border-theme flex flex-wrap justify-between items-center gap-3 bg-theme-muted/50">
+                <h2 class="font-heading text-xl text-theme-text-main font-bold">Offene Kontaktanfragen</h2>
+                <a href="/admin/messages" class="px-4 py-2 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted" data-testid="all-messages-link">Alle Anfragen ({{ message_counts.total }}) &rarr;</a>
             </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-theme-text-muted">
-                    <thead class="bg-theme-muted text-xs uppercase text-theme-text-main border-b border-theme">
-                        <tr>
-                            <th class="py-3.5 px-6 font-bold">Datum</th>
-                            <th class="py-3.5 px-6 font-bold">Name</th>
-                            <th class="py-3.5 px-6 font-bold">E-Mail / Tel</th>
-                            <th class="py-3.5 px-6 font-bold">Betreff &amp; Nachricht</th>
-                            <th class="py-3.5 px-6 font-bold">Status / Aktion</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-theme">
-                        {% if messages %}
-                            {% for msg in messages %}
-                            {% include "admin/message_row.html" %}
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="5" class="py-12 text-center text-theme-text-muted text-sm">
-                                    Noch keine Kontaktanfragen vorhanden.
-                                </td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
+            {% if open_messages.items %}
+            <ul class="divide-y divide-theme" data-testid="message-list">
+                {% for msg in open_messages.items %}
+                {% include "admin/message_row.html" %}
+                {% endfor %}
+            </ul>
+            {% if open_messages.total > open_messages.items | length %}
+            <a href="/admin/messages" class="block px-6 py-3 border-t border-theme text-xs text-theme-primary hover:underline">{{ open_messages.total - open_messages.items | length }} weitere offene Anfragen &rarr;</a>
+            {% endif %}
+            {% else %}
+            <p class="py-12 text-center text-theme-text-muted text-sm">Keine offenen Kontaktanfragen.</p>
+            {% endif %}
         </div>
 
     </div>

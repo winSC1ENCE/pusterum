@@ -5,6 +5,11 @@ import subprocess
 import tomllib
 from pathlib import Path
 
+from litestar import Litestar
+from litestar.testing import AsyncTestClient
+
+import atem
+
 ROOT = Path(__file__).resolve().parent.parent
 SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 # Separator: ASCII hyphen (since 1.2.0, METAS dash rule) or the en dash of older releases.
@@ -54,3 +59,12 @@ def test_release_notes_script_prints_only_the_section_of_the_version() -> None:
 
     missing = subprocess.run([script, "0.0.0"], capture_output=True, text=True, check=False)
     assert missing.returncode == 1
+
+
+def test_package_version_is_the_project_version() -> None:
+    assert atem.__version__ == project_version(), "run `uv sync` after changing the version"
+
+
+async def test_footer_shows_the_release_version(app_client: AsyncTestClient[Litestar]) -> None:
+    page = (await app_client.get("/")).text
+    assert f'data-testid="app-version">Version {project_version()}</p>' in page

@@ -1,5 +1,5 @@
 {% from "components/ui_macros.html" import font_size_control with context %}
-<header class="sticky top-0 z-50 bg-theme-main/[var(--header-bg-opacity,0.6)] backdrop-blur-md border-b border-theme transition-colors duration-300" x-data="{ mobileOpen: false }">
+<header class="sticky top-0 z-50 bg-theme-main/[var(--header-bg-opacity,0.6)] backdrop-blur-md border-b border-theme transition-colors duration-300" x-data="mobileMenu" @click.outside="close()" @keydown.escape.window="closeWithEscape()">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-20 gap-3 sm:gap-4">
 
@@ -104,16 +104,19 @@
             <!-- Mobile & Tablet Menu Toggle Button (< 1024px screens) -->
             <div class="flex items-center lg:hidden flex-shrink-0">
                 <button
-                    @click="mobileOpen = !mobileOpen"
+                    @click="toggle()"
+                    x-ref="toggle"
+                    :aria-expanded="ariaExpanded"
+                    aria-controls="mobile-menu"
                     type="button"
                     class="p-2 rounded-xl text-theme-text-main hover:bg-theme-secondary/30 transition-colors focus:outline-none flex items-center gap-1.5 border border-theme/40"
                     aria-label="Menü öffnen"
                 >
-                    <span class="text-xs font-semibold text-theme-text-muted hidden sm:inline" x-text="mobileOpen ? 'Schliessen' : 'Menü'">Menü</span>
-                    <svg x-show="!mobileOpen" class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span class="text-xs font-semibold text-theme-text-muted hidden sm:inline" x-text="toggleText">Menü</span>
+                    <svg x-show="!open" class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
-                    <svg x-show="mobileOpen" x-cloak class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg x-show="open" x-cloak class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
@@ -121,9 +124,22 @@
         </div>
     </div>
 
+    <!-- Backdrop below the mobile menu: a tap outside the panel closes it. Absolute (not fixed),
+         because the header's backdrop-filter makes it the containing block for fixed children. -->
+    <div
+        x-show="open"
+        x-cloak
+        x-transition.opacity
+        @click="close()"
+        class="lg:hidden absolute inset-x-0 top-full h-screen bg-slate-900/20"
+        aria-hidden="true"
+        data-testid="menu-backdrop"
+    ></div>
+
     <!-- Mobile Dropdown Menu -->
     <div
-        x-show="mobileOpen"
+        id="mobile-menu"
+        x-show="open"
         x-cloak
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 -translate-y-2"
@@ -133,17 +149,17 @@
         x-transition:leave-end="opacity-0 -translate-y-2"
         class="lg:hidden absolute inset-x-0 top-full max-h-[calc(100vh-5rem)] overflow-y-auto border-b border-theme bg-theme-main px-4 pt-3 pb-6 space-y-2 shadow-xl"
     >
-        <a @click="mobileOpen = false" href="/#start" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Start</a>
-        <a @click="mobileOpen = false" href="/#ueber-mich" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Über mich &amp; PUSTERUM</a>
-        <a @click="mobileOpen = false" href="/#kompetenzen" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Kompetenzen</a>
-        <a @click="mobileOpen = false" href="/#angebote" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Angebote &amp; Tarife</a>
+        <a @click="close()" href="/#start" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Start</a>
+        <a @click="close()" href="/#ueber-mich" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Über mich &amp; PUSTERUM</a>
+        <a @click="close()" href="/#kompetenzen" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Kompetenzen</a>
+        <a @click="close()" href="/#angebote" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Angebote &amp; Tarife</a>
         {% if theme and theme.kids_enabled %}
-        <a @click="mobileOpen = false" href="/#kinder" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Atmen mit Kindern</a>
+        <a @click="close()" href="/#kinder" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Atmen mit Kindern</a>
         {% endif %}
-        <a @click="mobileOpen = false" href="/#praxis" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Praxis</a>
-        <a @click="mobileOpen = false" href="/#kontakt" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Kontakt &amp; Standort</a>
+        <a @click="close()" href="/#praxis" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Praxis</a>
+        <a @click="close()" href="/#kontakt" class="block px-4 py-2.5 rounded-xl text-base font-medium hover:bg-theme-secondary/30 text-theme-text-main transition-colors">Kontakt &amp; Standort</a>
         <div class="pt-3">
-            <a @click="mobileOpen = false" href="/#kontakt" class="block text-center w-full px-5 py-3.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary font-medium shadow-md transition-all">
+            <a @click="close()" href="/#kontakt" class="block text-center w-full px-5 py-3.5 rounded-full bg-theme-primary text-white hover-bg-theme-primary font-medium shadow-md transition-all">
                 Termin anfragen
             </a>
         </div>

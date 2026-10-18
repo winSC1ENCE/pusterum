@@ -31,7 +31,7 @@ def test_mobile_menu_jump_lands_below_header(page: Page, server_url: str) -> Non
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto(server_url + "/")
     page.get_by_role("button", name="Menü öffnen").click()
-    page.get_by_role("link", name="Angebote & Tarife").last.click()
+    page.locator("#mobile-menu").get_by_role("link", name="Angebote & Tarife").click()
     page.wait_for_function(ANCHOR_BELOW_HEADER, arg="angebote", timeout=5000)
     assert_clean(page)
 
@@ -180,4 +180,39 @@ def test_quotes_change_by_swipe_and_arrow_keys(page: Page, server_url: str) -> N
     expect(figures.nth(1)).to_be_visible()
     page.keyboard.press("ArrowLeft")
     expect(figures.nth(0)).to_be_visible()
+    assert_clean(page)
+
+
+def test_mobile_menu_closes_on_backdrop_outside_click_and_escape(
+    page: Page, server_url: str
+) -> None:
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto(server_url + "/")
+    toggle = page.get_by_role("button", name="Menü öffnen")
+    menu = page.locator("#mobile-menu")
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+
+    # Tap on the dimmed area below the panel
+    toggle.click()
+    expect(menu).to_be_visible()
+    expect(toggle).to_have_attribute("aria-expanded", "true")
+    page.mouse.click(195, 820)
+    expect(menu).to_be_hidden()
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+
+    # Escape closes and returns focus to the menu button
+    toggle.click()
+    expect(menu).to_be_visible()
+    page.keyboard.press("Escape")
+    expect(menu).to_be_hidden()
+    expect(toggle).to_be_focused()
+
+    # Click outside the header (backdrop hidden while closed): open, then click in the header bar
+    # outside the panel and the button - the brand area is a link, so use the empty spot next to it
+    toggle.click()
+    expect(menu).to_be_visible()
+    page.locator("header").first.click(position={"x": 300, "y": 10})
+    expect(menu).to_be_visible()  # inside the header: stays open
+    page.locator("#mobile-menu").click(position={"x": 10, "y": 5})
+    expect(menu).to_be_visible()  # inside the panel: stays open
     assert_clean(page)

@@ -16,6 +16,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 - Zitate lassen sich auf dem Handy durch Wischen wechseln, am Computer mit den Pfeiltasten. Nach einem
   manuellen Wechsel bleibt das Zitat die vollen 7 Sekunden stehen.
+- Das Menü auf dem Handy schliesst sich auch durch Tippen ausserhalb (abgedunkelter Bereich) und mit
+  Escape. Für Screenreader ist erkennbar, ob es offen ist.
 
 ## [1.1.0] – 2026-10-15
 

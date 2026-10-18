@@ -30,4 +30,5 @@ Alle Diagramme werden ausschliesslich mit **Mermaid** direkt in Markdown gepfleg
 * [TDR-0008: Updates mit Dependabot](../tdr/TDR-0008-dependency-updates-dependabot.md)
 * [TDR-0009: Versionierung und Releases](../tdr/TDR-0009-versioning-and-releases.md)
 * [TDR-0010: Verwaltung der Kontaktanfragen](../tdr/TDR-0010-kontaktanfragen-workflow.md) (proposed)
+* [TDR-0011: Zeilenumbrüche in Inhaltsblöcken](../tdr/TDR-0011-zeilenumbrueche-inhaltsbloecke.md) (proposed)
 * Vorlagen: [ADR](../adr/template.md) · [TDR](../tdr/template.md)

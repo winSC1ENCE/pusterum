@@ -1,16 +1,21 @@
-# Tech-Debt: Datenschutz, Kontaktanfragen und Admin-Konten
+# Tech-Debt: UX, Datenschutz, Kontaktanfragen und Admin-Konten
 
 > Stand 2026-10-16, Grundlage: Analyse des Codes (v1.1.0). Entscheide: [ADR-0006](../adr/ADR-0006-datenschutz-loeschkonzept.md)
 > (Löschkonzept nach DSG/DSV) und [TDR-0010](../tdr/TDR-0010-kontaktanfragen-workflow.md)
-> (Verwaltung der Kontaktanfragen). Vorgänger: [2026-10-13](2026-10-13-techdebt-mobile-ux-und-deployment.md).
+> (Verwaltung der Kontaktanfragen), [TDR-0011](../tdr/TDR-0011-zeilenumbrueche-inhaltsbloecke.md)
+> (Zeilenumbrüche). Vorgänger: [2026-10-13](2026-10-13-techdebt-mobile-ux-und-deployment.md).
 
-Prio: **P1** rechtlich oder betrieblich nötig, **P2** Arbeitsalltag der Praxis, **P3** Verbesserung.
+Prio: **P0** Kundenerlebnis, wird zuerst umgesetzt (Entscheid 2026-10-18), **P1** rechtlich oder betrieblich nötig, **P2** Arbeitsalltag der Praxis, **P3** Verbesserung.
 Aufwand: **S** bis halber Tag, **M** 1-2 Tage, **L** mehr.
 
 ## Übersicht
 
 | # | Thema | Prio | Aufwand | Abhängig von | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
+| U1 | Zeilenumbrüche in allen Textblöcken (Live-Editor, `<br>` auf der Seite) | P0 | M | TDR-0011 | offen |
+| U2 | Telefonnummer im Admin ausblendbar, Layout für beide Varianten | P0 | S | - | offen |
+| U3 | Mobile-Menü schliesst bei Klick ausserhalb, Backdrop, Escape | P0 | S | - | offen |
+| U4 | Zitate auf dem Handy per Wischen wechseln, Pfeiltasten | P0 | S | - | offen |
 | 1 | CLI `reset-password` | P1 | S | - | offen |
 | 2 | Admin-Konto deaktivieren / löschen | P1 | S | - | offen |
 | 3 | Zähler im Dashboard falsch ab 51 Anfragen | P1 | S | - | offen |
@@ -30,6 +35,59 @@ Aufwand: **S** bis halber Tag, **M** 1-2 Tage, **L** mehr.
 | 17 | Gedankenstriche im Repo vs. METAS-Regel | P3 | S | METAS-Einstellungen | Ausnahme beantragt |
 
 ## Details
+
+### U1 · Zeilenumbrüche in Textblöcken (P0, TDR-0011)
+
+Heute lassen sich nur `textarea`-Blöcke mehrzeilig bearbeiten, und auch deren Umbrüche gehen
+öffentlich verloren (Ausgabe ohne Umbruch, nur 3 Stellen mit CSS `whitespace-pre-line`).
+Einzeilige Blöcke (`text`, z. B. Titel) werden mit einem `<input>` bearbeitet; Enter speichert dort.
+
+* Neuer Jinja-Filter `nl2br`: zuerst escapen, dann Zeilenumbruch zu `<br>`, Rückgabe als `Markup`.
+  Das Macro `editable()` nutzt ihn für `text` und `textarea`. Inhalte bleiben reiner Text mit `\n`,
+  kein HTML in der Datenbank.
+* Editor: `text` bekommt ein mitwachsendes `textarea` (1 Zeile). Enter fügt einen Umbruch ein,
+  gespeichert wird mit Alt+S oder «Speichern». `phone` und `email` bleiben einzeilig.
+* `whitespace-pre-line` in `impressum.html`, `about.html` und `footer.html` entfernen (sonst doppelte
+  Umbrüche).
+* Fehler beheben: Nach dem Speichern rendert `admin/editable_block_single.html` mit dem Typ aus der
+  Datenbank statt aus dem Template (`practice.address`, `about.quote` wechseln den Editor). Der Typ
+  wird als geprüfter Render-Hinweis mitgeschickt, wie `tag` und `rows`.
+* Vor dem Release: Blöcke, die heute schon `\n` enthalten, zeigen danach Umbrüche. Die Liste kommt aus
+  einer DB-Abfrage, die Praxisinhaberin prüft sie.
+* Tests: Escaping trotz Umbruch (`<script>` bleibt Text), Umbruch in einem Titel, Editor-Typ nach dem
+  Speichern, E2E «Umbruch speichern, `<br>` sichtbar».
+
+### U2 · Telefonnummer ausblendbar (P0)
+
+Die Telefonnummer (`practice.phone`) erscheint als Karte über der E-Mail-Karte im Kontaktbereich und
+im Impressum. Leeren blendet sie heute schon aus, löscht aber die Nummer.
+
+* Neuer Schalter `theme_configs.show_phone` (Standard: an) mit Migration, im Design-Studio unter
+  «Kontakt & Sichtbarkeit», Auto-Save wie die Regler.
+* Aus: keine Telefonkarte, keine `tel:`-Links, kein Telefon im Impressum (dort genügt die E-Mail).
+  Die Nummer bleibt gespeichert. Admins sehen die Karte gedimmt mit «öffentlich ausgeblendet».
+* Layout: Mit und ohne Telefon per Screenshot prüfen (Handy und Desktop). Ohne Telefon darf die linke
+  Spalte nicht leer wirken; falls nötig rückt die E-Mail-Karte grösser nach oben oder die Spalte nimmt
+  die Praxisadresse auf.
+* Tests: Unit (Schalter, öffentlich weg, Admin-Vermerk), E2E-Screenshots beider Varianten.
+
+### U3 · Mobile-Menü schliessen (P0)
+
+Das Menü schliesst heute nur über den Knopf oder einen Link.
+
+* Eigene Alpine-Komponente `mobileMenu` (CSP-Build): schliesst bei Klick ausserhalb
+  (`@click.outside`), mit Escape und über einen halbtransparenten Hintergrund unter dem Menü.
+* Barrierefreiheit: `aria-expanded`, `aria-controls`, Fokus zurück auf den Menüknopf.
+* Tests: E2E für Klick ausserhalb, Klick auf den Hintergrund und Escape.
+
+### U4 · Zitate wischen (P0)
+
+Die Zitate wechseln alle 7 s oder über die Punkte; auf dem Handy gibt es kein Wischen.
+
+* `quoteRotator`: Wischen nach links oder rechts (Schwelle 40 px, senkrechtes Scrollen hat Vorrang),
+  zusätzlich Pfeiltasten. Jede manuelle Aktion startet den 7-s-Takt neu.
+* `touch-action: pan-y` auf dem Zitatbereich, damit die Seite weiter normal scrollt.
+* Tests: E2E mit Touch-Emulation und Pfeiltasten.
 
 ### 1 · CLI `reset-password` (P1)
 

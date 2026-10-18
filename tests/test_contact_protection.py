@@ -191,6 +191,20 @@ async def test_lockout_notice_mail(
     assert await disabled.send_lockout_notice("a@b.ch", "1.2.3.4", until) is True
 
 
+async def test_password_reset_notice_mail(
+    smtp_capture: list[tuple[EmailMessage, dict[str, Any]]],
+) -> None:
+    service = SmtpEmailService(_smtp_settings())
+    assert await service.send_password_reset_notice("stephanie@example.ch")
+    sent, _ = smtp_capture[0]
+    assert sent["To"] == "stephanie@example.ch"
+    assert "zurückgesetzt" in sent["Subject"]
+    assert "Betreiber" in sent.get_content()
+    assert await service.send_password_reset_notice("a\nBcc: x@y.ch") is False
+    disabled = SmtpEmailService(_smtp_settings(MAIL_ENABLED=False, SMTP_STARTTLS=False))
+    assert await disabled.send_password_reset_notice("a@b.ch") is True
+
+
 async def test_mail_build_and_delivery_failures_are_contained(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

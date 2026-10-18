@@ -22,6 +22,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
   Texten (gespeichert wird mit Alt+S oder «Speichern»). Auf der Website erscheint der Umbruch genau so.
 - Design-Studio: Schalter «Kontakt: Telefonnummer anzeigen». Ausgeschaltet verschwindet die Nummer im
   Kontaktbereich und im Impressum, bleibt aber gespeichert und im Live-Editor bearbeitbar.
+- Betrieb: Befehle zum Zurücksetzen eines vergessenen Passworts (mit Sicherheitsmail an die Person) sowie
+  zum Deaktivieren, Reaktivieren und Löschen von Admin-Konten. Das letzte aktive Konto ist geschützt.
 
 ### Behoben
 

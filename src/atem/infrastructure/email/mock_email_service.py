@@ -17,6 +17,7 @@ class MockEmailService(IEmailService):
         self.sent_messages: list[ContactMessage] = []
         self.confirmations: list[str] = []
         self.lockout_notices: list[str] = []
+        self.password_reset_notices: list[str] = []
 
     async def send_contact_notification(self, message: ContactMessage) -> bool:
         """Record mock notification email (no personal data in the log)."""
@@ -36,4 +37,10 @@ class MockEmailService(IEmailService):
         """Record mock lockout notice."""
         logger.info("mock_email_lockout_notice", ip=ip_address, locked_until=locked_until)
         self.lockout_notices.append(recipient)
+        return True
+
+    async def send_password_reset_notice(self, recipient: str) -> bool:
+        """Record mock password reset notice."""
+        logger.info("mock_email_password_reset_notice")
+        self.password_reset_notices.append(recipient)
         return True

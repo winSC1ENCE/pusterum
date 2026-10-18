@@ -36,6 +36,8 @@ from atem.domain.models.contact import (
     OPEN_STATUSES,
     ContactMessage,
     ContactMessageEvent,
+    DeletionReason,
+    DeletionRecord,
     EventAction,
     MessageQuery,
     MessageStatus,
@@ -57,6 +59,9 @@ IP_RETENTION = timedelta(days=7)
 # A message still «Neu» after this time is marked as overdue in the admin list.
 OVERDUE_AFTER = timedelta(days=2)
 MAX_NOTES_LENGTH = 5000
+# Deletion log entries are needed while a backup can still hold the deleted message: restic keeps
+# monthly snapshots for 6 months (docker/backup/backup.sh), plus a margin (ADR-0006).
+DELETION_LOG_RETENTION = timedelta(days=213)
 
 
 @dataclass(frozen=True)
@@ -206,8 +211,10 @@ class ContactService:
         if message.status == MessageStatus.NEW:
             message = await self._set_status(message, MessageStatus.IN_PROGRESS, actor_id)
         events = await self._repository.list_events(message_id)
+        same_sender = await self._repository.find_by_sender_email(message.sender_email)
         return MessageDetailDTO(
             message=self._to_dto(message),
+            sender_message_count=len(same_sender),
             events=[
                 MessageEventDTO(
                     created_at=_as_utc(e.created_at),
@@ -241,11 +248,46 @@ class ContactService:
         )
         logger.info("admin_action", action="message_notes")
 
-    async def delete_message(self, message_id: UUID) -> None:
-        """Permanently delete an inquiry (data protection: right to erasure)."""
-        if not await self._repository.delete_message(message_id):
-            raise EntityNotFoundException("ContactMessage", str(message_id))
+    async def delete_message(self, message_id: UUID, actor_id: UUID | None = None) -> None:
+        """Permanently delete an inquiry and log it for re-deletion after a restore."""
+        message = await self._get(message_id)
+        await self._log_deletions([message], DeletionReason.MESSAGE, actor_id)
+        await self._repository.delete_message(message_id)
         logger.info("admin_action", action="message_deleted")
+
+    async def forget_person(self, email: str, actor_id: UUID | None = None) -> int:
+        """Erasure request (Art. 32 DSG): delete all messages of an address; return the count."""
+        messages = await self._repository.find_by_sender_email(email)
+        await self._log_deletions(messages, DeletionReason.PERSON, actor_id)
+        deleted = await self._repository.delete_messages([m.id for m in messages])
+        logger.info("admin_action", action="person_forgotten", messages=deleted)
+        return deleted
+
+    async def forget_sender_of(self, message_id: UUID, actor_id: UUID | None) -> int:
+        """Erasure request from the detail view: all messages from this sender address."""
+        return await self.forget_person((await self._get(message_id)).sender_email, actor_id)
+
+    async def reapply_deletions(self) -> int:
+        """Delete logged messages again, e.g. after a restore from backup; return the count."""
+        deleted = await self._repository.reapply_deletions()
+        if deleted:
+            logger.warning("deletions_reapplied", messages=deleted)
+        return deleted
+
+    async def _log_deletions(
+        self, messages: list[ContactMessage], reason: DeletionReason, actor_id: UUID | None
+    ) -> None:
+        await self._repository.record_deletions(
+            [
+                DeletionRecord(
+                    message_id=m.id,
+                    reason=reason,
+                    email_hash=self.hash_email(m.sender_email),
+                    actor_id=actor_id,
+                )
+                for m in messages
+            ]
+        )
 
     async def _get(self, message_id: UUID) -> ContactMessage:
         message = await self._repository.get_message_by_id(message_id)
@@ -297,6 +339,7 @@ class ContactService:
         deleted = await self._repository.delete_expired(self._retention, now)
         anonymized = await self._repository.anonymize_ips_older_than(now - IP_RETENTION)
         await self._repository.purge_expired_captcha_challenges(now)
+        await self._repository.purge_deletion_log(now - DELETION_LOG_RETENTION)
         if deleted or anonymized:
             logger.info("contact_messages_purged", deleted=deleted, ips_removed=anonymized)
         return deleted

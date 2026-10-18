@@ -19,12 +19,12 @@ Aufwand: **S** bis halber Tag, **M** 1-2 Tage, **L** mehr.
 | 1 | CLI `reset-password` | P1 | S | - | umgesetzt |
 | 2 | Admin-Konto deaktivieren / löschen | P1 | S | - | umgesetzt |
 | 3 | Zähler im Dashboard falsch ab 51 Anfragen | P1 | S | - | umgesetzt |
-| 4 | Löschen auf Anfrage + Löschprotokoll + `reapply-deletions` | P1 | M | ADR-0006 | offen |
+| 4 | Löschen auf Anfrage + Löschprotokoll + `reapply-deletions` | P1 | M | ADR-0006 | umgesetzt (TDR-0013, Migration 0021) |
 | 5 | Fristen je Status, IP-Anonymisierung, Retention-Lauf einmal pro Tag | P1 | M | 4, TDR-0010 (Status) | umgesetzt (feste Werte; im Admin einstellbar: später) |
 | 6 | Datenschutzerklärung + Hinweis im Kontaktformular | P1 | S | Entscheide 4/5/8 | umgesetzt (Migration 0020, nach EDÖB; Prüfung durch die Praxisinhaberin offen) |
 | 7 | Log-Fristen: journald 30 Tage, Proxy-Log mit gekürzter IP | P1 | S | - | umgesetzt (Server: Runbook 6.1 einmalig) |
 | 8 | Benachrichtigungsmail ohne Anfragetext | P1 | S | Entscheid Praxis | umgesetzt (Vorname, Betreff, Link) |
-| 9 | Runbook: Auskunfts-/Löschbegehren, Datenpanne, Restore + `reapply-deletions` | P1 | S | 4 | umgesetzt (Runbook 7, vorerst mit `psql`; CLI folgt mit #4) |
+| 9 | Runbook: Auskunfts-/Löschbegehren, Datenpanne, Restore + `reapply-deletions` | P1 | S | 4 | umgesetzt (Runbook 7, Restore automatisch seit #4) |
 | 10 | Auftragsbearbeitung prüfen, Kurzverzeichnis (verschlüsselt) | P1 | S | - | offen |
 | 11 | Statusmodell + Verlauf (Migration) | P2 | M | TDR-0010 | umgesetzt (Migration 0019) |
 | 12 | Liste: Filter, Suche, Sortierung, Paging | P2 | M | 11 | umgesetzt (`/admin/messages`) |
@@ -122,11 +122,12 @@ scheitert an der eindeutigen E-Mail-Adresse. Umsetzung:
 ### 4 · Löschen auf Anfrage (P1, ADR-0006)
 
 * Admin-Button «Alle Anfragen dieser Person löschen» und CLI `forget-person --email`.
-* Findet Anfragen über den HMAC-Hash der normalisierten Adresse.
-* Neue Tabelle `deletion_log` (IDs, E-Mail-HMAC, Zeitpunkt, Admin; keine Klartextdaten) mit eigener
-  Frist.
-* CLI `reapply-deletions` löscht nach einem Restore erneut alles aus dem Protokoll; `restore.sh` ruft
-  es automatisch auf.
+* Findet Anfragen über die normalisierte Adresse (Gross-/Kleinschreibung und Leerzeichen egal);
+  ältere Anfragen haben nicht alle einen Hash.
+* Neue Tabelle `deletion_log` (IDs, E-Mail-HMAC, Zeitpunkt, Admin; keine Klartextdaten), Frist
+  213 Tage.
+* CLI `reapply-deletions` löscht erneut alles aus dem Protokoll. Umgesetzt (TDR-0013): Der
+  Entrypoint ruft es bei jedem Start auf, `restore.sh` bewahrt das aktuelle Protokoll.
 
 ### 5 · Fristen und IP-Anonymisierung (P1, ADR-0006)
 

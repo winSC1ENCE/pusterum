@@ -79,6 +79,17 @@
             </label>
             <button type="submit" class="{{ button }} bg-red-600 text-white hover:bg-red-700">Löschen</button>
         </form>
+        {% if sender_message_count > 1 %}
+        <form method="POST" action="/admin/messages/{{ msg.id }}/forget" class="flex flex-wrap items-center gap-3 border-t border-red-200 pt-4" data-testid="forget-form">
+            {{ csrf }}
+            <label class="flex items-center gap-2 text-sm text-theme-text-main">
+                <input type="checkbox" name="confirm" value="yes" required>
+                Alle {{ sender_message_count }} Anfragen dieser Adresse endgültig löschen
+            </label>
+            <button type="submit" class="{{ button }} bg-red-600 text-white hover:bg-red-700">Alle löschen</button>
+        </form>
+        {% endif %}
+        <p class="text-xs text-theme-text-muted">Für ein Löschbegehren (Runbook 7.2). Gelöschte Anfragen werden nach einer Wiederherstellung aus dem Backup automatisch erneut gelöscht.</p>
     </div>
 </div>
 {% endblock %}

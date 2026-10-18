@@ -1,5 +1,6 @@
 """SQLAlchemy implementation of IContactRepository."""
 
+from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -15,6 +16,7 @@ from atem.domain.models.contact import (
     OPEN_STATUSES,
     ContactMessage,
     ContactMessageEvent,
+    DeletionRecord,
     EventAction,
     MessageQuery,
     MessageSort,
@@ -24,6 +26,7 @@ from atem.domain.models.contact import (
 from atem.infrastructure.database.models.contact import (
     ContactMessageEventModel,
     ContactMessageModel,
+    DeletionLogModel,
     UsedCaptchaChallengeModel,
 )
 from atem.infrastructure.database.models.user import UserModel
@@ -169,6 +172,43 @@ class SqlAlchemyContactRepository(
         """Delete message by ID, with its history."""
         await self._delete_events(_M.id == message_id)
         return await self._delete(message_id)
+
+    async def delete_messages(self, message_ids: Sequence[UUID]) -> int:
+        """Delete these messages with their history."""
+        if not message_ids:
+            return 0
+        await self._delete_events(_M.id.in_(message_ids))
+        result = await self._session.execute(delete(_M).where(_M.id.in_(message_ids)))
+        return int(getattr(result, "rowcount", 0) or 0)
+
+    async def record_deletions(self, records: Sequence[DeletionRecord]) -> None:
+        """Add entries to the deletion log."""
+        self._session.add_all(
+            DeletionLogModel(
+                id=r.id,
+                created_at=r.created_at,
+                message_id=r.message_id,
+                reason=r.reason,
+                email_hash=r.email_hash,
+                actor_id=r.actor_id,
+            )
+            for r in records
+        )
+        await self._session.flush()
+
+    async def reapply_deletions(self) -> int:
+        """Delete messages listed in the deletion log (usually none; after a restore some)."""
+        listed = _M.id.in_(select(DeletionLogModel.message_id))
+        await self._delete_events(listed)
+        result = await self._session.execute(delete(_M).where(listed))
+        return int(getattr(result, "rowcount", 0) or 0)
+
+    async def purge_deletion_log(self, cutoff: datetime) -> int:
+        """Remove log entries created before ``cutoff``."""
+        result = await self._session.execute(
+            delete(DeletionLogModel).where(DeletionLogModel.created_at < cutoff)
+        )
+        return int(getattr(result, "rowcount", 0) or 0)
 
     async def _delete_events(self, *where: ColumnElement[bool]) -> None:
         # Explicit, because SQLite (tests) does not enforce ON DELETE CASCADE by default.

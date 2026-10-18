@@ -1,12 +1,14 @@
 """Contact Repository Interface (ABC)."""
 
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from datetime import datetime
 from uuid import UUID
 
 from atem.domain.models.contact import (
     ContactMessage,
     ContactMessageEvent,
+    DeletionRecord,
     MessageQuery,
     MessageStatus,
     RetentionPolicy,
@@ -43,6 +45,22 @@ class IContactRepository(ABC):
     @abstractmethod
     async def delete_message(self, message_id: UUID) -> bool:
         """Delete message by ID."""
+
+    @abstractmethod
+    async def delete_messages(self, message_ids: Sequence[UUID]) -> int:
+        """Delete these messages with their history; return the count."""
+
+    @abstractmethod
+    async def record_deletions(self, records: Sequence[DeletionRecord]) -> None:
+        """Add entries to the deletion log."""
+
+    @abstractmethod
+    async def reapply_deletions(self) -> int:
+        """Delete every message listed in the deletion log again (after a restore)."""
+
+    @abstractmethod
+    async def purge_deletion_log(self, cutoff: datetime) -> int:
+        """Remove log entries created before ``cutoff`` (no backup holds those messages)."""
 
     @abstractmethod
     async def find_by_sender_email(self, email: str) -> list[ContactMessage]:

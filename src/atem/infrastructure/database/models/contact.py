@@ -7,7 +7,7 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, Text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
-from atem.domain.models.contact import EventAction, MessageStatus
+from atem.domain.models.contact import DeletionReason, EventAction, MessageStatus
 from atem.infrastructure.database.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 
@@ -52,6 +52,22 @@ class ContactMessageEventModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     old_value: Mapped[str | None] = mapped_column(String(20), nullable=True)
     new_value: Mapped[str | None] = mapped_column(String(20), nullable=True)
     # Kept when the admin account is deleted (history shows «gelöschtes Konto»).
+    actor_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+
+
+class DeletionLogModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
+    """Deleted messages (IDs and address hash only), re-applied after a restore (ADR-0006)."""
+
+    __tablename__ = "deletion_log"
+
+    # No foreign key: the message is gone; the ID must survive to delete it again after a restore.
+    message_id: Mapped[UUID] = mapped_column(nullable=False, index=True)
+    reason: Mapped[DeletionReason] = mapped_column(
+        SAEnum(DeletionReason, native_enum=False, length=20), nullable=False
+    )
+    email_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     actor_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )

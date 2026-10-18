@@ -21,6 +21,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 - Die aktuelle Version der Webseite steht unten im Footer.
 - Das Kontaktformular verlinkt auf die Datenschutzerklärung und bittet, keine ausführlichen
   Gesundheitsangaben zu schreiben.
+- Löschbegehren: In der Detailansicht lassen sich alle Anfragen einer Adresse auf einmal löschen
+  (auf dem Server: `forget-person`). Jede Löschung wird ohne Personendaten protokolliert.
 
 ### Geändert
 
@@ -35,6 +37,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ### Sicherheit
 
+- Gelöschte Anfragen bleiben gelöscht, auch nach einer Wiederherstellung aus dem Backup: Die App
+  löscht sie beim Start automatisch erneut.
 - Die Benachrichtigungsmail enthält nur noch Vorname, Betreff und einen Link ins Admin, weder
   Nachricht noch Telefonnummer noch E-Mail-Adresse. So liegen keine Gesundheitsangaben im Postfach.
 

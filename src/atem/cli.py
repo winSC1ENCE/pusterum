@@ -12,6 +12,8 @@ Usage (inside the container or locally with `uv run`)::
     python -m atem.cli seed-content
     python -m atem.cli purge-messages
     python -m atem.cli export-person --email person@example.ch > auskunft.json
+    python -m atem.cli forget-person --email person@example.ch [--yes]
+    python -m atem.cli reapply-deletions
 """
 
 import argparse
@@ -20,7 +22,8 @@ import getpass
 import json
 import os
 import sys
-from typing import TextIO, cast
+from collections.abc import Callable, Coroutine
+from typing import Any, TextIO, cast
 
 from atem.domain.exceptions import EntityNotFoundException, ValidationException
 from atem.infrastructure.config.settings import get_settings
@@ -152,6 +155,41 @@ async def _export_person(email: str) -> None:
         await engine.dispose()
 
 
+async def _forget_person(email: str) -> None:
+    settings = get_settings()
+    engine = create_engine()
+    try:
+        async with create_session_factory(engine)() as session:
+            service = build_contact_service(
+                build_contact_repository(session, settings), MockEmailService(), settings
+            )
+            deleted = await service.forget_person(email)
+            await session.commit()
+        print(f"{deleted} Anfragen gelöscht und im Löschprotokoll vermerkt.")
+    finally:
+        await engine.dispose()
+
+
+async def _reapply_deletions() -> None:
+    settings = get_settings()
+    engine = create_engine()
+    try:
+        async with create_session_factory(engine)() as session:
+            service = build_contact_service(
+                build_contact_repository(session, settings), MockEmailService(), settings
+            )
+            deleted = await service.reapply_deletions()
+            await session.commit()
+        print(f"{deleted} Anfragen aus dem Löschprotokoll erneut gelöscht.")
+    finally:
+        await engine.dispose()
+
+
+def _confirm_forget(email: str) -> bool:
+    answer = input(f"Alle Anfragen von «{email}» endgültig löschen? Tippen Sie «ja»: ")
+    return answer.strip().lower() == "ja"
+
+
 async def _seed_content() -> None:
     engine = create_engine()
     try:
@@ -200,6 +238,14 @@ def build_parser() -> argparse.ArgumentParser:
         "export-person", help="Alle Anfragen einer Person als JSON (Auskunftsbegehren)"
     )
     export.add_argument("--email", required=True)
+    forget = sub.add_parser(
+        "forget-person", help="Alle Anfragen einer Person löschen (Löschbegehren, protokolliert)"
+    )
+    forget.add_argument("--email", required=True)
+    forget.add_argument("--yes", action="store_true", help="ohne Rückfrage löschen")
+    sub.add_parser(
+        "reapply-deletions", help="Protokollierte Löschungen wiederholen (nach jedem Restore)"
+    )
     return parser
 
 
@@ -216,33 +262,43 @@ class _Stderr:
         sys.stderr.flush()
 
 
+def _coroutine(args: argparse.Namespace) -> Coroutine[Any, Any, None]:
+    """The async task behind a sub-command."""
+    commands: dict[str, Callable[[], Coroutine[Any, Any, None]]] = {
+        "create-admin": lambda: _create_admin(args.email),
+        "reset-2fa": lambda: _reset_2fa(args.email),
+        "unlock": lambda: _unlock(args.email),
+        "reset-password": lambda: _reset_password(args.email, require_change=args.require_change),
+        "deactivate-admin": lambda: _set_active(args.email, active=False),
+        "activate-admin": lambda: _set_active(args.email, active=True),
+        "delete-admin": lambda: _delete_admin(args.email),
+        "purge-messages": _purge,
+        "export-person": lambda: _export_person(args.email),
+        "forget-person": lambda: _forget_person(args.email),
+        "reapply-deletions": _reapply_deletions,
+        "seed-content": _seed_content,
+    }
+    return commands[args.command]()
+
+
+# Destructive commands ask first unless --yes is given.
+CONFIRMATIONS: dict[str, Callable[[str], bool]] = {
+    "delete-admin": _confirm_delete,
+    "forget-person": _confirm_forget,
+}
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point; returns the process exit code."""
     args = build_parser().parse_args(argv)
     settings = get_settings()  # fail fast on insecure configuration
     setup_logging(is_dev=settings.is_dev, stream=cast("TextIO", _Stderr()))
+    confirm = CONFIRMATIONS.get(args.command)
+    if confirm and not args.yes and not confirm(args.email):
+        print("Abgebrochen, nichts gelöscht.")
+        return 1
     try:
-        if args.command == "create-admin":
-            asyncio.run(_create_admin(args.email))
-        elif args.command == "reset-2fa":
-            asyncio.run(_reset_2fa(args.email))
-        elif args.command == "unlock":
-            asyncio.run(_unlock(args.email))
-        elif args.command == "reset-password":
-            asyncio.run(_reset_password(args.email, require_change=args.require_change))
-        elif args.command in ("deactivate-admin", "activate-admin"):
-            asyncio.run(_set_active(args.email, active=args.command == "activate-admin"))
-        elif args.command == "delete-admin":
-            if not args.yes and not _confirm_delete(args.email):
-                print("Abgebrochen, nichts gelöscht.")
-                return 1
-            asyncio.run(_delete_admin(args.email))
-        elif args.command == "purge-messages":
-            asyncio.run(_purge())
-        elif args.command == "export-person":
-            asyncio.run(_export_person(args.email))
-        elif args.command == "seed-content":
-            asyncio.run(_seed_content())
+        asyncio.run(_coroutine(args))
     except (ValidationException, EntityNotFoundException) as exc:
         print(f"Fehler: {exc.message}", file=sys.stderr)
         return 1

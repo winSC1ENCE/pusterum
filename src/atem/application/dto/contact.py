@@ -66,6 +66,7 @@ class MessageDetailDTO(BaseModel):
 
     message: ContactMessageResponseDTO
     events: list[MessageEventDTO]
+    sender_message_count: int = 1  # messages from the same address, this one included
 
 
 class MessagePageDTO(BaseModel):

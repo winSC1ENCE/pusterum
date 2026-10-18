@@ -149,7 +149,7 @@ Version nur in `pyproject.toml` (`[project].version`, SemVer). Changelog: `CHANG
   - PATCH bei Fixes oder Updates.
 
   Danach `uv lock` ausführen, `## [Unreleased]` in `## [x.y.z] - YYYY-MM-DD` umbenennen und ein
-  leeres `## [Unreleased]` darüber anlegen. Am besten auf einem Branch `release/x.y.z` von
+  leeres `## [Unreleased]` darüber anlegen. Am besten auf einem Branch `chore/release-x.y.z` von
   `develop`, PR nach `develop`, danach `develop` → `main`.
 - Die CI erzwingt das: `tests/test_versioning.py` prüft pyproject, `uv.lock` und Changelog. PRs
   nach `main` scheitern, wenn `v<version>` schon existiert.

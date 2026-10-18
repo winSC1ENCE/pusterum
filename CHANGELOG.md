@@ -12,6 +12,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-18
+
 ### Hinzugefügt
 
 - Neue Seite «Kontaktanfragen» im Admin: Reiter nach Status, Suche nach Name, E-Mail und Betreff,

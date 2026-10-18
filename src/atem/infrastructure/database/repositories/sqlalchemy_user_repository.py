@@ -6,7 +6,7 @@ from uuid import UUID
 from sqlalchemy import delete, func, select, update
 
 from atem.domain.interfaces.user_repository import IUserRepository
-from atem.domain.models.user import User
+from atem.domain.models.user import User, UserRole
 from atem.infrastructure.database.models.user import (
     LoginAttemptModel,
     RecoveryCodeModel,
@@ -37,6 +37,26 @@ class SqlAlchemyUserRepository(SqlAlchemyRepository[UserModel, User], IUserRepos
     async def update_user(self, user: User) -> User:
         """Persist all mutable fields of an existing user."""
         return await self._save(user)
+
+    async def delete_user(self, user_id: UUID) -> bool:
+        """Delete a user; recovery codes go first (no reliance on FK cascades in SQLite)."""
+        await self._session.execute(
+            delete(RecoveryCodeModel).where(RecoveryCodeModel.user_id == user_id)
+        )
+        return await self._delete(user_id)
+
+    async def list_users(self) -> list[User]:
+        """All accounts, ordered by e-mail address."""
+        return await self._list(order_by=UserModel.email)
+
+    async def count_active_admins(self) -> int:
+        """Number of active administrator accounts."""
+        count = await self._session.scalar(
+            select(func.count())
+            .select_from(UserModel)
+            .where(UserModel.is_active.is_(True), UserModel.role == UserRole.ADMIN)
+        )
+        return int(count or 0)
 
     async def replace_recovery_codes(self, user_id: UUID, code_hashes: list[str]) -> None:
         """Delete all recovery codes of the user and store the given hashes."""

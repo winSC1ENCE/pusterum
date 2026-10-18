@@ -39,6 +39,8 @@ class AdminDashboardController(Controller):
             "admin/dashboard.html",
             services=await offering_service.list_services(),
             messages=await contact_service.list_messages(limit=50),
+            # Counted in the database: the table shows only the newest 50
+            message_counts=await contact_service.message_counts(),
         )
 
     @post("/messages/{message_id:uuid}/status")

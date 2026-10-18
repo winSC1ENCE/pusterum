@@ -17,6 +17,8 @@ from atem.presentation.security.admin_auth import require_admin
 ALLOWED_TAGS = frozenset({"p", "span", "div", "h1", "h2", "h3", "h4", "blockquote", "figcaption"})
 CSS_CLASS_RE = re.compile(r"^[A-Za-z0-9_:/\-\[\]\.%!#() ]{0,600}$")
 MAX_ROWS = 20
+# Editor type chosen by the page template (it may differ from the seeded block type)
+ALLOWED_FIELD_TYPES = frozenset({"text", "textarea", "rich_text", "image", "phone", "email"})
 MAX_ALT_LENGTH = 200
 
 
@@ -25,6 +27,7 @@ def render_hints(data: dict[str, Any], key: str) -> dict[str, Any]:
     tag = str(data.get("tag") or "p")
     css_class = str(data.get("css_class") or "")
     img_class = str(data.get("img_class") or "")
+    field_type = str(data.get("field_type") or "")
     try:
         rows = int(str(data.get("rows", 3)))
     except ValueError:
@@ -35,6 +38,7 @@ def render_hints(data: dict[str, Any], key: str) -> dict[str, Any]:
         "img_class": img_class if CSS_CLASS_RE.fullmatch(img_class) else "",
         "img_alt": str(data.get("img_alt") or f"{key} Bild")[:MAX_ALT_LENGTH],
         "rows": min(max(rows, 1), MAX_ROWS),
+        "field_type": field_type if field_type in ALLOWED_FIELD_TYPES else None,
     }
 
 

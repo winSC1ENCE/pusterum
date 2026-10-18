@@ -31,7 +31,7 @@ def test_mobile_menu_jump_lands_below_header(page: Page, server_url: str) -> Non
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto(server_url + "/")
     page.get_by_role("button", name="Menü öffnen").click()
-    page.get_by_role("link", name="Angebote & Tarife").last.click()
+    page.locator("#mobile-menu").get_by_role("link", name="Angebote & Tarife").click()
     page.wait_for_function(ANCHOR_BELOW_HEADER, arg="angebote", timeout=5000)
     assert_clean(page)
 
@@ -144,4 +144,75 @@ def test_header_is_frosted_glass(page: Page, server_url: str) -> None:
     # Colour depends on the active palette (other tests switch presets) – the alpha is what counts
     expect(header).to_have_css("background-color", re.compile(r"rgba\(\d+, \d+, \d+, 0\.6\)"))
     assert "blur" in header.evaluate("el => getComputedStyle(el).backdropFilter")
+    assert_clean(page)
+
+
+SWIPE = """
+(el, [fromX, toX, y]) => {
+  const touch = (x) => new Touch({ identifier: 1, target: el, clientX: x, clientY: y });
+  el.dispatchEvent(new TouchEvent("touchstart", { changedTouches: [touch(fromX)], bubbles: true }));
+  el.dispatchEvent(new TouchEvent("touchend", { changedTouches: [touch(toX)], bubbles: true }));
+}
+"""
+
+
+def test_quotes_change_by_swipe_and_arrow_keys(page: Page, server_url: str) -> None:
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto(server_url + "/")
+    rotator = page.locator("#zitate [x-data='quoteRotator']")
+    figures = page.locator("#zitate figure")
+    rotator.scroll_into_view_if_needed()
+    expect(figures.nth(0)).to_be_visible()
+
+    rotator.evaluate(SWIPE, [300, 120, 400])
+    expect(figures.nth(1)).to_be_visible()
+    expect(figures.nth(0)).to_be_hidden()
+
+    rotator.evaluate(SWIPE, [120, 300, 400])
+    expect(figures.nth(0)).to_be_visible()
+
+    # A short or mostly vertical gesture keeps the quote (scrolling must not switch)
+    rotator.evaluate(SWIPE, [200, 180, 400])
+    expect(figures.nth(0)).to_be_visible()
+
+    rotator.focus()
+    page.keyboard.press("ArrowRight")
+    expect(figures.nth(1)).to_be_visible()
+    page.keyboard.press("ArrowLeft")
+    expect(figures.nth(0)).to_be_visible()
+    assert_clean(page)
+
+
+def test_mobile_menu_closes_on_backdrop_outside_click_and_escape(
+    page: Page, server_url: str
+) -> None:
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto(server_url + "/")
+    toggle = page.get_by_role("button", name="Menü öffnen")
+    menu = page.locator("#mobile-menu")
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+
+    # Tap on the dimmed area below the panel
+    toggle.click()
+    expect(menu).to_be_visible()
+    expect(toggle).to_have_attribute("aria-expanded", "true")
+    page.mouse.click(195, 820)
+    expect(menu).to_be_hidden()
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+
+    # Escape closes and returns focus to the menu button
+    toggle.click()
+    expect(menu).to_be_visible()
+    page.keyboard.press("Escape")
+    expect(menu).to_be_hidden()
+    expect(toggle).to_be_focused()
+
+    # Click outside the header (backdrop hidden while closed): open, then click in the header bar
+    # outside the panel and the button - the brand area is a link, so use the empty spot next to it
+    toggle.click()
+    expect(menu).to_be_visible()
+    page.locator("header").first.click(position={"x": 300, "y": 10})
+    expect(menu).to_be_visible()  # inside the header: stays open
+    page.locator("#mobile-menu").click(position={"x": 10, "y": 5})
+    expect(menu).to_be_visible()  # inside the panel: stays open
     assert_clean(page)

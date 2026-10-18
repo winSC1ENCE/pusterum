@@ -35,6 +35,13 @@ LOCKOUT_BODY = (
     "Waren Sie das nicht, ist keine Aktion nötig: Ohne Ihr Passwort und Ihren\n"
     "Zwei-Faktor-Code ist keine Anmeldung möglich.\n"
 )
+RESET_NOTICE_SUBJECT = "PUSTERUM: Ihr Passwort wurde zurückgesetzt"
+RESET_NOTICE_BODY = (
+    "Guten Tag\n\n"
+    "Das Passwort Ihres Administrationskontos auf www.pusterum.be wurde soeben vom Betreiber\n"
+    "zurückgesetzt. Alle bisherigen Anmeldungen sind beendet.\n\n"
+    "Haben Sie das nicht veranlasst, melden Sie sich bitte umgehend beim Betreiber.\n"
+)
 LOCAL_TIMEZONE = ZoneInfo("Europe/Zurich")
 
 
@@ -100,6 +107,21 @@ class SmtpEmailService(IEmailService):
             logger.warning("email_build_rejected", kind="lockout_notice")
             return False
         return await self._send(msg, "lockout_notice")
+
+    async def send_password_reset_notice(self, recipient: str) -> bool:
+        """Security notice to the account owner after an operator password reset."""
+        if not self._settings.MAIL_ENABLED:
+            return True
+        try:
+            msg = EmailMessage()
+            msg["From"] = formataddr(("PUSTERUM Website", self._settings.MAIL_FROM))
+            msg["To"] = recipient
+            msg["Subject"] = RESET_NOTICE_SUBJECT
+            msg.set_content(RESET_NOTICE_BODY)
+        except ValueError:
+            logger.warning("email_build_rejected", kind="password_reset_notice")
+            return False
+        return await self._send(msg, "password_reset_notice")
 
     async def _send(self, msg: EmailMessage, kind: str) -> bool:
         settings = self._settings

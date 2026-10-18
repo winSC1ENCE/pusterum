@@ -28,6 +28,18 @@ class IUserRepository(ABC):
 
     # --- Recovery codes (second factor fallback) ---------------------------------
     @abstractmethod
+    async def delete_user(self, user_id: UUID) -> bool:
+        """Delete a user and their recovery codes; True if a row was deleted."""
+
+    @abstractmethod
+    async def list_users(self) -> list[User]:
+        """All accounts, ordered by e-mail address."""
+
+    @abstractmethod
+    async def count_active_admins(self) -> int:
+        """Number of active administrator accounts."""
+
+    @abstractmethod
     async def replace_recovery_codes(self, user_id: UUID, code_hashes: list[str]) -> None:
         """Delete all recovery codes of the user and store the given hashes."""
 

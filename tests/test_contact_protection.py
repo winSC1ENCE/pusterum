@@ -9,6 +9,8 @@ import pytest
 from litestar import Litestar
 from litestar.testing import AsyncTestClient
 from pydantic import ValidationError
+from sqlalchemy import select, text, update
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from atem.application.dto.contact import CreateContactMessageDTO
 from atem.application.services.contact_service import CAPTCHA_REQUIRED, ContactService
@@ -20,11 +22,17 @@ from atem.domain.exceptions import (
 )
 from atem.domain.models.contact import ContactMessage, MessageStatus
 from atem.infrastructure.captcha.altcha_captcha import AltchaCaptcha
-from atem.infrastructure.config.settings import Settings
+from atem.infrastructure.config.settings import Settings, get_settings
+from atem.infrastructure.database.models.contact import ContactMessageModel
 from atem.infrastructure.email.mock_email_service import MockEmailService
 from atem.infrastructure.email.smtp_email_service import CONFIRMATION_BODY, SmtpEmailService
+from atem.presentation.bootstrap import (
+    RETENTION_LOCK_KEY,
+    build_contact_repository,
+    purge_expired_data,
+)
 from atem.presentation.security.form_token import issue_form_token, verify_form_token
-from tests.conftest import contact_form_payload, solve_altcha
+from tests.conftest import TEST_DATABASE_URL, contact_form_payload, solve_altcha
 
 ADMIN = {"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"}
 
@@ -191,6 +199,20 @@ async def test_lockout_notice_mail(
     assert await disabled.send_lockout_notice("a@b.ch", "1.2.3.4", until) is True
 
 
+async def test_password_reset_notice_mail(
+    smtp_capture: list[tuple[EmailMessage, dict[str, Any]]],
+) -> None:
+    service = SmtpEmailService(_smtp_settings())
+    assert await service.send_password_reset_notice("stephanie@example.ch")
+    sent, _ = smtp_capture[0]
+    assert sent["To"] == "stephanie@example.ch"
+    assert "zurückgesetzt" in sent["Subject"]
+    assert "Betreiber" in sent.get_content()
+    assert await service.send_password_reset_notice("a\nBcc: x@y.ch") is False
+    disabled = SmtpEmailService(_smtp_settings(MAIL_ENABLED=False, SMTP_STARTTLS=False))
+    assert await disabled.send_password_reset_notice("a@b.ch") is True
+
+
 async def test_mail_build_and_delivery_failures_are_contained(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -286,3 +308,64 @@ async def test_admin_can_change_status_and_delete_messages(
     assert deleted.status_code == 200
     again = await app_client.post(f"/admin/messages/{message_id}/delete")
     assert again.status_code == 404
+
+
+async def test_dashboard_counts_all_messages_not_just_the_page(
+    app_client: AsyncTestClient[Litestar], async_engine: AsyncEngine
+) -> None:
+    """Tech-debt #3: totals come from COUNT queries, the table still shows the newest 50."""
+    async with async_sessionmaker(async_engine, expire_on_commit=False)() as session:
+        repository = build_contact_repository(session, get_settings())
+        for i in range(55):
+            await repository.create_message(
+                ContactMessage(
+                    sender_name=f"Person {i}",
+                    sender_email=f"p{i}@example.ch",
+                    subject="Anfrage",
+                    message="Text",
+                    status=MessageStatus.NEW if i < 52 else MessageStatus.REPLIED,
+                )
+            )
+        await session.commit()
+        per_status = await repository.count_by_status()
+    assert per_status == {MessageStatus.NEW: 52, MessageStatus.REPLIED: 3}
+
+    await app_client.post(
+        "/admin/login",
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
+    )
+    page = (await app_client.get("/admin")).text
+    assert ">55</div>" in page and ">52</div>" in page
+    assert "neueste 50 von 55" in page
+
+
+async def test_sender_ips_are_removed_after_seven_days(
+    contact_service: ContactService, db_session: AsyncSession
+) -> None:
+    """ADR-0006: IPs only serve the per-IP limits (24 h) and are dropped after 7 days."""
+    old = await _submit(contact_service, ip="198.51.100.10", email="alt@example.ch")
+    new = await _submit(contact_service, ip="198.51.100.11", email="neu@example.ch")
+    await db_session.execute(
+        update(ContactMessageModel)
+        .where(ContactMessageModel.id == old.id)
+        .values(created_at=datetime.now(UTC) - timedelta(days=8))
+    )
+    assert await contact_service.purge_expired(timedelta(days=365)) == 0  # nothing deleted
+    rows = await db_session.execute(select(ContactMessageModel.id, ContactMessageModel.ip_address))
+    ips = dict(rows.all())
+    assert ips == {old.id: None, new.id: "198.51.100.11"}
+
+
+@pytest.mark.skipif(
+    not TEST_DATABASE_URL.startswith("postgresql"), reason="advisory locks need PostgreSQL"
+)
+async def test_retention_job_skips_while_another_worker_holds_the_lock(
+    async_engine: AsyncEngine,
+) -> None:
+    factory = async_sessionmaker(async_engine, expire_on_commit=False)
+    async with factory() as holder:
+        await holder.execute(
+            text("SELECT pg_advisory_xact_lock(:key)"), {"key": RETENTION_LOCK_KEY}
+        )
+        assert await purge_expired_data(factory, get_settings()) == 0
+        await holder.rollback()

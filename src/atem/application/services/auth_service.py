@@ -21,6 +21,7 @@ import structlog
 from pydantic import ValidationError
 
 from atem.application.dto.auth import (
+    AccountOverviewDTO,
     CreateAdminDTO,
     LoginRequestDTO,
     LoginResultDTO,
@@ -240,6 +241,23 @@ class AuthService:
         logger.info("admin_action", action="recovery_codes_regenerated", user_id=str(user_id))
         return codes
 
+    async def list_accounts(self) -> list[AccountOverviewDTO]:
+        """All admin accounts with their security state (overview page, read-only)."""
+        now = datetime.now(UTC)
+        return [
+            AccountOverviewDTO(
+                email=user.email,
+                is_active=user.is_active,
+                totp_enabled=user.totp_enabled,
+                recovery_codes_left=await self.count_recovery_codes(user.id),
+                must_change_password=user.must_change_password,
+                locked=user.is_locked(now),
+                last_login_at=user.last_login_at,
+                password_changed_at=user.password_changed_at,
+            )
+            for user in await self._user_repository.list_users()
+        ]
+
     async def count_recovery_codes(self, user_id: UUID) -> int:
         """Return the number of unused recovery codes."""
         return len(await self._user_repository.list_unused_recovery_codes(user_id))
@@ -262,6 +280,65 @@ class AuthService:
         user.locked_until = None
         await self._user_repository.update_user(user)
         logger.info("admin_action", action="unlocked_by_operator", user_id=str(user.id))
+
+    async def reset_password(
+        self, email: str, new_password: str, *, require_change: bool = False
+    ) -> None:
+        """Operator recovery (CLI): set a new password for a user who forgot theirs.
+
+        Ends all sessions and lifts a lockout; 2FA stays active. The owner gets a security
+        notice. With ``require_change`` the owner must choose a new password at next login.
+        """
+        user = await self._require_user_by_email(email)
+        self._validate_new_password(new_password)
+        user.password_hash = self._password_hasher.hash_password(new_password)
+        user.password_changed_at = _now()
+        user.must_change_password = require_change
+        user.failed_login_count = 0
+        user.locked_until = None
+        user.revoke_sessions()
+        await self._user_repository.update_user(user)
+        logger.info("admin_action", action="password_reset_by_operator", user_id=str(user.id))
+        if self._email is not None:
+            try:
+                await self._email.send_password_reset_notice(user.email)
+            except Exception:
+                logger.exception("password_reset_notice_failed", user_id=str(user.id))
+
+    async def set_active(self, email: str, *, active: bool) -> None:
+        """Operator (CLI): deactivate an account (ends all sessions) or reactivate it.
+
+        The last active administrator cannot be deactivated.
+        """
+        user = await self._require_user_by_email(email)
+        if not active and user.is_active:
+            await self._ensure_not_last_active_admin()
+        user.is_active = active
+        user.revoke_sessions()
+        await self._user_repository.update_user(user)
+        logger.info(
+            "admin_action",
+            action="account_activated" if active else "account_deactivated",
+            user_id=str(user.id),
+        )
+
+    async def delete_admin(self, email: str) -> None:
+        """Operator (CLI): delete an account with its recovery codes.
+
+        Content versions keep the free-text author name. The last active administrator
+        cannot be deleted.
+        """
+        user = await self._require_user_by_email(email)
+        if user.is_active:
+            await self._ensure_not_last_active_admin()
+        await self._user_repository.delete_user(user.id)
+        logger.info("admin_action", action="account_deleted", user_id=str(user.id))
+
+    async def _ensure_not_last_active_admin(self) -> None:
+        if await self._user_repository.count_active_admins() <= 1:
+            raise ValidationException(
+                "Das letzte aktive Admin-Konto kann nicht deaktiviert oder gelöscht werden."
+            )
 
     # ---------------------------------------------------------------- accounts ---
     async def create_admin(self, email: str, password: str) -> UserResponseDTO:

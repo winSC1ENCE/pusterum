@@ -61,8 +61,22 @@ pusterum.be {
 
 	reverse_proxy app:8000
 
+	# Access log without full client IPs (ADR-0006): IPv4 /24, IPv6 /48. Abuse protection uses the
+	# app's own logs (fail2ban) and Caddy's rate limits, not this log.
 	log {
 		output stdout
-		format json
+		format filter {
+			wrap json
+			fields {
+				request>remote_ip ip_mask {
+					ipv4 24
+					ipv6 48
+				}
+				request>client_ip ip_mask {
+					ipv4 24
+					ipv6 48
+				}
+			}
+		}
 	}
 }

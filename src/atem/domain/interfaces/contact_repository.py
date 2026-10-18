@@ -37,6 +37,14 @@ class IContactRepository(ABC):
         """Delete message by ID."""
 
     @abstractmethod
+    async def find_by_sender_email(self, email: str) -> list[ContactMessage]:
+        """All messages from an address (case-insensitive), oldest first."""
+
+    @abstractmethod
+    async def count_by_status(self) -> dict[MessageStatus, int]:
+        """Number of messages per status (statuses without messages may be missing)."""
+
+    @abstractmethod
     async def count_messages_from_ip(self, ip_address: str, since: datetime) -> int:
         """Count messages sent from an IP address since the given time (rate limiting)."""
 
@@ -47,6 +55,10 @@ class IContactRepository(ABC):
     @abstractmethod
     async def delete_messages_older_than(self, cutoff: datetime) -> int:
         """Delete messages created before ``cutoff`` (retention); return the count."""
+
+    @abstractmethod
+    async def anonymize_ips_older_than(self, cutoff: datetime) -> int:
+        """Remove the sender IP of messages created before ``cutoff``; return the count."""
 
     @abstractmethod
     async def register_captcha_challenge(self, challenge_id: str, expires_at: datetime) -> bool:

@@ -26,6 +26,9 @@
                 <a href="/admin/security" class="px-4 py-2.5 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted transition-colors">
                     Sicherheit &amp; 2FA
                 </a>
+                <a href="/admin/accounts" class="px-4 py-2.5 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted transition-colors">
+                    Admin-Konten
+                </a>
                 <a href="/" target="_blank" class="px-4 py-2.5 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted transition-colors">
                     Webseite anzeigen ↗
                 </a>
@@ -62,7 +65,7 @@
             </div>
             <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
                 <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Eingegangene Anfragen</span>
-                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ messages|length }}</div>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ message_counts.total }}</div>
             </div>
             <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
                 <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Aktive Angebote</span>
@@ -70,7 +73,7 @@
             </div>
             <div class="bg-theme-card p-6 rounded-3xl border border-theme shadow-sm">
                 <span class="text-xs font-medium text-theme-text-muted uppercase tracking-wider">Neue Anfragen</span>
-                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ messages|selectattr("status.value", "equalto", "NEW")|list|length }}</div>
+                <div class="text-3xl font-heading font-bold text-theme-text-main mt-2">{{ message_counts.NEW }}</div>
             </div>
         </div>
 
@@ -78,7 +81,7 @@
         <div class="bg-theme-card rounded-3xl border border-theme shadow-sm overflow-hidden mb-12">
             <div class="p-6 border-b border-theme flex justify-between items-center bg-theme-muted/50">
                 <h2 class="font-heading text-xl text-theme-text-main font-bold">Neueste Kontaktanfragen</h2>
-                <span class="text-xs text-theme-text-muted font-medium">{{ messages|length }} Einträge</span>
+                <span class="text-xs text-theme-text-muted font-medium">{% if message_counts.total > messages|length %}neueste {{ messages|length }} von {{ message_counts.total }}{% else %}{{ messages|length }} Einträge{% endif %}</span>
             </div>
 
             <div class="overflow-x-auto">

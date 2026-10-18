@@ -12,6 +12,38 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-18
+
+### Hinzugefügt
+
+- Zitate lassen sich auf dem Handy durch Wischen wechseln, am Computer mit den Pfeiltasten. Nach einem
+  manuellen Wechsel bleibt das Zitat die vollen 7 Sekunden stehen.
+- Das Menü auf dem Handy schliesst sich auch durch Tippen ausserhalb (abgedunkelter Bereich) und mit
+  Escape. Für Screenreader ist erkennbar, ob es offen ist.
+- Zeilenumbrüche in allen Texten: Im Live-Editor macht Enter eine neue Zeile, auch in Titeln und kurzen
+  Texten (gespeichert wird mit Alt+S oder «Speichern»). Auf der Website erscheint der Umbruch genau so.
+- Design-Studio: Schalter «Kontakt: Telefonnummer anzeigen». Ausgeschaltet verschwindet die Nummer im
+  Kontaktbereich und im Impressum, bleibt aber gespeichert und im Live-Editor bearbeitbar.
+- Betrieb: Befehle zum Zurücksetzen eines vergessenen Passworts (mit Sicherheitsmail an die Person) sowie
+  zum Deaktivieren, Reaktivieren und Löschen von Admin-Konten. Das letzte aktive Konto ist geschützt.
+- Admin: Seite «Admin-Konten» zeigt alle Konten mit Status, 2FA, Wiederherstellungscodes, letzter
+  Anmeldung und letzter Passwortänderung (nur Ansicht).
+
+### Sicherheit
+
+- Datenschutz: Das Zugriffslog speichert IP-Adressen nur noch gekürzt, Server-Logs werden nach 30 Tagen
+  gelöscht.
+- Datenschutz: Die IP-Adresse einer Kontaktanfrage wird nach 7 Tagen entfernt (sie dient nur dem Schutz vor
+  Massenanfragen).
+- Datenschutz: Nachrichtentext, Telefonnummer und Notizen von Kontaktanfragen werden verschlüsselt
+  gespeichert, auch bestehende. Für Auskunftsbegehren gibt es den Befehl `export-person`.
+
+### Behoben
+
+- Live-Editor: Nach dem Speichern wechselte bei einigen Feldern (z. B. Adresse) die Eingabeart.
+- Dashboard: «Eingegangene» und «Neue Anfragen» zählen jetzt alle Anfragen, nicht nur die 50 angezeigten.
+- Dashboard: Der Eingang einer Anfrage wird in Schweizer Zeit angezeigt (bisher UTC).
+
 ## [1.1.0] – 2026-10-15
 
 Die Gestaltung wirkt jetzt vollständig wie vorgesehen, und die Kopfzeile lässt sich im Design-Studio

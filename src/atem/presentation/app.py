@@ -38,9 +38,6 @@ from atem.domain.interfaces.password_hasher import IPasswordHasher
 from atem.domain.interfaces.theme_repository import IThemeRepository
 from atem.domain.interfaces.user_repository import IUserRepository
 from atem.infrastructure.config.settings import Settings, get_settings
-from atem.infrastructure.database.repositories.sqlalchemy_contact_repository import (
-    SqlAlchemyContactRepository,
-)
 from atem.infrastructure.database.repositories.sqlalchemy_content_repository import (
     SqlAlchemyContentRepository,
 )
@@ -61,6 +58,7 @@ from atem.infrastructure.media.pillow_image_sanitizer import PillowImageSanitize
 from atem.infrastructure.security.argon2_password_hasher import Argon2PasswordHasher
 from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
 from atem.presentation.bootstrap import (
+    build_contact_repository,
     build_contact_service,
     build_secret_cipher,
     ensure_dev_admin,
@@ -116,10 +114,10 @@ async def provide_offering_repository(
 
 
 async def provide_contact_repository(
-    db_session: NamedDependency[AsyncSession],
+    db_session: NamedDependency[AsyncSession], settings: NamedDependency[Settings]
 ) -> IContactRepository:
-    """Provide contact repository implementing IContactRepository ABC."""
-    return SqlAlchemyContactRepository(session=db_session)
+    """Provide contact repository implementing IContactRepository ABC (free text encrypted)."""
+    return build_contact_repository(db_session, settings)
 
 
 async def provide_user_repository(db_session: NamedDependency[AsyncSession]) -> IUserRepository:
@@ -204,7 +202,7 @@ RETENTION_FIRST_RUN_DELAY_SECONDS = 60
 async def _retention_loop(
     session_factory: async_sessionmaker[AsyncSession], settings: Settings
 ) -> None:
-    """Daily data-retention job (idempotent – safe to run in every worker)."""
+    """Daily data-retention job; workers do not run it concurrently (advisory lock)."""
     await asyncio.sleep(RETENTION_FIRST_RUN_DELAY_SECONDS)
     while True:
         try:

@@ -38,6 +38,10 @@ RATE_LIMITED = (
 )
 
 
+# Longer than the widest per-IP limit window (24 h) so the limits keep working (ADR-0006)
+IP_RETENTION = timedelta(days=7)
+
+
 @dataclass(frozen=True)
 class ContactLimits:
     """Abuse-protection thresholds."""
@@ -144,6 +148,32 @@ class ContactService:
         messages = await self._repository.get_messages(status=status, limit=limit, offset=offset)
         return [ContactMessageResponseDTO.model_validate(m) for m in messages]
 
+    async def export_person(self, email: str) -> list[dict[str, object]]:
+        """All stored data of one sender for an access request (Art. 25 DSG, runbook 7.1)."""
+        messages = await self._repository.find_by_sender_email(email)
+        logger.info("admin_action", action="person_exported", messages=len(messages))
+        return [
+            {
+                "eingang": m.created_at.isoformat() if m.created_at else None,
+                "name": m.sender_name,
+                "email": m.sender_email,
+                "telefon": m.sender_phone,
+                "betreff": m.subject,
+                "nachricht": m.message,
+                "status": m.status.value,
+                "notizen": m.notes,
+                "ip_adresse": m.ip_address,
+            }
+            for m in messages
+        ]
+
+    async def message_counts(self) -> dict[str, int]:
+        """Totals for the dashboard: ``total`` and one entry per status value (e.g. ``NEW``)."""
+        per_status = await self._repository.count_by_status()
+        counts = {status.value: per_status.get(status, 0) for status in MessageStatus}
+        counts["total"] = sum(per_status.values())
+        return counts
+
     async def update_message_status(
         self, message_id: UUID, status: MessageStatus
     ) -> ContactMessageResponseDTO:
@@ -163,10 +193,15 @@ class ContactService:
         logger.info("admin_action", action="message_deleted")
 
     async def purge_expired(self, retention: timedelta) -> int:
-        """Delete messages older than the retention period and expired captcha records."""
+        """Delete messages older than the retention period and expired captcha records.
+
+        Sender IPs are only needed for the per-IP limits (at most 24 h); they are removed after
+        ``IP_RETENTION`` (ADR-0006).
+        """
         now = datetime.now(UTC)
         deleted = await self._repository.delete_messages_older_than(now - retention)
+        anonymized = await self._repository.anonymize_ips_older_than(now - IP_RETENTION)
         await self._repository.purge_expired_captcha_challenges(now)
-        if deleted:
-            logger.info("contact_messages_purged", deleted=deleted)
+        if deleted or anonymized:
+            logger.info("contact_messages_purged", deleted=deleted, ips_removed=anonymized)
         return deleted

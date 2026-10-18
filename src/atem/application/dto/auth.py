@@ -1,5 +1,6 @@
 """Authentication DTOs."""
 
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -28,6 +29,19 @@ class UserResponseDTO(BaseModel):
     totp_enabled: bool = False
     must_change_password: bool = False
     session_version: int = 1
+
+
+class AccountOverviewDTO(BaseModel):
+    """Read-only account state for the overview page (no secrets, no hashes)."""
+
+    email: str
+    is_active: bool
+    totp_enabled: bool
+    recovery_codes_left: int
+    must_change_password: bool
+    locked: bool
+    last_login_at: datetime | None
+    password_changed_at: datetime | None
 
 
 class LoginResultDTO(BaseModel):

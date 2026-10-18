@@ -17,6 +17,7 @@ from atem.infrastructure.database.models.theme import ThemeConfigModel
 from atem.infrastructure.database.repositories.sqlalchemy_theme_repository import (
     SqlAlchemyThemeRepository,
 )
+from tests.conftest import refresh_csrf
 
 
 @pytest.mark.asyncio
@@ -548,3 +549,38 @@ async def test_header_opacity_is_adjustable_clamped_and_kept(
     await app_client.post("/admin/design/dandelion", data={"dandelion_modes": "disabled"})
     await app_client.post("/admin/design/custom", data={"primary_color": "#4A6C50"})
     assert "--header-bg-opacity: 0.35;" in (await app_client.get("/theme.css")).text
+
+
+async def test_phone_can_be_hidden_publicly_and_stays_editable(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    """Switch «Telefonnummer anzeigen»: hidden publicly, kept and labelled for admins."""
+    admin = {"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"}
+    assert 'href="tel:' in (await app_client.get("/")).text  # default: visible
+    assert 'href="tel:' in (await app_client.get("/impressum")).text
+
+    await app_client.post("/admin/login", data=admin)
+    assert 'name="show_phone"' in (await app_client.get("/admin/design")).text
+    # Unchecked checkbox: only the marker is submitted
+    await app_client.post("/admin/design/custom", data={"show_phone_field": "1"})
+    admin_home = (await app_client.get("/")).text
+    assert "data-phone-hidden" in admin_home
+    assert "Öffentlich ausgeblendet" in admin_home
+
+    # Other forms without the field (presets, ambient modes, colours) keep the setting
+    await app_client.post("/admin/design/preset", data={"preset_key": "lavendel_nebel"})
+    await app_client.post("/admin/design/dandelion", data={"dandelion_modes": "disabled"})
+    await app_client.post("/admin/design/custom", data={"primary_color": "#4A6C50"})
+
+    app_client.cookies.clear()  # visitor view
+    for path in ("/", "/impressum"):
+        page = (await app_client.get(path)).text
+        assert 'href="tel:' not in page, path
+        assert "Öffentlich ausgeblendet" not in page
+    assert 'href="mailto:' in (await app_client.get("/")).text  # e-mail card stays
+
+    await refresh_csrf(app_client)
+    await app_client.post("/admin/login", data=admin)
+    await app_client.post("/admin/design/custom", data={"show_phone_field": "1", "show_phone": "1"})
+    app_client.cookies.clear()
+    assert 'href="tel:' in (await app_client.get("/")).text

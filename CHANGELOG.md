@@ -28,6 +28,7 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 ### Behoben
 
 - Live-Editor: Nach dem Speichern wechselte bei einigen Feldern (z. B. Adresse) die Eingabeart.
+- Dashboard: «Eingegangene» und «Neue Anfragen» zählen jetzt alle Anfragen, nicht nur die 50 angezeigten.
 
 ## [1.1.0] – 2026-10-15
 

@@ -58,6 +58,13 @@ class SqlAlchemyContactRepository(
         """Delete message by ID."""
         return await self._delete(message_id)
 
+    async def count_by_status(self) -> dict[MessageStatus, int]:
+        """Number of messages per status, counted in the database (not from a page)."""
+        rows = await self._session.execute(
+            select(ContactMessageModel.status, func.count()).group_by(ContactMessageModel.status)
+        )
+        return {MessageStatus(status): int(count) for status, count in rows.all()}
+
     async def count_messages_from_ip(self, ip_address: str, since: datetime) -> int:
         """Count messages sent from an IP address since the given time."""
         count = await self._session.scalar(

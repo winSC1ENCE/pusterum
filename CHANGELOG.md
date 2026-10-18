@@ -12,6 +12,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-18
+
 ### Hinzugefügt
 
 - Zitate lassen sich auf dem Handy durch Wischen wechseln, am Computer mit den Pfeiltasten. Nach einem

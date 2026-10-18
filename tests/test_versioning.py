@@ -7,7 +7,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
-RELEASE_HEADING = re.compile(r"^## \[(?P<version>[^\]]+)\] – (?P<date>\d{4}-\d{2}-\d{2})$", re.M)
+# Separator: ASCII hyphen (since 1.2.0, METAS dash rule) or the en dash of older releases.
+RELEASE_HEADING = re.compile(
+    r"^## \[(?P<version>[^\]]+)\] [-\u2013] (?P<date>\d{4}-\d{2}-\d{2})$", re.M
+)
 
 
 def project_version() -> str:
@@ -30,7 +33,7 @@ def test_newest_changelog_release_is_the_project_version() -> None:
     changelog = (ROOT / "CHANGELOG.md").read_text()
     assert "## [Unreleased]" in changelog
     releases = [match["version"] for match in RELEASE_HEADING.finditer(changelog)]
-    assert releases, "CHANGELOG.md has no «## [x.y.z] – YYYY-MM-DD» section"
+    assert releases, "CHANGELOG.md has no «## [x.y.z] - YYYY-MM-DD» section"
     assert releases[0] == project_version(), (
         "CHANGELOG.md and pyproject.toml disagree – a release moves «Unreleased» to the new "
         "version and bumps [project].version (TDR-0009)"

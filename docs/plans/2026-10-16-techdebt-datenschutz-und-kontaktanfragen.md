@@ -12,10 +12,10 @@ Aufwand: **S** bis halber Tag, **M** 1-2 Tage, **L** mehr.
 
 | # | Thema | Prio | Aufwand | Abhängig von | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| U1 | Zeilenumbrüche in allen Textblöcken (Live-Editor, `<br>` auf der Seite) | P0 | M | TDR-0011 | offen |
-| U2 | Telefonnummer im Admin ausblendbar, Layout für beide Varianten | P0 | S | - | offen |
-| U3 | Mobile-Menü schliesst bei Klick ausserhalb, Backdrop, Escape | P0 | S | - | offen |
-| U4 | Zitate auf dem Handy per Wischen wechseln, Pfeiltasten | P0 | S | - | offen |
+| U1 | Zeilenumbrüche in allen Textblöcken (Live-Editor, `<br>` auf der Seite) | P0 | M | TDR-0011 | umgesetzt (v1.2.0) |
+| U2 | Telefonnummer im Admin ausblendbar, Layout für beide Varianten | P0 | S | - | umgesetzt (v1.2.0) |
+| U3 | Mobile-Menü schliesst bei Klick ausserhalb, Backdrop, Escape | P0 | S | - | umgesetzt (v1.2.0) |
+| U4 | Zitate auf dem Handy per Wischen wechseln, Pfeiltasten | P0 | S | - | umgesetzt (v1.2.0) |
 | 1 | CLI `reset-password` | P1 | S | - | offen |
 | 2 | Admin-Konto deaktivieren / löschen | P1 | S | - | offen |
 | 3 | Zähler im Dashboard falsch ab 51 Anfragen | P1 | S | - | offen |

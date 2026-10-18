@@ -1,0 +1,95 @@
+{% extends "layouts/base.html" %}
+{% from "admin/message_macros.html" import status_badge, message_hints %}
+
+{% block title %}Anfrage | PUSTERUM Administration{% endblock %}
+
+{% set button = "px-4 py-2 rounded-full text-xs font-semibold transition-colors" %}
+{% set secondary = button ~ " border border-theme bg-theme-card text-theme-text-main hover:bg-theme-muted" %}
+{% set csrf %}<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">{% endset %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-16 px-4 sm:px-6 lg:px-8 space-y-6">
+    <a href="/admin/messages" class="text-xs text-theme-primary hover:underline">&larr; Alle Kontaktanfragen</a>
+
+    <div class="bg-theme-card border border-theme rounded-3xl p-6 space-y-4">
+        <div class="flex flex-wrap items-center gap-3">
+            <span data-testid="message-status">{{ status_badge(msg.status) }}</span>
+            {{ message_hints(msg) }}
+        </div>
+        <h1 class="font-heading text-2xl font-bold text-theme-text-main break-words">{{ msg.subject }}</h1>
+        <dl class="grid grid-cols-1 sm:grid-cols-[8rem_1fr] gap-x-4 gap-y-1 text-sm">
+            <dt class="text-theme-text-muted">Eingang</dt><dd class="text-theme-text-main">{{ msg.created_at | local_datetime }}</dd>
+            <dt class="text-theme-text-muted">Name</dt><dd class="text-theme-text-main break-words">{{ msg.sender_name }}</dd>
+            <dt class="text-theme-text-muted">E-Mail</dt><dd class="break-all"><a href="mailto:{{ msg.sender_email }}" class="text-theme-primary hover:underline">{{ msg.sender_email }}</a></dd>
+            {% if msg.sender_phone %}<dt class="text-theme-text-muted">Telefon</dt><dd><a href="tel:{{ msg.sender_phone | replace(' ', '') }}" class="text-theme-primary hover:underline">{{ msg.sender_phone }}</a></dd>{% endif %}
+            {% if msg.closed_at %}<dt class="text-theme-text-muted">Abgeschlossen</dt><dd class="text-theme-text-main">{{ msg.closed_at | local_datetime }}</dd>{% endif %}
+        </dl>
+        <p class="text-sm text-theme-text-main whitespace-pre-line break-words border-t border-theme pt-4" data-testid="message-text">{{ msg.message }}</p>
+    </div>
+
+    <div class="bg-theme-card border border-theme rounded-3xl p-6 space-y-4">
+        <h2 class="font-heading text-lg font-bold text-theme-text-main">Bearbeiten</h2>
+        <div class="flex flex-wrap gap-2">
+            <a href="mailto:{{ msg.sender_email }}?subject={{ ('Re: ' ~ msg.subject) | urlencode }}" class="{{ button }} bg-theme-primary text-white hover-bg-theme-primary" data-testid="reply-link">Antworten</a>
+            {% for status in statuses if status != msg.status %}
+            <form method="POST" action="/admin/messages/{{ msg.id }}/status">
+                {{ csrf }}
+                <input type="hidden" name="status" value="{{ status.value }}">
+                <button type="submit" class="{{ secondary }}">
+                    {%- if status.value == "REPLIED" %}Als beantwortet markieren
+                    {%- elif status.value == "IN_PROGRESS" and not msg.status.is_open %}Wieder öffnen
+                    {%- else %}{{ status.label }}{% endif -%}
+                </button>
+            </form>
+            {% endfor %}
+        </div>
+        <p class="text-xs text-theme-text-muted">«Antworten» öffnet Ihr Mailprogramm. Danach die Anfrage als beantwortet markieren.</p>
+
+        <form method="POST" action="/admin/messages/{{ msg.id }}/notes" class="space-y-2 border-t border-theme pt-4">
+            {{ csrf }}
+            <label for="notes" class="block text-sm font-medium text-theme-text-main">Interne Notizen</label>
+            <textarea id="notes" name="notes" rows="4" maxlength="5000" class="w-full rounded-xl border border-theme bg-theme-card px-3 py-2 text-sm text-theme-text-main">{{ msg.notes or "" }}</textarea>
+            <button type="submit" class="{{ secondary }}">Notizen speichern</button>
+        </form>
+    </div>
+
+    <div class="bg-theme-card border border-theme rounded-3xl p-6 space-y-3">
+        <h2 class="font-heading text-lg font-bold text-theme-text-main">Verlauf</h2>
+        <ol class="space-y-2 text-sm" data-testid="message-history">
+            <li class="text-theme-text-muted"><span class="whitespace-nowrap">{{ msg.created_at | local_datetime }}</span>: eingegangen über das Kontaktformular</li>
+            {% for event in events %}
+            <li class="text-theme-text-main">
+                <span class="text-theme-text-muted whitespace-nowrap">{{ event.created_at | local_datetime }}</span>:
+                {{ event.summary }}
+                <span class="text-theme-text-muted">({{ event.actor_email or "gelöschtes Konto oder System" }})</span>
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+
+    <div class="border border-red-200 rounded-3xl p-6 space-y-4">
+        <h2 class="font-heading text-lg font-bold text-theme-text-main">Daten dieser Person</h2>
+        <a href="/admin/messages/{{ msg.id }}/export" class="{{ secondary }} inline-block">Alle Anfragen dieser Adresse exportieren (JSON)</a>
+        <p class="text-xs text-theme-text-muted">Für ein Auskunftsbegehren (Runbook 7.1). Datei nach dem Versand löschen.</p>
+        <form method="POST" action="/admin/messages/{{ msg.id }}/delete" class="flex flex-wrap items-center gap-3 border-t border-red-200 pt-4">
+            {{ csrf }}
+            <label class="flex items-center gap-2 text-sm text-theme-text-main">
+                <input type="checkbox" name="confirm" value="yes" required>
+                Diese Anfrage endgültig löschen
+            </label>
+            <button type="submit" class="{{ button }} bg-red-600 text-white hover:bg-red-700">Löschen</button>
+        </form>
+        {% if sender_message_count > 1 %}
+        <form method="POST" action="/admin/messages/{{ msg.id }}/forget" class="flex flex-wrap items-center gap-3 border-t border-red-200 pt-4" data-testid="forget-form">
+            {{ csrf }}
+            <label class="flex items-center gap-2 text-sm text-theme-text-main">
+                <input type="checkbox" name="confirm" value="yes" required>
+                Alle {{ sender_message_count }} Anfragen dieser Adresse endgültig löschen
+            </label>
+            <button type="submit" class="{{ button }} bg-red-600 text-white hover:bg-red-700">Alle löschen</button>
+        </form>
+        {% endif %}
+        <p class="text-xs text-theme-text-muted">Für ein Löschbegehren (Runbook 7.2). Gelöschte Anfragen werden nach einer Wiederherstellung aus dem Backup automatisch erneut gelöscht.</p>
+    </div>
+</div>
+{% endblock %}

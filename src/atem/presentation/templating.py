@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from litestar.plugins.jinja import JinjaTemplateEngine
 
+from atem import __version__
 from atem.infrastructure.database.seed.content_defaults import content_default, count_numbered_keys
 from atem.presentation.rich_text import nl2br, render_rich_text
 
@@ -62,6 +63,7 @@ def numbered_content(
 def configure_jinja(engine: JinjaTemplateEngine) -> None:
     """Register globals and filters on the Jinja environment."""
     engine.engine.globals["asset_version"] = compute_asset_version()
+    engine.engine.globals["app_version"] = __version__
     engine.engine.globals["content_default"] = content_default
     engine.engine.globals["count_numbered_keys"] = count_numbered_keys
     engine.engine.globals["content_value"] = content_value

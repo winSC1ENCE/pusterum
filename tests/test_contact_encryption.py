@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from atem.application.dto.contact import CreateContactMessageDTO
 from atem.application.services.contact_service import ContactService
 from atem.cli import main
-from atem.domain.models.contact import ContactMessage, MessageStatus
+from atem.domain.models.contact import ContactMessage, MessageQuery, MessageStatus
 from atem.infrastructure.config.settings import get_settings
 from atem.infrastructure.database.base import Base
 from atem.infrastructure.database.models.contact import ContactMessageModel
@@ -69,7 +69,7 @@ async def test_free_text_is_stored_encrypted_and_read_in_clear(
     assert "Rückruf" not in row.notes
     assert row.subject == "Terminanfrage"  # stays searchable
 
-    listed = (await contact_service.list_messages())[0]
+    listed = (await contact_service.search_messages(MessageQuery())).items[0]
     assert (listed.message, listed.sender_phone, listed.notes) == (
         HEALTH_TEXT,
         PHONE,
@@ -86,14 +86,14 @@ async def test_wrong_key_shows_placeholder_and_keeps_ciphertext(
     unreadable = await other_key.get_message_by_id(saved.id)
     assert unreadable is not None
     assert unreadable.message == UNREADABLE
-    unreadable.status = MessageStatus.READ
+    unreadable.status = MessageStatus.IN_PROGRESS
     await other_key.update_message(unreadable)  # status change must not destroy the text
 
     readable = await build_contact_repository(db_session, get_settings()).get_message_by_id(
         saved.id
     )
     assert readable is not None
-    assert (readable.message, readable.status) == (HEALTH_TEXT, MessageStatus.READ)
+    assert (readable.message, readable.status) == (HEALTH_TEXT, MessageStatus.IN_PROGRESS)
 
 
 async def test_export_person_finds_all_messages_of_one_address(

@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     SECRET_KEY: str = Field(default=DEV_SECRET_KEY, min_length=MIN_SECRET_LENGTH)
     ALLOWED_HOSTS: list[str] = ["localhost", "127.0.0.1"]
+    # Public address of the site, used for links in mails to the practice (no trailing slash).
+    PUBLIC_BASE_URL: str = "https://www.pusterum.be"
     # Reverse proxies whose X-Forwarded-For header is trusted (CIDR notation): Docker bridge
     # networks (IPv4 172.16.0.0/12, IPv6 unique local fc00::/7).
     TRUSTED_PROXIES: list[str] = ["127.0.0.1/32", "::1/128", "172.16.0.0/12", "fc00::/7"]
@@ -71,7 +73,11 @@ class Settings(BaseSettings):
     CONTACT_FORM_MIN_SECONDS: int = 3
     ALTCHA_MAX_NUMBER: int = 100_000  # proof-of-work difficulty (≈ 0.1–0.5 s on a phone)
     ALTCHA_EXPIRES_MINUTES: int = 20
-    MESSAGE_RETENTION_DAYS: int = 365  # contact messages are deleted automatically afterwards
+    # Retention of contact messages (ADR-0006, TDR-0010): at the latest after MESSAGE_RETENTION_DAYS
+    # from receipt; «Erledigt» and «Spam» earlier, counted from closing.
+    MESSAGE_RETENTION_DAYS: int = Field(default=365, ge=1)
+    MESSAGE_RETENTION_DONE_DAYS: int = Field(default=183, ge=1)
+    MESSAGE_RETENTION_SPAM_DAYS: int = Field(default=7, ge=1)
     # Requests per minute and client IP on login / 2FA / contact (in-memory, per worker)
     RATE_LIMIT_SENSITIVE_PER_MINUTE: int = 10
 

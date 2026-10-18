@@ -19,35 +19,17 @@
                 {{ editable('datenschutz.intro', tag='p', type='textarea', rows=3) }}
             </div>
 
-            <div>
-                {{ editable('datenschutz.sec1_title', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
-                {{ editable('datenschutz.sec1_text', tag='p', type='textarea', rows=2) }}
+            <div class="p-5 rounded-2xl bg-theme-muted border border-theme text-theme-text-main" data-testid="privacy-summary">
+                {{ editable('datenschutz.summary', tag='p', type='textarea', rows=5) }}
             </div>
 
+            {# Sections are numbered keys: a new default «datenschutz.secN_title/_text» adds one. #}
+            {% for n in range(1, count_numbered_keys('datenschutz.sec', '_title') + 1) %}
             <div>
-                {{ editable('datenschutz.sec2_title', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
-                {{ editable('datenschutz.sec2_text', tag='p', type='textarea', rows=3) }}
+                {{ editable('datenschutz.sec' ~ n ~ '_title', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
+                {{ editable('datenschutz.sec' ~ n ~ '_text', tag='p', type='textarea', rows=4) }}
             </div>
-
-            <div>
-                {{ editable('datenschutz.sec3_title', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
-                {{ editable('datenschutz.sec3_text', tag='p', type='textarea', rows=3) }}
-            </div>
-
-            <div>
-                {{ editable('datenschutz.sec4_title', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
-                {{ editable('datenschutz.sec4_text', tag='p', type='textarea', rows=3) }}
-            </div>
-
-            <div>
-                {{ editable('datenschutz.sec5_title', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
-                {{ editable('datenschutz.sec5_text', tag='p', type='textarea', rows=3) }}
-            </div>
-
-            <div>
-                {{ editable('datenschutz.sec6_title', tag='h2', class='font-heading text-xl text-theme-text-main font-bold mb-2') }}
-                {{ editable('datenschutz.sec6_text', tag='p', type='textarea', rows=3) }}
-            </div>
+            {% endfor %}
         </div>
     </div>
 </div>

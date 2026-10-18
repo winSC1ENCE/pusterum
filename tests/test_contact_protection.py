@@ -167,20 +167,27 @@ async def test_confirmation_mail_contains_no_visitor_text(
     assert kwargs["timeout"] == 15
 
 
-async def test_notification_mail_sets_reply_to(
+async def test_notification_mail_has_no_message_text_or_contact_details(
     smtp_capture: list[tuple[EmailMessage, dict[str, Any]]],
 ) -> None:
-    service = SmtpEmailService(_smtp_settings())
+    """Tech-debt #8 (ADR-0006): first name, subject and admin link only."""
+    service = SmtpEmailService(_smtp_settings(PUBLIC_BASE_URL="https://www.pusterum.be"))
     message = ContactMessage(
         sender_name="Maria Muster",
         sender_email="maria@muster.ch",
+        sender_phone="+41 31 123 45 67",
         subject="Termin",
-        message="Hallo",
+        message="Seit Monaten Atemnot.",
     )
     assert await service.send_contact_notification(message)
     sent, _ = smtp_capture[0]
-    assert "maria@muster.ch" in sent["Reply-To"]
+    body = sent.get_content()
     assert sent["To"] == "info@pusterum.be"
+    assert sent["Reply-To"] is None
+    assert "Von: Maria\n" in body and "Betreff: Termin" in body
+    assert f"https://www.pusterum.be/admin/messages/{message.id}" in body
+    for private in ("Muster", "maria@muster.ch", "123 45 67", "Atemnot"):
+        assert private not in body
 
 
 async def test_lockout_notice_mail(
@@ -236,15 +243,15 @@ async def test_mail_build_and_delivery_failures_are_contained(
 # ------------------------------------------------------------ retention & management
 async def test_message_management_and_retention(contact_service: ContactService) -> None:
     saved = await _submit(contact_service)
-    updated = await contact_service.update_message_status(saved.id, MessageStatus.REPLIED)
+    updated = await contact_service.change_status(saved.id, MessageStatus.REPLIED, None)
     assert updated.status == MessageStatus.REPLIED
 
-    assert await contact_service.purge_expired(timedelta(days=365)) == 0
-    assert await contact_service.purge_expired(timedelta(seconds=-1)) == 1
+    assert await contact_service.purge_expired() == 0
+    await contact_service.delete_message(saved.id)
     with pytest.raises(EntityNotFoundException):
         await contact_service.delete_message(saved.id)
     with pytest.raises(EntityNotFoundException):
-        await contact_service.update_message_status(saved.id, MessageStatus.READ)
+        await contact_service.change_status(saved.id, MessageStatus.DONE, None)
 
 
 def test_cli_has_purge_command() -> None:
@@ -282,38 +289,10 @@ async def test_http_honeypot_missing_token_and_missing_captcha(
     assert 'name="form_token"' in no_captcha.text  # fresh token for the next attempt
 
 
-async def test_admin_can_change_status_and_delete_messages(
-    app_client: AsyncTestClient[Litestar],
-) -> None:
-    await app_client.post(
-        "/contact",
-        data=await contact_form_payload(
-            app_client,
-            sender_name="Erika Muster",
-            sender_email="erika@muster.ch",
-            message="Guten Tag, ich möchte einen Termin vereinbaren.",
-        ),
-    )
-    await app_client.post("/admin/login", data=ADMIN)
-    dashboard = await app_client.get("/admin")
-    message_id = dashboard.text.split('id="message-', 1)[1].split('"', 1)[0]
-
-    row = await app_client.post(f"/admin/messages/{message_id}/status", data={"status": "READ"})
-    assert row.status_code == 200
-    assert 'value="READ" selected' in row.text
-    invalid = await app_client.post(f"/admin/messages/{message_id}/status", data={"status": "X"})
-    assert invalid.status_code == 400
-
-    deleted = await app_client.post(f"/admin/messages/{message_id}/delete")
-    assert deleted.status_code == 200
-    again = await app_client.post(f"/admin/messages/{message_id}/delete")
-    assert again.status_code == 404
-
-
 async def test_dashboard_counts_all_messages_not_just_the_page(
     app_client: AsyncTestClient[Litestar], async_engine: AsyncEngine
 ) -> None:
-    """Tech-debt #3: totals come from COUNT queries, the table still shows the newest 50."""
+    """Tech-debt #3: totals come from COUNT queries, the dashboard lists only a few."""
     async with async_sessionmaker(async_engine, expire_on_commit=False)() as session:
         repository = build_contact_repository(session, get_settings())
         for i in range(55):
@@ -335,8 +314,9 @@ async def test_dashboard_counts_all_messages_not_just_the_page(
         data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
     )
     page = (await app_client.get("/admin")).text
-    assert ">55</div>" in page and ">52</div>" in page
-    assert "neueste 50 von 55" in page
+    assert ">55</div>" in page and ">52</div>" in page  # open (incl. replied) and new
+    assert "Alle Anfragen (55)" in page
+    assert "50 weitere offene Anfragen" in page
 
 
 async def test_sender_ips_are_removed_after_seven_days(
@@ -350,7 +330,7 @@ async def test_sender_ips_are_removed_after_seven_days(
         .where(ContactMessageModel.id == old.id)
         .values(created_at=datetime.now(UTC) - timedelta(days=8))
     )
-    assert await contact_service.purge_expired(timedelta(days=365)) == 0  # nothing deleted
+    assert await contact_service.purge_expired() == 0  # nothing deleted
     rows = await db_session.execute(select(ContactMessageModel.id, ContactMessageModel.ip_address))
     ips = dict(rows.all())
     assert ips == {old.id: None, new.id: "198.51.100.11"}

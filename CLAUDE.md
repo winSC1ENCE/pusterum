@@ -27,7 +27,7 @@ Clean Architecture unter `src/atem/` (Abhängigkeiten zeigen nur nach innen):
   Seeds), E-Mail, Security (Argon2, Fernet, TOTP), Captcha, Media (Pillow).
 - `presentation/` – `app.py` (Factory `create_app`), `bootstrap.py`, Controller (Admin als Paket
   `controllers/admin/`), `security/` (Guard, Header, Host, Proxy, Form-Token), `errors.py`, Templates, Static.
-- `cli.py` - `python -m atem.cli {create-admin|reset-password|deactivate-admin|activate-admin|delete-admin|reset-2fa|unlock|seed-content|purge-messages|export-person}`.
+- `cli.py` - `python -m atem.cli {create-admin|reset-password|deactivate-admin|activate-admin|delete-admin|reset-2fa|unlock|seed-content|purge-messages|export-person|forget-person|reapply-deletions}`.
 
 ## Befehle
 
@@ -82,6 +82,8 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
   Anerkennungen) erfinden – das pflegt die Praxisinhaberin im Admin.
 - Kontaktanfragen: `message`, `sender_phone`, `notes` sind verschlüsselt (Fernet, Schlüssel aus
   `SECRET_KEY`, TDR-0012); Repository immer über `build_contact_repository()` erzeugen.
+- Kontaktanfragen-Status, Verlauf und Fristen: TDR-0010 (`MessageStatus`, `RetentionPolicy`); Admin unter
+  `/admin/messages`. Neue Status brauchen Migration und Frist.
 - Das DB-Schema gehört **ausschliesslich Alembic** (Baseline `0000_initial_schema`). Schema-Änderungen immer
   als neue Revision; `alembic check` muss „No new upgrade operations“ melden. `create_all` nur in Tests.
 - `.env*`-Dateien sind für Claude gesperrt – Vorlagen liegen in `config/*.example`.
@@ -147,7 +149,7 @@ Version nur in `pyproject.toml` (`[project].version`, SemVer). Changelog: `CHANG
   - PATCH bei Fixes oder Updates.
 
   Danach `uv lock` ausführen, `## [Unreleased]` in `## [x.y.z] - YYYY-MM-DD` umbenennen und ein
-  leeres `## [Unreleased]` darüber anlegen. Am besten auf einem Branch `release/x.y.z` von
+  leeres `## [Unreleased]` darüber anlegen. Am besten auf einem Branch `chore/release-x.y.z` von
   `develop`, PR nach `develop`, danach `develop` → `main`.
 - Die CI erzwingt das: `tests/test_versioning.py` prüft pyproject, `uv.lock` und Changelog. PRs
   nach `main` scheitern, wenn `v<version>` schon existiert.
@@ -160,6 +162,19 @@ Version nur in `pyproject.toml` (`[project].version`, SemVer). Changelog: `CHANG
   - Fix committen, PATCH-Version erhöhen und Changelog nachführen;
   - PR → `main`;
   - danach `main` → `develop` zurückführen (PR oder Merge), damit Version und Fix nicht verloren gehen.
+
+## Pull Requests und Merges
+
+- `main` und `develop` sind per Ruleset geschützt (`main-protect`, `develop-protect`): nur per PR,
+  6 Pflicht-Checks, nur Merge-Commits, kein Löschen, kein Force-Push.
+- **Merge-Befehle für den Benutzer immer mit Warten auf die Checks**, damit der Teststatus in der
+  Konsole sichtbar ist; Branch immer explizit nennen, kein `--auto`:
+
+  ```bash
+  gh pr checks <branch> --watch --fail-fast && gh pr merge <branch> --merge --delete-branch
+  ```
+
+- Der Benutzer pusht und mergt selbst; neue Branches mit `git switch --no-track -c …` anlegen.
 
 ## Deployment
 

@@ -1,6 +1,6 @@
 # ADR-0006: Datenschutz und Löschkonzept (DSG/DSV)
 
-* **Status:** proposed
+* **Status:** accepted (umgesetzt 2026-10-18 ohne juristische Prüfung, Grundlage EDÖB-Empfehlungen)
 * **Deciders:** Betreiber (Technik), Praxisinhaberin
 * **Date:** 2026-10-16
 * **Technical Story:** Tech-Debt [2026-10-16](../plans/2026-10-16-techdebt-datenschutz-und-kontaktanfragen.md)
@@ -100,6 +100,8 @@ Rotation bleibt als Stellschraube.
 3. **Wiederherstellung aus Backup**: Direkt nach jedem Restore läuft `reapply-deletions`. Es löscht
    alle im `deletion_log` verzeichneten Anfragen erneut. Das wird Pflichtschritt im Runbook (3.3) und
    in `restore.sh`.
+   Umgesetzt 2026-10-18 (TDR-0013): Die App führt es bei jedem Start aus, `restore.sh` bewahrt das
+   aktuelle Protokoll über den Restore.
 4. **Fristen automatisch**: Der bestehende tägliche Retention-Lauf wird um die Fristen je Status, die
    IP-Anonymisierung und das Löschprotokoll erweitert. Er soll nur einmal pro Tag laufen (Advisory-Lock
    statt pro Worker).
@@ -111,9 +113,8 @@ Rotation bleibt als Stellschraube.
 Die Mail an die Praxis enthält künftig nur «Neue Anfrage von <Vorname>, Betreff …» und den Link ins
 Admin, ohne Freitext, Telefon und E-Mail-Adresse. Geantwortet wird über «Antworten» im Admin
 (`mailto:` mit vorbereitetem Betreff, siehe TDR-0010). Damit entsteht keine unbefristete Kopie von
-Gesundheitsdaten im Postfach. **Offener Entscheid** der Praxisinhaberin: Wird das Antworten direkt aus
-dem Mailprogramm stärker gewichtet, bleibt der Text in der Mail, und das Postfach wird beim Löschen
-manuell mitbereinigt (Runbook-Schritt).
+Gesundheitsdaten im Postfach. **Entschieden** von der Praxisinhaberin am 2026-10-18: ohne Text
+(umgesetzt).
 
 ### Information und Organisation
 
@@ -126,11 +127,15 @@ manuell mitbereinigt (Runbook-Schritt).
   * Vorgehen und Frist für Auskunft und Löschung.
 * **Kontaktformular**: Hinweis «Bitte keine ausführlichen Gesundheitsangaben» und ein echter Link auf
   die Datenschutzerklärung.
+* Umgesetzt 2026-10-18 (Migration `0020_privacy_statement`) nach den Empfehlungen des EDÖB:
+  Kurzfassung zuoberst, danach 9 Abschnitte. Ändert sich eine Bearbeitung (Anbieter, Frist,
+  Cookie), wird der Text im selben Release angepasst.
 * **Auftragsbearbeitung** (Art. 9 DSG): Verträge (AVV/DPA) mit Hoster, Mail-Provider und
   Backup-Speicher prüfen und im verschlüsselten Betriebsordner vermerken.
 * **Verzeichnis** (Art. 12 DSG): voraussichtlich nicht Pflicht (kleines Unternehmen, keine
   umfangreiche Bearbeitung). Ein kurzes freiwilliges Verzeichnis im verschlüsselten Ordner
   `docs/ops/private/` dient trotzdem als Übersicht.
+* Umgesetzt 2026-10-18: Verzeichnis und Verträge in `docs/ops/private/auftragsbearbeitung.md`.
 
 ### Positive Consequences
 

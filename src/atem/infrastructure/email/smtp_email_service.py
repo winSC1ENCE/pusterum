@@ -25,6 +25,14 @@ CONFIRMATION_BODY = (
     "PUSTERUM – Praxis für Atem- und Körpertherapie\n"
 )
 
+NOTIFICATION_BODY = (
+    "Neue Kontaktanfrage über die Website\n\n"
+    "Von: {first_name}\n"
+    "Betreff: {subject}\n\n"
+    "Nachricht und Kontaktdaten stehen aus Datenschutzgründen nur im Admin-Bereich:\n"
+    "{url}\n"
+)
+
 LOCKOUT_SUBJECT = "PUSTERUM: Anmeldung vorübergehend gesperrt"
 LOCKOUT_BODY = (
     "Guten Tag\n\n"
@@ -52,22 +60,23 @@ class SmtpEmailService(IEmailService):
         self._settings = settings
 
     async def send_contact_notification(self, message: ContactMessage) -> bool:
-        """Notify the practice; replying answers the visitor directly (Reply-To)."""
+        """Notify the practice with first name, subject and a link to the admin (ADR-0006).
+
+        No message text, phone or e-mail address: the mailbox holds no copy of health data.
+        """
         if not self._settings.MAIL_ENABLED:
             return True
         try:
             msg = EmailMessage()
             msg["From"] = formataddr(("PUSTERUM Website", self._settings.MAIL_FROM))
             msg["To"] = self._settings.MAIL_TO
-            msg["Reply-To"] = formataddr((message.sender_name, message.sender_email))
             msg["Subject"] = f"Neue Anfrage: {message.subject}"
             msg.set_content(
-                "Neue Kontaktanfrage über die Website:\n\n"
-                f"Name: {message.sender_name}\n"
-                f"E-Mail: {message.sender_email}\n"
-                f"Telefon: {message.sender_phone or 'Nicht angegeben'}\n"
-                f"Betreff: {message.subject}\n\n"
-                f"Nachricht:\n{message.message}\n"
+                NOTIFICATION_BODY.format(
+                    first_name=message.first_name,
+                    subject=message.subject,
+                    url=f"{self._settings.PUBLIC_BASE_URL}/admin/messages/{message.id}",
+                )
             )
         except ValueError:
             # EmailMessage rejects CR/LF in headers – never build a header from raw input.

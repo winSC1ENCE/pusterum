@@ -13,7 +13,7 @@ from atem.domain.exceptions import (
     EntityNotFoundException,
     ValidationException,
 )
-from atem.domain.models.contact import MessageStatus
+from atem.domain.models.contact import MessageQuery, MessageStatus
 from tests.conftest import solve_altcha
 
 
@@ -79,12 +79,12 @@ async def test_contact_service_flow(contact_service: ContactService) -> None:
         await contact_service.submit_contact_form(spam_dto, client_ip=None, captcha_payload="")
 
     # List messages
-    messages = await contact_service.list_messages()
-    assert len(messages) >= 1
+    page = await contact_service.search_messages(MessageQuery())
+    assert page.total >= 1
 
     # Update status
-    updated = await contact_service.update_message_status(response.id, MessageStatus.READ)
-    assert updated.status == MessageStatus.READ
+    updated = await contact_service.change_status(response.id, MessageStatus.IN_PROGRESS, None)
+    assert updated.status == MessageStatus.IN_PROGRESS
 
 
 @pytest.mark.asyncio

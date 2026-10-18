@@ -12,6 +12,11 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+### Hinzugefügt
+
+- Zitate lassen sich auf dem Handy durch Wischen wechseln, am Computer mit den Pfeiltasten. Nach einem
+  manuellen Wechsel bleibt das Zitat die vollen 7 Sekunden stehen.
+
 ## [1.1.0] – 2026-10-15
 
 Die Gestaltung wirkt jetzt vollständig wie vorgesehen, und die Kopfzeile lässt sich im Design-Studio

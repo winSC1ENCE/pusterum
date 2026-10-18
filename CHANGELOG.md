@@ -24,6 +24,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
   Kontaktbereich und im Impressum, bleibt aber gespeichert und im Live-Editor bearbeitbar.
 - Betrieb: Befehle zum Zurücksetzen eines vergessenen Passworts (mit Sicherheitsmail an die Person) sowie
   zum Deaktivieren, Reaktivieren und Löschen von Admin-Konten. Das letzte aktive Konto ist geschützt.
+- Admin: Seite «Admin-Konten» zeigt alle Konten mit Status, 2FA, Wiederherstellungscodes, letzter
+  Anmeldung und letzter Passwortänderung (nur Ansicht).
 
 ### Sicherheit
 
@@ -38,6 +40,7 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 - Live-Editor: Nach dem Speichern wechselte bei einigen Feldern (z. B. Adresse) die Eingabeart.
 - Dashboard: «Eingegangene» und «Neue Anfragen» zählen jetzt alle Anfragen, nicht nur die 50 angezeigten.
+- Dashboard: Der Eingang einer Anfrage wird in Schweizer Zeit angezeigt (bisher UTC).
 
 ## [1.1.0] – 2026-10-15
 

@@ -21,6 +21,7 @@ import structlog
 from pydantic import ValidationError
 
 from atem.application.dto.auth import (
+    AccountOverviewDTO,
     CreateAdminDTO,
     LoginRequestDTO,
     LoginResultDTO,
@@ -239,6 +240,23 @@ class AuthService:
         codes = await self._issue_recovery_codes(user.id)
         logger.info("admin_action", action="recovery_codes_regenerated", user_id=str(user_id))
         return codes
+
+    async def list_accounts(self) -> list[AccountOverviewDTO]:
+        """All admin accounts with their security state (overview page, read-only)."""
+        now = datetime.now(UTC)
+        return [
+            AccountOverviewDTO(
+                email=user.email,
+                is_active=user.is_active,
+                totp_enabled=user.totp_enabled,
+                recovery_codes_left=await self.count_recovery_codes(user.id),
+                must_change_password=user.must_change_password,
+                locked=user.is_locked(now),
+                last_login_at=user.last_login_at,
+                password_changed_at=user.password_changed_at,
+            )
+            for user in await self._user_repository.list_users()
+        ]
 
     async def count_recovery_codes(self, user_id: UUID) -> int:
         """Return the number of unused recovery codes."""

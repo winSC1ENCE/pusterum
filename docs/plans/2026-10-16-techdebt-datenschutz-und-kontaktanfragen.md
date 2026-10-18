@@ -31,7 +31,7 @@ Aufwand: **S** bis halber Tag, **M** 1-2 Tage, **L** mehr.
 | 13 | Detailansicht: Notizen, Verlauf, «Antworten», Wiedervorlage | P2 | M | 11 | offen |
 | 14 | Auskunfts-Export pro Person (JSON) | P2 | S | 4 | offen |
 | 15 | Anfragetext verschlüsselt in der Datenbank | P3 | M | - | umgesetzt (TDR-0012, inkl. `export-person`) |
-| 16 | Seite «Admin-Konten» (letzter Login, 2FA, aktiv) | P3 | S | 2 | offen |
+| 16 | Seite «Admin-Konten» (letzter Login, 2FA, aktiv) | P3 | S | 2 | umgesetzt (`/admin/accounts`) |
 | 17 | Gedankenstriche im Repo vs. METAS-Regel | P3 | S | METAS-Einstellungen | Ausnahme beantragt |
 
 ## Details

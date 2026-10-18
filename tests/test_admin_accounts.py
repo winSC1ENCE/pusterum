@@ -2,9 +2,12 @@
 
 import asyncio
 from collections.abc import Iterator
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from litestar import Litestar
+from litestar.testing import AsyncTestClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -21,6 +24,7 @@ from atem.infrastructure.config.settings import get_settings
 from atem.infrastructure.database.base import Base
 from atem.infrastructure.database.models.user import UserModel
 from atem.infrastructure.email.mock_email_service import MockEmailService
+from atem.presentation.templating import local_datetime
 
 STEPHANIE = "stephanie@example.ch"
 OPERATOR = "betreiber@example.ch"
@@ -94,6 +98,48 @@ async def test_last_active_admin_is_protected(auth_service: AuthService) -> None
     await auth_service.delete_admin(OPERATOR)  # inactive accounts can always be deleted
     with pytest.raises(EntityNotFoundException):
         await auth_service.delete_admin(OPERATOR)
+
+
+async def test_list_accounts_shows_security_state(auth_service: AuthService) -> None:
+    await _two_admins(auth_service)
+    await auth_service.set_active(OPERATOR, active=False)
+    await _login(auth_service, STEPHANIE, PASSWORD)
+
+    accounts = {a.email: a for a in await auth_service.list_accounts()}
+
+    assert list(accounts) == [OPERATOR, STEPHANIE]  # ordered by e-mail
+    assert accounts[STEPHANIE].is_active
+    assert accounts[STEPHANIE].last_login_at is not None
+    assert not accounts[STEPHANIE].totp_enabled
+    assert not accounts[OPERATOR].is_active
+    assert accounts[OPERATOR].last_login_at is None
+
+
+def test_local_datetime_uses_swiss_time() -> None:
+    assert local_datetime(datetime(2026, 7, 1, 12, 0, tzinfo=UTC)) == "01.07.2026 14:00"
+    assert local_datetime(datetime(2026, 1, 1, 12, 0)) == "01.01.2026 13:00"  # naive = UTC
+    assert local_datetime(None) == ""
+
+
+# ------------------------------------------------------------------------ page level
+async def test_accounts_page_is_read_only_overview(app_client: AsyncTestClient[Litestar]) -> None:
+    assert (await app_client.get("/admin/accounts", follow_redirects=False)).status_code in (
+        302,
+        303,
+        401,
+    )
+    await app_client.post(
+        "/admin/login",
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
+    )
+    page = await app_client.get("/admin/accounts")
+
+    assert page.status_code == 200
+    assert "entwicklung@pusterum.be" in page.text
+    assert "(Sie)" in page.text
+    assert "aktiv" in page.text
+    assert "<form" not in page.text.split('data-testid="accounts-table"', 1)[1].split("</table>")[0]
+    assert 'href="/admin/accounts"' in (await app_client.get("/admin")).text
 
 
 # ----------------------------------------------------------------------- CLI level

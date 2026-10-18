@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TextIO
 
 import structlog
 
@@ -12,8 +12,8 @@ if TYPE_CHECKING:
     from structlog.types import Processor
 
 
-def setup_logging(is_dev: bool = True) -> None:
-    """Configure structlog and standard logging."""
+def setup_logging(is_dev: bool = True, stream: TextIO | None = None) -> None:
+    """Configure structlog and standard logging (to ``stream``, default stdout)."""
     shared_processors: list[Processor] = [
         structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_logger_name,
@@ -46,7 +46,7 @@ def setup_logging(is_dev: bool = True) -> None:
             renderer,
         ],
     )
-    handler = logging.StreamHandler(sys.stdout)
+    handler = logging.StreamHandler(stream or sys.stdout)
     handler.setFormatter(formatter)
 
     root_logger = logging.getLogger()

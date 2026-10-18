@@ -52,6 +52,18 @@ def build_secret_cipher(settings: Settings) -> FernetSecretCipher:
     return FernetSecretCipher(settings.derive_key(b"atem-secret-cipher"))
 
 
+def build_contact_cipher(settings: Settings) -> FernetSecretCipher:
+    """Cipher for contact free text (message, phone, notes), keyed from SECRET_KEY via HKDF."""
+    return FernetSecretCipher(settings.derive_key(b"atem-contact-cipher"))
+
+
+def build_contact_repository(
+    session: AsyncSession, settings: Settings
+) -> SqlAlchemyContactRepository:
+    """Contact repository that encrypts free text at rest (TDR-0012)."""
+    return SqlAlchemyContactRepository(session, build_contact_cipher(settings))
+
+
 def build_contact_service(
     repository: IContactRepository, email_service: IEmailService, settings: Settings
 ) -> ContactService:
@@ -91,7 +103,7 @@ async def purge_expired_data(
                 logger.info("retention_skipped_locked")
                 return 0
         service = build_contact_service(
-            SqlAlchemyContactRepository(session), MockEmailService(), settings
+            build_contact_repository(session, settings), MockEmailService(), settings
         )
         deleted = await service.purge_expired(timedelta(days=settings.MESSAGE_RETENTION_DAYS))
         await SqlAlchemyUserRepository(session).delete_login_attempts_older_than(

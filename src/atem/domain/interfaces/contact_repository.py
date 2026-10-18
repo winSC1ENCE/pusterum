@@ -37,6 +37,10 @@ class IContactRepository(ABC):
         """Delete message by ID."""
 
     @abstractmethod
+    async def find_by_sender_email(self, email: str) -> list[ContactMessage]:
+        """All messages from an address (case-insensitive), oldest first."""
+
+    @abstractmethod
     async def count_by_status(self) -> dict[MessageStatus, int]:
         """Number of messages per status (statuses without messages may be missing)."""
 

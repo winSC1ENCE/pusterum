@@ -31,4 +31,5 @@ Alle Diagramme werden ausschliesslich mit **Mermaid** direkt in Markdown gepfleg
 * [TDR-0009: Versionierung und Releases](../tdr/TDR-0009-versioning-and-releases.md)
 * [TDR-0010: Verwaltung der Kontaktanfragen](../tdr/TDR-0010-kontaktanfragen-workflow.md) (proposed)
 * [TDR-0011: Zeilenumbrüche in Inhaltsblöcken](../tdr/TDR-0011-zeilenumbrueche-inhaltsbloecke.md)
+* [TDR-0012: Kontaktanfragen verschlüsselt speichern](../tdr/TDR-0012-kontaktanfragen-verschluesselt.md)
 * Vorlagen: [ADR](../adr/template.md) · [TDR](../tdr/template.md)

@@ -18,7 +18,8 @@ class ContactMessageModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
 
     sender_name: Mapped[str] = mapped_column(String(120), nullable=False)
     sender_email: Mapped[str] = mapped_column(String(150), nullable=False, index=True)
-    sender_phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    # message, sender_phone and notes hold Fernet ciphertext (TDR-0012), hence Text.
+    sender_phone: Mapped[str | None] = mapped_column(Text, nullable=True)
     subject: Mapped[str] = mapped_column(String(200), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[MessageStatus] = mapped_column(

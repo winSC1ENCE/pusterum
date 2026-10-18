@@ -24,12 +24,13 @@ from atem.domain.models.contact import ContactMessage, MessageStatus
 from atem.infrastructure.captcha.altcha_captcha import AltchaCaptcha
 from atem.infrastructure.config.settings import Settings, get_settings
 from atem.infrastructure.database.models.contact import ContactMessageModel
-from atem.infrastructure.database.repositories.sqlalchemy_contact_repository import (
-    SqlAlchemyContactRepository,
-)
 from atem.infrastructure.email.mock_email_service import MockEmailService
 from atem.infrastructure.email.smtp_email_service import CONFIRMATION_BODY, SmtpEmailService
-from atem.presentation.bootstrap import RETENTION_LOCK_KEY, purge_expired_data
+from atem.presentation.bootstrap import (
+    RETENTION_LOCK_KEY,
+    build_contact_repository,
+    purge_expired_data,
+)
 from atem.presentation.security.form_token import issue_form_token, verify_form_token
 from tests.conftest import TEST_DATABASE_URL, contact_form_payload, solve_altcha
 
@@ -314,7 +315,7 @@ async def test_dashboard_counts_all_messages_not_just_the_page(
 ) -> None:
     """Tech-debt #3: totals come from COUNT queries, the table still shows the newest 50."""
     async with async_sessionmaker(async_engine, expire_on_commit=False)() as session:
-        repository = SqlAlchemyContactRepository(session)
+        repository = build_contact_repository(session, get_settings())
         for i in range(55):
             await repository.create_message(
                 ContactMessage(

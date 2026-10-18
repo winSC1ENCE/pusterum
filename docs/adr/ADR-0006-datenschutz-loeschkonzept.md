@@ -111,9 +111,8 @@ Rotation bleibt als Stellschraube.
 Die Mail an die Praxis enthält künftig nur «Neue Anfrage von <Vorname>, Betreff …» und den Link ins
 Admin, ohne Freitext, Telefon und E-Mail-Adresse. Geantwortet wird über «Antworten» im Admin
 (`mailto:` mit vorbereitetem Betreff, siehe TDR-0010). Damit entsteht keine unbefristete Kopie von
-Gesundheitsdaten im Postfach. **Offener Entscheid** der Praxisinhaberin: Wird das Antworten direkt aus
-dem Mailprogramm stärker gewichtet, bleibt der Text in der Mail, und das Postfach wird beim Löschen
-manuell mitbereinigt (Runbook-Schritt).
+Gesundheitsdaten im Postfach. **Entschieden** von der Praxisinhaberin am 2026-10-18: ohne Text
+(umgesetzt).
 
 ### Information und Organisation
 

@@ -12,6 +12,26 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+### Hinzugefügt
+
+- Neue Seite «Kontaktanfragen» im Admin: Reiter nach Status, Suche nach Name, E-Mail und Betreff,
+  Zeitraum, Sortierung und Seiten. Lange unbeantwortete Anfragen sind als «überfällig» markiert.
+- Detailansicht jeder Anfrage mit internen Notizen, Verlauf (wer hat wann was geändert), «Antworten»
+  per Mailprogramm und Export aller Anfragen einer Adresse für Auskunftsbegehren.
+
+### Geändert
+
+- Neue Status: Neu, In Bearbeitung, Beantwortet, Erledigt, Spam. «Gelesen» wird zu «In Bearbeitung»,
+  «Archiviert» zu «Erledigt». Beim ersten Öffnen wechselt eine neue Anfrage auf «In Bearbeitung».
+- Das Dashboard zeigt nur noch die neuesten offenen Anfragen und verlinkt auf die volle Liste.
+- Anfragen werden je nach Status gelöscht: «Erledigt» nach 6 Monaten, «Spam» nach 7 Tagen, alle
+  anderen spätestens nach 12 Monaten. Liste und Detail zeigen das Löschdatum.
+
+### Sicherheit
+
+- Die Benachrichtigungsmail enthält nur noch Vorname, Betreff und einen Link ins Admin, weder
+  Nachricht noch Telefonnummer noch E-Mail-Adresse. So liegen keine Gesundheitsangaben im Postfach.
+
 ## [1.2.0] - 2026-10-18
 
 ### Hinzugefügt

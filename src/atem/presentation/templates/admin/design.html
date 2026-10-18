@@ -543,6 +543,25 @@
                     </div>
                 </div>
 
+                <!-- Contact & visibility: hide the phone number publicly without deleting it -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+                    <input type="hidden" name="show_phone_field" value="1">
+                    <label for="show_phone_input" class="flex items-start gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            id="show_phone_input"
+                            name="show_phone"
+                            value="1"
+                            {% if theme.show_phone %}checked{% endif %}
+                            class="mt-0.5 w-5 h-5 accent-emerald-600 cursor-pointer"
+                        />
+                        <span>
+                            <span class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Kontakt: Telefonnummer anzeigen</span>
+                            <span class="block text-[11px] text-slate-500 mt-1">Ausgeschaltet verschwindet die Telefonnummer im Kontaktbereich und im Impressum. Sie bleibt gespeichert und kann im Live-Editor weiter bearbeitet werden.</span>
+                        </span>
+                    </label>
+                </div>
+
                 <!-- Sticky header: glass effect (0 %) … opaque (100 %) -->
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row gap-4 items-stretch">
                     <div class="flex-grow">

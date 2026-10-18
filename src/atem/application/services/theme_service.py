@@ -86,6 +86,7 @@ class ThemeService:
         theme.dandelion_seed_opacity = dto.dandelion_seed_opacity
         theme.kids_photo_opacity = dto.kids_photo_opacity
         theme.header_opacity = dto.header_opacity
+        theme.show_phone = dto.show_phone
         logger.info("admin_action", action="theme_custom", preset=dto.preset_key.value)
         return self._to_dto(await self._repository.save_theme(theme))
 

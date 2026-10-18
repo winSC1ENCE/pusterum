@@ -1,5 +1,6 @@
 """Admin area controllers (all guarded by ``require_admin`` except the login flow)."""
 
+from atem.presentation.controllers.admin.accounts import AdminAccountsController
 from atem.presentation.controllers.admin.auth import AdminAuthController
 from atem.presentation.controllers.admin.content import AdminContentController
 from atem.presentation.controllers.admin.dashboard import AdminDashboardController
@@ -11,6 +12,7 @@ from atem.presentation.controllers.admin.services import AdminServicesController
 ADMIN_CONTROLLERS = (
     AdminAuthController,
     AdminSecurityController,
+    AdminAccountsController,
     AdminDashboardController,
     AdminDesignController,
     AdminContentController,

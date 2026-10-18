@@ -198,3 +198,15 @@ def test_offering_button_preselects_contact_subject(page: Page, server_url: str)
     page.locator('[data-contact-subject="Terminanfrage: Atemtherapie E2E"]').click()
     expect(page.locator("#subject")).to_have_value("Terminanfrage: Atemtherapie E2E")
     assert_clean(page)
+
+
+def test_accounts_overview_from_dashboard(page: Page, server_url: str) -> None:
+    _login(page, server_url)
+    page.goto(server_url + "/admin")
+    page.get_by_role("link", name="Admin-Konten").click()
+    table = page.get_by_test_id("accounts-table")
+    expect(table.get_by_text(ADMIN_EMAIL)).to_be_visible()
+    expect(table.get_by_text("(Sie)")).to_be_visible()
+    page.set_viewport_size({"width": 390, "height": 844})
+    expect(table.get_by_text("Letzte Anmeldung:")).to_be_visible()  # card layout on phones
+    assert_clean(page)

@@ -1,6 +1,6 @@
 {# One contact message row in the admin dashboard (re-rendered after status changes). #}
 <tr id="message-{{ msg.id }}" class="hover:bg-theme-muted/40 transition-colors align-top">
-    <td class="py-4 px-6 text-xs text-theme-text-muted whitespace-nowrap">{{ msg.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+    <td class="py-4 px-6 text-xs text-theme-text-muted whitespace-nowrap">{{ msg.created_at | local_datetime }}</td>
     <td class="py-4 px-6 font-bold text-theme-text-main">{{ msg.sender_name }}</td>
     <td class="py-4 px-6 text-xs">
         <a href="mailto:{{ msg.sender_email }}" class="text-theme-primary font-semibold hover:underline block">{{ msg.sender_email }}</a>

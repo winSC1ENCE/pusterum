@@ -32,6 +32,10 @@ class IUserRepository(ABC):
         """Delete a user and their recovery codes; True if a row was deleted."""
 
     @abstractmethod
+    async def list_users(self) -> list[User]:
+        """All accounts, ordered by e-mail address."""
+
+    @abstractmethod
     async def count_active_admins(self) -> int:
         """Number of active administrator accounts."""
 

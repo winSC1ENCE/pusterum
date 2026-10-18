@@ -45,6 +45,10 @@ class SqlAlchemyUserRepository(SqlAlchemyRepository[UserModel, User], IUserRepos
         )
         return await self._delete(user_id)
 
+    async def list_users(self) -> list[User]:
+        """All accounts, ordered by e-mail address."""
+        return await self._list(order_by=UserModel.email)
+
     async def count_active_admins(self) -> int:
         """Number of active administrator accounts."""
         count = await self._session.scalar(

@@ -1,0 +1,68 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Admin-Konten | PUSTERUM Administration{% endblock %}
+
+{% set badge = "inline-block px-2.5 py-0.5 rounded-full text-xs font-medium" %}
+{% set ok = badge ~ " bg-emerald-50 text-emerald-800 border border-emerald-200" %}
+{% set warn = badge ~ " bg-amber-50 text-amber-900 border border-amber-200" %}
+{% set off = badge ~ " bg-slate-100 text-slate-600 border border-slate-200" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-16 px-4 sm:px-6 lg:px-8 space-y-8">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <h1 class="font-heading text-3xl font-bold text-theme-text-main">Admin-Konten</h1>
+            <p class="text-sm text-theme-text-muted mt-1">Wer Zugang zum Admin-Bereich hat. Zeiten in Schweizer Zeit.</p>
+        </div>
+        <a href="/admin" class="px-4 py-2 rounded-full border border-theme bg-theme-card text-xs font-medium text-theme-text-main hover:bg-theme-muted">Zum Dashboard</a>
+    </div>
+
+    <div class="bg-theme-card border border-theme rounded-3xl overflow-hidden">
+        <table class="w-full text-sm text-left" data-testid="accounts-table">
+            <thead class="hidden sm:table-header-group text-xs uppercase tracking-wider text-theme-text-muted border-b border-theme">
+                <tr>
+                    <th scope="col" class="py-3 px-5">E-Mail</th>
+                    <th scope="col" class="py-3 px-5">Status</th>
+                    <th scope="col" class="py-3 px-5">2FA</th>
+                    <th scope="col" class="py-3 px-5 whitespace-nowrap">Letzte Anmeldung</th>
+                    <th scope="col" class="py-3 px-5 whitespace-nowrap">Passwort geändert</th>
+                </tr>
+            </thead>
+            <tbody class="block sm:table-row-group divide-y divide-theme text-theme-text-main">
+                {% for account in accounts %}
+                <tr class="block sm:table-row py-3 sm:py-0{% if not account.is_active %} opacity-60{% endif %}">
+                    <td class="block sm:table-cell py-1 sm:py-4 px-5 font-medium break-words">
+                        {{ account.email }}
+                        {% if user and account.email == user.email %}<span class="text-xs text-theme-text-muted">(Sie)</span>{% endif %}
+                    </td>
+                    <td class="block sm:table-cell py-1 sm:py-4 px-5 space-x-1 whitespace-nowrap">
+                        <span class="sm:hidden text-xs text-theme-text-muted">Status:</span>
+                        {% if not account.is_active %}<span class="{{ off }}">deaktiviert</span>
+                        {% elif account.locked %}<span class="{{ warn }}">gesperrt</span>
+                        {% else %}<span class="{{ ok }}">aktiv</span>{% endif %}
+                        {% if account.must_change_password %}<span class="{{ warn }}">Passwort ändern</span>{% endif %}
+                    </td>
+                    <td class="block sm:table-cell py-1 sm:py-4 px-5 whitespace-nowrap">
+                        <span class="sm:hidden text-xs text-theme-text-muted">2FA:</span>
+                        {% if account.totp_enabled %}
+                            <span class="{{ ok if account.recovery_codes_left else warn }}">eingerichtet</span>
+                            <span class="sm:block text-xs text-theme-text-muted sm:mt-1">{{ account.recovery_codes_left }} Wiederherstellungscodes</span>
+                        {% else %}
+                            <span class="{{ warn if require_2fa else off }}">fehlt</span>
+                        {% endif %}
+                    </td>
+                    <td class="block sm:table-cell py-1 sm:py-4 px-5 whitespace-nowrap"><span class="sm:hidden text-xs text-theme-text-muted">Letzte Anmeldung:</span> {{ account.last_login_at | local_datetime or "noch nie" }}</td>
+                    <td class="block sm:table-cell py-1 sm:py-4 px-5 whitespace-nowrap"><span class="sm:hidden text-xs text-theme-text-muted">Passwort geändert:</span> {{ account.password_changed_at | local_datetime or "-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p class="text-xs text-theme-text-muted">
+        Konten anlegen, sperren oder löschen und Passwörter zurücksetzen geschieht aus Sicherheitsgründen
+        nur auf dem Server (Runbook 1.10 und 4.1). Eigenes Passwort und 2FA:
+        <a href="/admin/security" class="underline hover:text-theme-primary">Sicherheit &amp; 2FA</a>.
+    </p>
+</div>
+{% endblock %}

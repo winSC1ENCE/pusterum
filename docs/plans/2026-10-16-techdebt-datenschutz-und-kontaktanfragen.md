@@ -25,7 +25,7 @@ Aufwand: **S** bis halber Tag, **M** 1-2 Tage, **L** mehr.
 | 7 | Log-Fristen: journald 30 Tage, Proxy-Log mit gekürzter IP | P1 | S | - | umgesetzt (Server: Runbook 6.1 einmalig) |
 | 8 | Benachrichtigungsmail ohne Anfragetext | P1 | S | Entscheid Praxis | umgesetzt (Vorname, Betreff, Link) |
 | 9 | Runbook: Auskunfts-/Löschbegehren, Datenpanne, Restore + `reapply-deletions` | P1 | S | 4 | umgesetzt (Runbook 7, Restore automatisch seit #4) |
-| 10 | Auftragsbearbeitung prüfen, Kurzverzeichnis (verschlüsselt) | P1 | S | - | offen |
+| 10 | Auftragsbearbeitung prüfen, Kurzverzeichnis (verschlüsselt) | P1 | S | - | umgesetzt (offen: Storage Box im Hoster-AVV prüfen) |
 | 11 | Statusmodell + Verlauf (Migration) | P2 | M | TDR-0010 | umgesetzt (Migration 0019) |
 | 12 | Liste: Filter, Suche, Sortierung, Paging | P2 | M | 11 | umgesetzt (`/admin/messages`) |
 | 13 | Detailansicht: Notizen, Verlauf, «Antworten» | P2 | M | 11 | umgesetzt (ohne Wiedervorlage/Zuweisung, Entscheid Praxis) |
@@ -174,6 +174,10 @@ AVV/DPA mit Hoster, Mail-Provider und Backup-Speicher prüfen und den Ablageort 
 Betriebsordner vermerken. Ein kurzes freiwilliges Verzeichnis der Bearbeitungstätigkeiten unter
 `docs/ops/private/` anlegen.
 
+Umgesetzt 2026-10-18: Verzeichnis und Vertragsübersicht in `docs/ops/private/auftragsbearbeitung.md`;
+AVV mit dem Hoster und Vereinbarung Praxisinhaberin-Betreiber abgeschlossen, DPA des Mail-Providers
+ist Teil seiner AGB. Ablage im geteilten, verschlüsselten Cloud-Ordner.
+
 ### 11-13 · Verwaltung der Kontaktanfragen (P2, TDR-0010)
 
 * Status Neu, In Bearbeitung, Beantwortet, Erledigt, Spam mit Verlauf.
@@ -221,7 +225,7 @@ Changelog-Format (Überschrift `## [x.y.z]`, Gedankenstrich, Datum), auf das sic
 | Namen der Status | entschieden 2026-10-18: Neu, In Bearbeitung, Beantwortet, Erledigt, Spam | Praxisinhaberin |
 | Freiwilliges Verzeichnis | ja, kurz | Betreiber |
 | Gedankenstriche | Ausnahme beantragt (2026-10-16), bis dahin keine neuen | Betreiber / METAS |
-| Juristische Prüfung des Löschkonzepts | ja, vor Umsetzung von #4-#8 | Betreiber |
+| Juristische Prüfung des Löschkonzepts | entschieden 2026-10-18: umgesetzt nach EDÖB-Empfehlungen ohne juristische Prüfung; Prüfung später optional | Betreiber |
 
 ## Weitere Befunde (klein, ohne eigene Nummer)
 

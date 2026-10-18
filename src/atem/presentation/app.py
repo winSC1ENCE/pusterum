@@ -204,7 +204,7 @@ RETENTION_FIRST_RUN_DELAY_SECONDS = 60
 async def _retention_loop(
     session_factory: async_sessionmaker[AsyncSession], settings: Settings
 ) -> None:
-    """Daily data-retention job (idempotent – safe to run in every worker)."""
+    """Daily data-retention job; workers do not run it concurrently (advisory lock)."""
     await asyncio.sleep(RETENTION_FIRST_RUN_DELAY_SECONDS)
     while True:
         try:

@@ -38,6 +38,10 @@ RATE_LIMITED = (
 )
 
 
+# Longer than the widest per-IP limit window (24 h) so the limits keep working (ADR-0006)
+IP_RETENTION = timedelta(days=7)
+
+
 @dataclass(frozen=True)
 class ContactLimits:
     """Abuse-protection thresholds."""
@@ -170,10 +174,15 @@ class ContactService:
         logger.info("admin_action", action="message_deleted")
 
     async def purge_expired(self, retention: timedelta) -> int:
-        """Delete messages older than the retention period and expired captcha records."""
+        """Delete messages older than the retention period and expired captcha records.
+
+        Sender IPs are only needed for the per-IP limits (at most 24 h); they are removed after
+        ``IP_RETENTION`` (ADR-0006).
+        """
         now = datetime.now(UTC)
         deleted = await self._repository.delete_messages_older_than(now - retention)
+        anonymized = await self._repository.anonymize_ips_older_than(now - IP_RETENTION)
         await self._repository.purge_expired_captcha_challenges(now)
-        if deleted:
-            logger.info("contact_messages_purged", deleted=deleted)
+        if deleted or anonymized:
+            logger.info("contact_messages_purged", deleted=deleted, ips_removed=anonymized)
         return deleted

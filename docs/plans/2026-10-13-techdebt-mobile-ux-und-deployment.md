@@ -101,6 +101,9 @@ Fix: `init: true` für `backup` und `restore` (Docker-Init räumt ab; lokal nach
 
 ## Später (erfasst, nicht eingeplant)
 
+> Neue offene Punkte (Datenschutz, Kontaktanfragen, Admin-Konten) stehen in
+> [2026-10-16](2026-10-16-techdebt-datenschutz-und-kontaktanfragen.md).
+
 - ~~Theme-Farben (`tailwind.config.js`: `var(--theme-…)`) unterstützen keine Deckkraft-Stufen →
   Klassen wie `bg-theme-secondary/50` werden nicht erzeugt und wirken nicht (z. B. Kreis um das
   Logo, Hover im Menü). Lösung: Theme-Variablen als RGB-Kanäle + `rgb(var(--…) / <alpha-value>)`.~~

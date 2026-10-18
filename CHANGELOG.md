@@ -29,6 +29,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 - Datenschutz: Das Zugriffslog speichert IP-Adressen nur noch gekürzt, Server-Logs werden nach 30 Tagen
   gelöscht.
+- Datenschutz: Die IP-Adresse einer Kontaktanfrage wird nach 7 Tagen entfernt (sie dient nur dem Schutz vor
+  Massenanfragen).
 
 ### Behoben
 

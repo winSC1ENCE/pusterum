@@ -9,7 +9,8 @@ import pytest
 from litestar import Litestar
 from litestar.testing import AsyncTestClient
 from pydantic import ValidationError
-from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
+from sqlalchemy import select, text, update
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from atem.application.dto.contact import CreateContactMessageDTO
 from atem.application.services.contact_service import CAPTCHA_REQUIRED, ContactService
@@ -21,14 +22,16 @@ from atem.domain.exceptions import (
 )
 from atem.domain.models.contact import ContactMessage, MessageStatus
 from atem.infrastructure.captcha.altcha_captcha import AltchaCaptcha
-from atem.infrastructure.config.settings import Settings
+from atem.infrastructure.config.settings import Settings, get_settings
+from atem.infrastructure.database.models.contact import ContactMessageModel
 from atem.infrastructure.database.repositories.sqlalchemy_contact_repository import (
     SqlAlchemyContactRepository,
 )
 from atem.infrastructure.email.mock_email_service import MockEmailService
 from atem.infrastructure.email.smtp_email_service import CONFIRMATION_BODY, SmtpEmailService
+from atem.presentation.bootstrap import RETENTION_LOCK_KEY, purge_expired_data
 from atem.presentation.security.form_token import issue_form_token, verify_form_token
-from tests.conftest import contact_form_payload, solve_altcha
+from tests.conftest import TEST_DATABASE_URL, contact_form_payload, solve_altcha
 
 ADMIN = {"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"}
 
@@ -333,3 +336,35 @@ async def test_dashboard_counts_all_messages_not_just_the_page(
     page = (await app_client.get("/admin")).text
     assert ">55</div>" in page and ">52</div>" in page
     assert "neueste 50 von 55" in page
+
+
+async def test_sender_ips_are_removed_after_seven_days(
+    contact_service: ContactService, db_session: AsyncSession
+) -> None:
+    """ADR-0006: IPs only serve the per-IP limits (24 h) and are dropped after 7 days."""
+    old = await _submit(contact_service, ip="198.51.100.10", email="alt@example.ch")
+    new = await _submit(contact_service, ip="198.51.100.11", email="neu@example.ch")
+    await db_session.execute(
+        update(ContactMessageModel)
+        .where(ContactMessageModel.id == old.id)
+        .values(created_at=datetime.now(UTC) - timedelta(days=8))
+    )
+    assert await contact_service.purge_expired(timedelta(days=365)) == 0  # nothing deleted
+    rows = await db_session.execute(select(ContactMessageModel.id, ContactMessageModel.ip_address))
+    ips = dict(rows.all())
+    assert ips == {old.id: None, new.id: "198.51.100.11"}
+
+
+@pytest.mark.skipif(
+    not TEST_DATABASE_URL.startswith("postgresql"), reason="advisory locks need PostgreSQL"
+)
+async def test_retention_job_skips_while_another_worker_holds_the_lock(
+    async_engine: AsyncEngine,
+) -> None:
+    factory = async_sessionmaker(async_engine, expire_on_commit=False)
+    async with factory() as holder:
+        await holder.execute(
+            text("SELECT pg_advisory_xact_lock(:key)"), {"key": RETENTION_LOCK_KEY}
+        )
+        assert await purge_expired_data(factory, get_settings()) == 0
+        await holder.rollback()

@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.exc import IntegrityError
 
 from atem.domain.interfaces.contact_repository import IContactRepository
@@ -90,6 +90,18 @@ class SqlAlchemyContactRepository(
         """Delete messages created before ``cutoff``."""
         result = await self._session.execute(
             delete(ContactMessageModel).where(ContactMessageModel.created_at < cutoff)
+        )
+        return int(getattr(result, "rowcount", 0) or 0)
+
+    async def anonymize_ips_older_than(self, cutoff: datetime) -> int:
+        """Set ``ip_address`` to NULL for messages created before ``cutoff``."""
+        result = await self._session.execute(
+            update(ContactMessageModel)
+            .where(
+                ContactMessageModel.created_at < cutoff,
+                ContactMessageModel.ip_address.is_not(None),
+            )
+            .values(ip_address=None)
         )
         return int(getattr(result, "rowcount", 0) or 0)
 

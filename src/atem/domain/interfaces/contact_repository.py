@@ -53,6 +53,10 @@ class IContactRepository(ABC):
         """Delete messages created before ``cutoff`` (retention); return the count."""
 
     @abstractmethod
+    async def anonymize_ips_older_than(self, cutoff: datetime) -> int:
+        """Remove the sender IP of messages created before ``cutoff``; return the count."""
+
+    @abstractmethod
     async def register_captcha_challenge(self, challenge_id: str, expires_at: datetime) -> bool:
         """Mark a solved captcha challenge as used; False if it was used before (replay)."""
 

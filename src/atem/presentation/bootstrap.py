@@ -7,6 +7,7 @@ which the production container entrypoint runs once before the web workers start
 from datetime import UTC, datetime, timedelta
 
 import structlog
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from atem.application.services.auth_service import AuthService
@@ -34,6 +35,7 @@ from atem.infrastructure.security.pyotp_totp_provider import PyotpTotpProvider
 logger = structlog.get_logger(__name__)
 
 LOGIN_ATTEMPT_RETENTION = timedelta(days=30)
+RETENTION_LOCK_KEY = 0x50555354  # arbitrary constant ("PUST") for pg_try_advisory_xact_lock
 
 
 async def seed_content(session_factory: async_sessionmaker[AsyncSession]) -> int:
@@ -74,8 +76,20 @@ def build_contact_service(
 async def purge_expired_data(
     session_factory: async_sessionmaker[AsyncSession], settings: Settings
 ) -> int:
-    """Data retention: delete old contact messages, captcha and login-attempt records."""
+    """Data retention: delete old contact messages, captcha and login-attempt records.
+
+    On PostgreSQL a transaction-scoped advisory lock keeps the workers from running it at the
+    same time (each granian worker has its own daily loop); a worker that does not get the
+    lock skips this round.
+    """
     async with session_factory() as session:
+        if session.get_bind().dialect.name == "postgresql":
+            got_lock = await session.scalar(
+                text("SELECT pg_try_advisory_xact_lock(:key)"), {"key": RETENTION_LOCK_KEY}
+            )
+            if not got_lock:
+                logger.info("retention_skipped_locked")
+                return 0
         service = build_contact_service(
             SqlAlchemyContactRepository(session), MockEmailService(), settings
         )

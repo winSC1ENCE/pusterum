@@ -1,6 +1,6 @@
 # ADR-0006: Datenschutz und Löschkonzept (DSG/DSV)
 
-* **Status:** proposed
+* **Status:** accepted (umgesetzt 2026-10-18 ohne juristische Prüfung, Grundlage EDÖB-Empfehlungen)
 * **Deciders:** Betreiber (Technik), Praxisinhaberin
 * **Date:** 2026-10-16
 * **Technical Story:** Tech-Debt [2026-10-16](../plans/2026-10-16-techdebt-datenschutz-und-kontaktanfragen.md)
@@ -135,6 +135,7 @@ Gesundheitsdaten im Postfach. **Entschieden** von der Praxisinhaberin am 2026-10
 * **Verzeichnis** (Art. 12 DSG): voraussichtlich nicht Pflicht (kleines Unternehmen, keine
   umfangreiche Bearbeitung). Ein kurzes freiwilliges Verzeichnis im verschlüsselten Ordner
   `docs/ops/private/` dient trotzdem als Übersicht.
+* Umgesetzt 2026-10-18: Verzeichnis und Verträge in `docs/ops/private/auftragsbearbeitung.md`.
 
 ### Positive Consequences
 

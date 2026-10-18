@@ -18,6 +18,7 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
   Zeitraum, Sortierung und Seiten. Lange unbeantwortete Anfragen sind als «überfällig» markiert.
 - Detailansicht jeder Anfrage mit internen Notizen, Verlauf (wer hat wann was geändert), «Antworten»
   per Mailprogramm und Export aller Anfragen einer Adresse für Auskunftsbegehren.
+- Die aktuelle Version der Webseite steht unten im Footer.
 
 ### Geändert
 

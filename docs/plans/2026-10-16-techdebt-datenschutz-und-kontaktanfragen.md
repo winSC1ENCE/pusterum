@@ -21,7 +21,7 @@ Aufwand: **S** bis halber Tag, **M** 1-2 Tage, **L** mehr.
 | 3 | Zähler im Dashboard falsch ab 51 Anfragen | P1 | S | - | umgesetzt |
 | 4 | Löschen auf Anfrage + Löschprotokoll + `reapply-deletions` | P1 | M | ADR-0006 | offen |
 | 5 | Fristen je Status, IP-Anonymisierung, Retention-Lauf einmal pro Tag | P1 | M | 4, TDR-0010 (Status) | umgesetzt (feste Werte; im Admin einstellbar: später) |
-| 6 | Datenschutzerklärung + Hinweis im Kontaktformular | P1 | S | Entscheide 4/5/8 | offen |
+| 6 | Datenschutzerklärung + Hinweis im Kontaktformular | P1 | S | Entscheide 4/5/8 | umgesetzt (Migration 0020, nach EDÖB; Prüfung durch die Praxisinhaberin offen) |
 | 7 | Log-Fristen: journald 30 Tage, Proxy-Log mit gekürzter IP | P1 | S | - | umgesetzt (Server: Runbook 6.1 einmalig) |
 | 8 | Benachrichtigungsmail ohne Anfragetext | P1 | S | Entscheid Praxis | umgesetzt (Vorname, Betreff, Link) |
 | 9 | Runbook: Auskunfts-/Löschbegehren, Datenpanne, Restore + `reapply-deletions` | P1 | S | 4 | umgesetzt (Runbook 7, vorerst mit `psql`; CLI folgt mit #4) |
@@ -146,6 +146,9 @@ scheitert an der eindeutigen E-Mail-Adresse. Umsetzung:
 * Kontaktformular: Hinweis «Bitte keine ausführlichen Gesundheitsangaben» und ein klickbarer Link
   auf die Datenschutzerklärung (heute nur Text).
 * Die Texte bleiben im Admin bearbeitbar; die Praxisinhaberin prüft sie vor dem Release.
+* Umgesetzt 2026-10-18 ohne juristische Prüfung, Grundlage: EDÖB «Informationspflicht» und
+  «Datenschutzerklärungen im Internet» (Mindestangaben nach Art. 19 DSG, Kurzfassung zuoberst).
+  Anbieter werden nur neutral genannt; der Standort des Backup-Speichers steht als «EU».
 
 ### 7 · Log-Fristen (P1)
 

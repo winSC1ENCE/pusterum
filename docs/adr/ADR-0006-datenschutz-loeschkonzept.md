@@ -125,6 +125,9 @@ Gesundheitsdaten im Postfach. **Entschieden** von der Praxisinhaberin am 2026-10
   * Vorgehen und Frist für Auskunft und Löschung.
 * **Kontaktformular**: Hinweis «Bitte keine ausführlichen Gesundheitsangaben» und ein echter Link auf
   die Datenschutzerklärung.
+* Umgesetzt 2026-10-18 (Migration `0020_privacy_statement`) nach den Empfehlungen des EDÖB:
+  Kurzfassung zuoberst, danach 9 Abschnitte. Ändert sich eine Bearbeitung (Anbieter, Frist,
+  Cookie), wird der Text im selben Release angepasst.
 * **Auftragsbearbeitung** (Art. 9 DSG): Verträge (AVV/DPA) mit Hoster, Mail-Provider und
   Backup-Speicher prüfen und im verschlüsselten Betriebsordner vermerken.
 * **Verzeichnis** (Art. 12 DSG): voraussichtlich nicht Pflicht (kleines Unternehmen, keine

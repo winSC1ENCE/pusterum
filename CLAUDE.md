@@ -27,7 +27,7 @@ Clean Architecture unter `src/atem/` (Abhängigkeiten zeigen nur nach innen):
   Seeds), E-Mail, Security (Argon2, Fernet, TOTP), Captcha, Media (Pillow).
 - `presentation/` – `app.py` (Factory `create_app`), `bootstrap.py`, Controller (Admin als Paket
   `controllers/admin/`), `security/` (Guard, Header, Host, Proxy, Form-Token), `errors.py`, Templates, Static.
-- `cli.py` - `python -m atem.cli {create-admin|reset-password|deactivate-admin|activate-admin|delete-admin|reset-2fa|unlock|seed-content|purge-messages|export-person}`.
+- `cli.py` - `python -m atem.cli {create-admin|reset-password|deactivate-admin|activate-admin|delete-admin|reset-2fa|unlock|seed-content|purge-messages|export-person|forget-person|reapply-deletions}`.
 
 ## Befehle
 

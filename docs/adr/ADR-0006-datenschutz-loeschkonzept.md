@@ -100,6 +100,8 @@ Rotation bleibt als Stellschraube.
 3. **Wiederherstellung aus Backup**: Direkt nach jedem Restore läuft `reapply-deletions`. Es löscht
    alle im `deletion_log` verzeichneten Anfragen erneut. Das wird Pflichtschritt im Runbook (3.3) und
    in `restore.sh`.
+   Umgesetzt 2026-10-18 (TDR-0013): Die App führt es bei jedem Start aus, `restore.sh` bewahrt das
+   aktuelle Protokoll über den Restore.
 4. **Fristen automatisch**: Der bestehende tägliche Retention-Lauf wird um die Fristen je Status, die
    IP-Anonymisierung und das Löschprotokoll erweitert. Er soll nur einmal pro Tag laufen (Advisory-Lock
    statt pro Worker).

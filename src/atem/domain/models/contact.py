@@ -49,6 +49,13 @@ class EventAction(StrEnum):
     NOTES = "NOTES"
 
 
+class DeletionReason(StrEnum):
+    """Why a message was deleted by hand (the retention job does not write the log)."""
+
+    MESSAGE = "MESSAGE"  # single message deleted in the admin
+    PERSON = "PERSON"  # erasure request: all messages of one address
+
+
 class MessageSort(StrEnum):
     """Sort orders of the admin list; the value is the URL parameter."""
 
@@ -144,3 +151,16 @@ class ContactMessageEvent(BaseEntity):
     new_value: str | None = None
     actor_id: UUID | None = None
     actor_email: str | None = field(default=None, compare=False)
+
+
+@dataclass(kw_only=True)
+class DeletionRecord(BaseEntity):
+    """Log entry of a deleted message, so a restore from backup can delete it again (ADR-0006).
+
+    No personal data: the message ID and the peppered hash of the sender address only.
+    """
+
+    message_id: UUID
+    reason: DeletionReason
+    email_hash: str | None = None
+    actor_id: UUID | None = None

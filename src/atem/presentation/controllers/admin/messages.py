@@ -129,6 +129,7 @@ class AdminMessagesController(Controller):
             "admin/message_detail.html",
             msg=detail.message,
             events=detail.events,
+            sender_message_count=detail.sender_message_count,
             # «Neu» is only the state of an unopened message, never a manual target.
             statuses=[s for s in MessageStatus if s != MessageStatus.NEW],
         )
@@ -166,6 +167,7 @@ class AdminMessagesController(Controller):
     @post("/{message_id:uuid}/delete")
     async def delete_message(
         self,
+        request: Request[Any, Any, Any],
         contact_service: NamedDependency[ContactService],
         message_id: FromPath[UUID],
         data: FormData,
@@ -173,7 +175,23 @@ class AdminMessagesController(Controller):
         """Permanently delete the message with its history (confirmation checkbox required)."""
         if data.get("confirm") != "yes":
             raise ValidationException("Bitte das Löschen bestätigen.")
-        await contact_service.delete_message(message_id)
+        actor_id, _ = current_author(request)
+        await contact_service.delete_message(message_id, actor_id)
+        return Redirect(path="/admin/messages", status_code=303)
+
+    @post("/{message_id:uuid}/forget")
+    async def forget_sender(
+        self,
+        request: Request[Any, Any, Any],
+        contact_service: NamedDependency[ContactService],
+        message_id: FromPath[UUID],
+        data: FormData,
+    ) -> Redirect:
+        """Erasure request: delete all messages from this sender address (ADR-0006)."""
+        if data.get("confirm") != "yes":
+            raise ValidationException("Bitte das Löschen bestätigen.")
+        actor_id, _ = current_author(request)
+        await contact_service.forget_sender_of(message_id, actor_id)
         return Redirect(path="/admin/messages", status_code=303)
 
     @get("/{message_id:uuid}/export")

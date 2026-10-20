@@ -12,6 +12,10 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+### Geändert
+
+- Kopfzeile: Der Zusatz «Gemeinschaftspraxis» unter dem Logo entfällt.
+
 ## [1.3.0] - 2026-10-18
 
 ### Hinzugefügt

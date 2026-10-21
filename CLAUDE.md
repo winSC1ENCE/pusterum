@@ -167,17 +167,14 @@ Version nur in `pyproject.toml` (`[project].version`, SemVer). Changelog: `CHANG
 
 - `main` und `develop` sind per Ruleset geschützt (`main-protect`, `develop-protect`): nur per PR,
   6 Pflicht-Checks, nur Merge-Commits, kein Löschen, kein Force-Push.
-- **Claude führt den PR-Ablauf selbst aus**, sobald der Benutzer ihn in der aktuellen Anfrage
-  freigibt («PR erstellen», «mergen»): pushen, PR mit Beschreibung erstellen, auf die Checks warten
-  und mergen. Der Teststatus bleibt in der Konsole sichtbar; Branch immer explizit nennen, kein `--auto`:
+- **Merge-Befehle für den Benutzer immer mit Warten auf die Checks**, damit der Teststatus in der
+  Konsole sichtbar ist; Branch immer explizit nennen, kein `--auto`:
 
   ```bash
-  git push -u origin <branch>
-  gh pr create --base develop --head <branch> --title "<type(scope): subject>" --body "<Beschreibung>"
   gh pr checks <branch> --watch --fail-fast && gh pr merge <branch> --merge --delete-branch
   ```
 
-- Neue Branches mit `git switch --no-track -c …` anlegen.
+- Der Benutzer pusht und mergt selbst; neue Branches mit `git switch --no-track -c …` anlegen.
 
 ## Deployment
 

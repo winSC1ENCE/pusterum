@@ -4,7 +4,7 @@ from sqlalchemy import Boolean, String
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
-from atem.domain.models.theme import ColorPresetKey, ShapeType
+from atem.domain.models.theme import ColorPresetKey, PageSection, ShapeType
 from atem.infrastructure.database.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 
@@ -44,4 +44,8 @@ class ThemeConfigModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     kids_photo_opacity: Mapped[int] = mapped_column(default=30, nullable=False)
     header_opacity: Mapped[int] = mapped_column(default=60, nullable=False)
     show_phone: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Comma separated PageSection values (see SqlAlchemyThemeRepository)
+    section_order: Mapped[str] = mapped_column(
+        String(255), default=",".join(PageSection), nullable=False
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

@@ -25,6 +25,7 @@ from atem.domain.models.theme import (
     DandelionEffectMode,
     DandelionModeDefinition,
     FontFamily,
+    PageSection,
     ShapeType,
     ThemeConfig,
     hex_to_rgb_channels,
@@ -203,6 +204,17 @@ class ThemeService:
             "admin_action",
             action="theme_dandelion",
             modes=[m.value for m in theme.dandelion_modes],
+        )
+        return self._to_dto(await self._repository.save_theme(theme))
+
+    async def move_section(self, section: PageSection, offset: int) -> ThemeConfigDTO:
+        """Move a start-page section up (negative offset) or down in the page order."""
+        theme = await self._repository.get_active_theme()
+        theme.section_order = PageSection.move(theme.section_order, section, offset)
+        logger.info(
+            "admin_action",
+            action="theme_section_order",
+            order=[s.value for s in theme.section_order],
         )
         return self._to_dto(await self._repository.save_theme(theme))
 

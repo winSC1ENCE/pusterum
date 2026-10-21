@@ -10,19 +10,10 @@
     <!-- Hero Section with Pusteblume Artwork -->
     {% include "components/hero.html" %}
 
-    <!-- About & Method with Therapist Portrait -->
-    {% include "components/about.html" %}
-
-    <!-- Rotating Breath Quotes Band -->
-    {% include "components/quotes.html" %}
-
-    <!-- Competencies & Indications -->
-    {% include "components/competencies.html" %}
-
-    <!-- Service Offerings & Pricing -->
-    {% include "components/services.html" %}
-
-    <!-- Breathing exercise for children («Atmende Blume») -->
+    <!-- Reorderable sections (order from the design studio, see PageSection) -->
+    {% for section in page_sections(theme) %}
+    {% if section == 'kids' %}
+    {# Breathing exercise for children («Atmende Blume») #}
     {% if theme and theme.kids_enabled %}
     {% include "components/kids_breathing.html" %}
     {% elif is_admin %}
@@ -34,9 +25,10 @@
     </div>
     {% include "components/kids_breathing.html" %}
     {% endif %}
-
-    <!-- Practice Space & Location -->
-    {% include "components/practice.html" %}
+    {% else %}
+    {% include "components/" ~ section ~ ".html" %}
+    {% endif %}
+    {% endfor %}
 
     <!-- Contact & Appointment Section -->
     {% include "components/contact_form.html" %}

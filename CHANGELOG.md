@@ -15,6 +15,9 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 ### Hinzugefügt
 
 - Kontakt: neue Karte «Terminmöglichkeiten» (Freitagvormittag und über Mittag), im Admin editierbar.
+- Design-Studio: Die Reihenfolge der Abschnitte auf der Startseite lässt sich mit ↑/↓ ändern.
+  Die Navigation folgt automatisch. Neue Standard-Reihenfolge: Kompetenzen, Angebote, Über mich,
+  Praxis, Kontakt.
 
 ### Geändert
 

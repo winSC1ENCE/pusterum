@@ -33,4 +33,5 @@ Alle Diagramme werden ausschliesslich mit **Mermaid** direkt in Markdown gepfleg
 * [TDR-0011: Zeilenumbrüche in Inhaltsblöcken](../tdr/TDR-0011-zeilenumbrueche-inhaltsbloecke.md)
 * [TDR-0012: Kontaktanfragen verschlüsselt speichern](../tdr/TDR-0012-kontaktanfragen-verschluesselt.md)
 * [TDR-0013: Löschprotokoll und erneutes Löschen nach einem Restore](../tdr/TDR-0013-loeschprotokoll-und-restore.md)
+* [TDR-0014: Reihenfolge der Abschnitte im Design-Studio](../tdr/TDR-0014-reihenfolge-der-abschnitte.md)
 * Vorlagen: [ADR](../adr/template.md) · [TDR](../tdr/template.md)

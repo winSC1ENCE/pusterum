@@ -20,6 +20,7 @@ from atem.domain.models.theme import (
     ColorPresetKey,
     DandelionEffectMode,
     FontFamily,
+    PageSection,
     ShapeType,
 )
 
@@ -86,6 +87,7 @@ class ThemeConfigDTO(BaseModel):
     kids_photo_opacity: KidsPhotoOpacity = KIDS_PHOTO_OPACITY_DEFAULT
     header_opacity: HeaderOpacity = HEADER_OPACITY_DEFAULT
     show_phone: bool = True
+    section_order: list[PageSection] = Field(default_factory=lambda: list(PageSection))
 
     def has_dandelion_mode(self, mode: DandelionEffectMode | str) -> bool:
         """Check if a specific dandelion mode is active (used by templates)."""

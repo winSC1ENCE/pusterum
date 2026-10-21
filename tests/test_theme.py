@@ -10,6 +10,7 @@ from atem.application.services.theme_service import ThemeService
 from atem.domain.models.theme import (
     ColorPresetKey,
     DandelionEffectMode,
+    PageSection,
     ShapeType,
     hex_to_rgb_channels,
 )
@@ -584,3 +585,98 @@ async def test_phone_can_be_hidden_publicly_and_stays_editable(
     await app_client.post("/admin/design/custom", data={"show_phone_field": "1", "show_phone": "1"})
     app_client.cookies.clear()
     assert 'href="tel:' in (await app_client.get("/")).text
+
+
+DEFAULT_SECTIONS = ["competencies", "services", "kids", "about", "quotes", "practice"]
+
+
+def test_section_order_parse_is_always_complete() -> None:
+    """Unknown values and duplicates are dropped, missing sections appended in default order."""
+    assert PageSection.parse_order(None) == DEFAULT_SECTIONS
+    assert PageSection.parse_order("about, hero,about,practice") == [
+        "about",
+        "practice",
+        "competencies",
+        "services",
+        "kids",
+        "quotes",
+    ]
+
+
+def test_section_move_is_clamped() -> None:
+    order = list(PageSection)
+    assert PageSection.move(order, PageSection.ABOUT, -1)[2] == PageSection.ABOUT
+    assert PageSection.move(order, PageSection.COMPETENCIES, -1) == order
+    assert PageSection.move(order, PageSection.PRACTICE, 1) == order
+    assert PageSection.move(order, PageSection.COMPETENCIES, 1)[:2] == ["services", "competencies"]
+
+
+@pytest.mark.asyncio
+async def test_section_order_is_persisted(theme_service: ThemeService) -> None:
+    theme = await theme_service.get_active_theme()
+    assert theme.section_order == DEFAULT_SECTIONS
+    await theme_service.move_section(PageSection.QUOTES, -4)
+    theme = await theme_service.get_active_theme()
+    assert theme.section_order[0] == PageSection.QUOTES
+    # Other design changes keep the order
+    await theme_service.set_preset(ColorPresetKey.LAVENDEL_NEBEL)
+    assert (await theme_service.get_active_theme()).section_order[0] == PageSection.QUOTES
+
+
+def _positions(page: str, *needles: str) -> list[int]:
+    return [page.index(n) for n in needles]
+
+
+async def test_section_order_drives_page_and_navigation(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    """Design studio ↑/↓ reorders the start page, desktop/mobile navigation and footer."""
+    sections = ('id="kompetenzen"', 'id="angebote"', 'id="ueber-mich"', 'id="praxis"')
+    page = (await app_client.get("/")).text
+    assert _positions(page, *sections) == sorted(_positions(page, *sections))
+    assert page.index('id="start"') < page.index('id="kompetenzen"')
+    assert page.index('id="praxis"') < page.index('id="kontakt"')
+    assert page.count('href="/#kinder"') == 0  # children's offer disabled by default
+
+    await app_client.post(
+        "/admin/login",
+        data={"email": "entwicklung@pusterum.be", "password": "admin-secure-init-pass-change-me"},
+    )
+    design = (await app_client.get("/admin/design")).text
+    assert "5. Reihenfolge der Abschnitte" in design
+    for _ in range(5):  # «Über mich» to the top (clamped)
+        moved = await app_client.post(
+            "/admin/design/sections", data={"section": "about", "direction": "up"}
+        )
+        assert moved.status_code in (200, 302, 303)
+    # HTMX gets only the card (no page reload)
+    card = await app_client.post(
+        "/admin/design/sections",
+        data={"section": "about", "direction": "up"},
+        headers={"hx-request": "true"},
+    )
+    assert card.status_code == 200
+    assert 'id="section-order"' in card.text
+    assert "<html" not in card.text
+    assert 'hx-post="/admin/design/sections"' in card.text
+    # Invalid input is ignored
+    await app_client.post("/admin/design/sections", data={"section": "hero", "direction": "up"})
+    await app_client.post("/admin/design/sections", data={"section": "about", "direction": "x"})
+
+    app_client.cookies.clear()
+    page = (await app_client.get("/")).text
+    assert page.index('id="ueber-mich"') < page.index('id="kompetenzen"')
+    assert page.index('id="start"') < page.index('id="ueber-mich"')
+    nav = [page.index('href="/#ueber-mich"'), page.index('href="/#kompetenzen"')]
+    assert nav == sorted(nav)
+    footer = page[page.index("<footer") :]
+    assert footer.index('href="/#ueber-mich"') < footer.index('href="/#kompetenzen"')
+
+
+async def test_section_route_requires_admin(app_client: AsyncTestClient[Litestar]) -> None:
+    response = await app_client.post(
+        "/admin/design/sections", data={"section": "about", "direction": "up"}
+    )
+    assert response.status_code in (401, 403) or "/admin/login" in str(response.url)
+    page = (await app_client.get("/")).text
+    assert page.index('id="kompetenzen"') < page.index('id="ueber-mich"')  # unchanged

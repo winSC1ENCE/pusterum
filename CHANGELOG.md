@@ -12,6 +12,30 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-21
+
+### Hinzugefügt
+
+- Kontakt: neue Karte «Terminmöglichkeiten» (Freitagvormittag und über Mittag), im Admin editierbar.
+- Design-Studio: Die Reihenfolge der Abschnitte auf der Startseite lässt sich mit ↑/↓ ändern.
+  Die Navigation folgt automatisch. Neue Standard-Reihenfolge: Kompetenzen, Angebote, Über mich,
+  Praxis, Kontakt.
+
+### Geändert
+
+- Kopfzeile: Der Zusatz «Gemeinschaftspraxis» unter dem Logo entfällt.
+- Leere Texte zeigen keine einsamen Symbole mehr (Häkchen im Startbereich, Badge beim Porträt,
+  Listeneinträge).
+- Die Texte unter «Angebote» und «Tarife» lassen sich formatieren (fett, kursiv, Aufzählungen).
+- Praxis: Die Überschriften heissen nur noch «Standort» und «Anreise».
+- Kontaktformular: kürzere Feldnamen ohne «Ihr/Ihre» und ohne «(optional)», neuer Hinweistext im
+  Nachrichtenfeld.
+
+### Sicherheit
+
+- Bildverarbeitung (Pillow 13.0.0) und Zertifikatsliste (certifi 2026.10.19) aktualisiert;
+  behebt bekannte Sicherheitslücken.
+
 ## [1.3.0] - 2026-10-18
 
 ### Hinzugefügt

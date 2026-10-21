@@ -1,0 +1,49 @@
+{# Design studio card «Reihenfolge der Abschnitte»: included in design.html and returned alone
+   for HTMX moves (AdminDesignController.move_section). #}
+<!-- Section 5: Order of the start-page sections (PageSection, hero/contact fixed) -->
+<div id="section-order" class="mb-12 scroll-mt-24">
+    <div class="mb-4">
+        <h3 class="text-lg font-bold text-slate-900">5. Reihenfolge der Abschnitte</h3>
+        <p class="text-sm text-slate-500">Bestimmt die Reihenfolge auf der Startseite und in der Navigation. Der Startbereich steht immer oben, «Kontakt» immer unten.</p>
+    </div>
+
+    <ol class="bg-white border border-slate-200 rounded-2xl shadow-sm divide-y divide-slate-100 max-w-xl">
+        <li class="flex items-center gap-3 px-4 py-3 text-sm text-slate-400">
+            <span class="w-6 text-right tabular-nums">·</span>
+            <span class="flex-1">Startbereich (fix)</span>
+        </li>
+        {% for section in theme.section_order %}
+        <li class="flex items-center gap-3 px-4 py-3 text-sm">
+            <span class="w-6 text-right tabular-nums text-slate-400">{{ loop.index }}.</span>
+            <span class="flex-1 font-medium text-slate-900">{{ section.label }}</span>
+            {% for direction, symbol, title, disabled in [('up', '↑', 'Nach oben schieben', loop.first), ('down', '↓', 'Nach unten schieben', loop.last)] %}
+            {# HTMX swaps only this card (no reload, no scroll jump); the form also works without JS #}
+            <form
+                method="POST"
+                action="/admin/design/sections"
+                hx-post="/admin/design/sections"
+                hx-target="#section-order"
+                hx-swap="outerHTML"
+                class="inline"
+            >
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="section" value="{{ section.value }}">
+                <input type="hidden" name="direction" value="{{ direction }}">
+                <button
+                    type="submit"
+                    id="move-{{ section.value }}-{{ direction }}"
+                    class="w-9 h-9 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-default transition-colors"
+                    title="{{ title }}"
+                    aria-label="{{ section.label }}: {{ title }}"
+                    {% if disabled %}disabled{% endif %}
+                >{{ symbol }}</button>
+            </form>
+            {% endfor %}
+        </li>
+        {% endfor %}
+        <li class="flex items-center gap-3 px-4 py-3 text-sm text-slate-400">
+            <span class="w-6 text-right tabular-nums">·</span>
+            <span class="flex-1">Kontakt &amp; Termin (fix)</span>
+        </li>
+    </ol>
+</div>

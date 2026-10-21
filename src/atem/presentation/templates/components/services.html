@@ -46,7 +46,7 @@
             </div>
             {% else %}
             <div class="w-full text-center bg-theme-main border border-theme rounded-3xl p-8">
-                {{ editable('services.empty_text', tag='p', class='text-theme-text-muted', type='textarea', rows=2) }}
+                {{ editable('services.empty_text', tag='div', class='text-theme-text-muted text-center', type='rich_text', rows=10) }}
             </div>
             {% endfor %}
         </div>
@@ -56,7 +56,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
                 <div class="lg:col-span-8 space-y-2">
                     {{ editable('services.insurance_title', tag='h4', class='font-heading text-xl font-bold text-theme-text-main') }}
-                    {{ editable('services.insurance_text', tag='p', class='text-sm text-theme-text-muted leading-relaxed', type='textarea', rows=4) }}
+                    {{ editable('services.insurance_text', tag='div', class='text-sm text-theme-text-muted leading-relaxed', type='rich_text', rows=10) }}
                 </div>
                 <div class="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-center">
                     <div class="px-4 py-2.5 rounded-xl bg-theme-card border border-theme text-xs font-semibold text-theme-text-main flex items-center gap-2">

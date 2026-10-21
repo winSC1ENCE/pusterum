@@ -31,6 +31,21 @@
                    see (and edit) the card, dimmed and labelled. #}
                 {% set show_phone = theme.show_phone if theme else true %}
                 <div class="space-y-4 pt-2">
+                    {# Appointment times (plain card, no link; hidden publicly while empty) #}
+                    {% if is_admin or content_value(content_blocks, 'contact.availability') %}
+                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-theme-main border border-theme">
+                        <div class="w-11 h-11 rounded-xl bg-theme-secondary/40 flex items-center justify-center text-theme-primary flex-shrink-0">
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div class="w-full">
+                            {{ editable('contact.availability_label', tag='span', class='text-xs text-theme-text-muted block') }}
+                            {{ editable('contact.availability', tag='p', class='text-sm text-theme-text-main leading-relaxed', type='textarea', rows=3) }}
+                        </div>
+                    </div>
+                    {% endif %}
+
                     {% if is_admin or (practice_phone and show_phone) %}
                     <{{ card_tag }} {% if not is_admin %}href="tel:{{ practice_phone | replace(' ', '') }}" {% endif %}class="flex items-center gap-4 p-4 rounded-2xl bg-theme-main border border-theme hover:border-theme-primary transition-colors group{% if not show_phone %} opacity-60{% endif %}" {% if not show_phone %}data-phone-hidden{% endif %}>
                         <div class="w-11 h-11 rounded-xl bg-theme-secondary/40 flex items-center justify-center text-theme-primary group-hover:bg-theme-primary group-hover:text-white transition-colors">

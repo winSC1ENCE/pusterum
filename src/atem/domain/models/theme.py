@@ -95,6 +95,62 @@ class DandelionEffectMode(StrEnum):
         return visual or [cls.DISABLED]
 
 
+class PageSection(StrEnum):
+    """Reorderable sections of the start page (hero stays first, contact last).
+
+    The declaration order is the default order of the page.
+    """
+
+    COMPETENCIES = "competencies"
+    SERVICES = "services"
+    KIDS = "kids"
+    ABOUT = "about"
+    QUOTES = "quotes"
+    PRACTICE = "practice"
+
+    @property
+    def label(self) -> str:
+        """German name shown in the design studio."""
+        return _SECTION_LABELS[self]
+
+    @classmethod
+    def parse_order(cls, raw: "str | Iterable[str] | None") -> list["PageSection"]:
+        """Parse a comma separated string or iterable into a complete section order.
+
+        Unknown values and duplicates are dropped; missing sections are appended in the
+        default order, so the result always contains every section exactly once.
+        """
+        parts = raw.split(",") if isinstance(raw, str) else list(raw or [])
+        order: list[PageSection] = []
+        for part in parts:
+            with contextlib.suppress(ValueError):
+                section = cls(str(part).strip())
+                if section not in order:
+                    order.append(section)
+        return order + [s for s in cls if s not in order]
+
+    @classmethod
+    def move(
+        cls, order: "Iterable[PageSection]", section: "PageSection", offset: int
+    ) -> list["PageSection"]:
+        """Move ``section`` by ``offset`` positions (clamped to the start/end of the list)."""
+        result = cls.parse_order(order)
+        index = result.index(section)
+        target = min(max(index + offset, 0), len(result) - 1)
+        result.insert(target, result.pop(index))
+        return result
+
+
+_SECTION_LABELS: dict[PageSection, str] = {
+    PageSection.COMPETENCIES: "Kompetenzen",
+    PageSection.SERVICES: "Angebote & Tarife",
+    PageSection.KIDS: "Atmen mit Kindern",
+    PageSection.ABOUT: "Über mich & PUSTERUM",
+    PageSection.QUOTES: "Zitate",
+    PageSection.PRACTICE: "Praxis",
+}
+
+
 @dataclass(kw_only=True)
 class ColorPalette:
     """Color palette definition for corporate design."""
@@ -146,6 +202,8 @@ class ThemeConfig(BaseEntity):
     kids_photo_opacity: int = KIDS_PHOTO_OPACITY_DEFAULT  # %, KIDS_PHOTO_OPACITY_MIN..MAX
     header_opacity: int = HEADER_OPACITY_DEFAULT  # %, HEADER_OPACITY_MIN..MAX
     show_phone: bool = True  # practice phone visible on the public site
+    # Order of the reorderable start-page sections (design studio)
+    section_order: list[PageSection] = field(default_factory=lambda: list(PageSection))
 
     def apply_palette(self, preset_key: "ColorPresetKey") -> None:
         """Take over all colours of a preset palette (falls back to Salbei & Sand)."""

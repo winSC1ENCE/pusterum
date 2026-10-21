@@ -28,12 +28,14 @@
 </span>
 {% endmacro %}
 
-{# Checklist entry with an editable text (rendered as <li>) #}
+{# Checklist entry with an editable text (rendered as <li>; hidden publicly while empty) #}
 {% macro check_item(key) %}
+{% if is_admin or content_value(content_blocks, key) %}
 <li class="flex items-start gap-3">
     {{ check_icon() }}
     {{ editable(key, tag='span', class='text-sm text-theme-text-main') }}
 </li>
+{% endif %}
 {% endmacro %}
 
 {# Discreet font size control for the mobile menu and the footer: one flat pill

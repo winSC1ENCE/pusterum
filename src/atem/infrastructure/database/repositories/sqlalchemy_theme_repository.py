@@ -3,12 +3,14 @@
 from sqlalchemy import select
 
 from atem.domain.interfaces.theme_repository import IThemeRepository
-from atem.domain.models.theme import DandelionEffectMode, ThemeConfig
+from atem.domain.models.theme import DandelionEffectMode, PageSection, ThemeConfig
 from atem.infrastructure.database.models.theme import ThemeConfigModel
 from atem.infrastructure.database.repositories.base import SqlAlchemyRepository
 
 # Stored as a comma separated string in ``theme_configs.dandelion_mode``
 _MODES_COLUMN = "dandelion_mode"
+# Lists stored as comma separated text; everything else maps 1:1 by field name
+_LIST_FIELDS = {"dandelion_modes", "section_order"}
 
 
 class SqlAlchemyThemeRepository(
@@ -40,16 +42,19 @@ class SqlAlchemyThemeRepository(
         model: ThemeConfigModel | None = await self._session.scalar(stmt)
         return model
 
-    # The modes list is stored as text – everything else maps 1:1 by field name.
     def _to_entity(self, model: ThemeConfigModel) -> ThemeConfig:
         values = {
-            name: getattr(model, name) for name in self._field_names() if name != "dandelion_modes"
+            name: getattr(model, name) for name in self._field_names() if name not in _LIST_FIELDS
         }
-        modes = DandelionEffectMode.parse_many(getattr(model, _MODES_COLUMN))
-        return ThemeConfig(**values, dandelion_modes=modes)
+        return ThemeConfig(
+            **values,
+            dandelion_modes=DandelionEffectMode.parse_many(getattr(model, _MODES_COLUMN)),
+            section_order=PageSection.parse_order(model.section_order),
+        )
 
     def _apply(self, model: ThemeConfigModel, entity: ThemeConfig) -> None:
         for name in self._field_names():
-            if name not in {"id", "created_at", "updated_at", "dandelion_modes"}:
+            if name not in {"id", "created_at", "updated_at", *_LIST_FIELDS}:
                 setattr(model, name, getattr(entity, name))
         setattr(model, _MODES_COLUMN, ",".join(m.value for m in entity.dandelion_modes))
+        model.section_order = ",".join(entity.section_order)

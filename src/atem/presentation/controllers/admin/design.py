@@ -14,6 +14,7 @@ from atem.domain.models.theme import (
     HEADER_OPACITY_MIN,
     ColorPresetKey,
     DandelionEffectMode,
+    PageSection,
     ShapeType,
     find_matching_preset,
 )
@@ -21,12 +22,14 @@ from atem.presentation.controllers.admin.common import (
     FormData,
     admin_page,
     htmx_or_redirect,
+    is_htmx,
     parse_int,
 )
 from atem.presentation.security.admin_auth import require_admin
 
 logger = structlog.get_logger(__name__)
 DESIGN_PATH = "/admin/design"
+SECTION_MOVES = {"up": -1, "down": 1}
 CUSTOM_COLOR_FIELDS = (
     "primary_color",
     "secondary_color",
@@ -60,6 +63,29 @@ class AdminDesignController(Controller):
             shapes=theme_service.get_all_shapes(),
             dandelion_modes=theme_service.get_dandelion_modes(),
         )
+
+    @post("/sections")
+    async def move_section(
+        self,
+        request: Request[Any, Any, Any],
+        theme_service: NamedDependency[ThemeService],
+        data: FormData,
+    ) -> Template | Redirect:
+        """Move one start-page section up or down (order of the public page and navigation).
+
+        HTMX gets only the re-rendered card, so the page neither reloads nor scrolls.
+        """
+        try:
+            section = PageSection(data.get("section", ""))
+            offset = SECTION_MOVES[data.get("direction", "")]
+        except (ValueError, KeyError):
+            logger.warning("invalid_section_move")
+        else:
+            await theme_service.move_section(section, offset)
+        if is_htmx(request):
+            theme = await theme_service.get_active_theme()
+            return Template(template_name="admin/section_order_card.html", context={"theme": theme})
+        return Redirect(path=f"{DESIGN_PATH}#section-order")
 
     @post("/preset")
     async def apply_preset(

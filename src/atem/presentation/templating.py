@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from litestar.plugins.jinja import JinjaTemplateEngine
 
 from atem import __version__
+from atem.domain.models.theme import PageSection
 from atem.infrastructure.database.seed.content_defaults import content_default, count_numbered_keys
 from atem.presentation.rich_text import nl2br, render_rich_text
 
@@ -60,6 +61,35 @@ def numbered_content(
     ]
 
 
+# Start-page sections in the navigation: anchor, short label (desktop bar) and long label
+# (mobile menu, footer). The quotes band has no link.
+_NAV_LINKS: dict[PageSection, tuple[str, str, str]] = {
+    PageSection.COMPETENCIES: ("kompetenzen", "Kompetenzen", "Kompetenzen"),
+    PageSection.SERVICES: ("angebote", "Angebote & Tarife", "Angebote & Tarife"),
+    PageSection.KIDS: ("kinder", "Für Kinder", "Atmen mit Kindern"),
+    PageSection.ABOUT: ("ueber-mich", "Über mich", "Über mich & PUSTERUM"),
+    PageSection.PRACTICE: ("praxis", "Praxis", "Praxis"),
+}
+
+
+def page_sections(theme: Any) -> list[PageSection]:
+    """Order of the reorderable start-page sections (default order without a theme)."""
+    # ``theme or None``: an undefined Jinja variable (error page without a theme) is falsy
+    return PageSection.parse_order(getattr(theme or None, "section_order", None))
+
+
+def nav_sections(theme: Any) -> list[dict[str, str]]:
+    """Navigation links in page order; the children's link only while that offer is enabled."""
+    kids_enabled = bool(getattr(theme or None, "kids_enabled", False))
+    links: list[dict[str, str]] = []
+    for section in page_sections(theme):
+        if section not in _NAV_LINKS or (section == PageSection.KIDS and not kids_enabled):
+            continue
+        anchor, short, label = _NAV_LINKS[section]
+        links.append({"key": section.value, "anchor": anchor, "short": short, "label": label})
+    return links
+
+
 def configure_jinja(engine: JinjaTemplateEngine) -> None:
     """Register globals and filters on the Jinja environment."""
     engine.engine.globals["asset_version"] = compute_asset_version()
@@ -68,6 +98,8 @@ def configure_jinja(engine: JinjaTemplateEngine) -> None:
     engine.engine.globals["count_numbered_keys"] = count_numbered_keys
     engine.engine.globals["content_value"] = content_value
     engine.engine.globals["numbered_content"] = numbered_content
+    engine.engine.globals["page_sections"] = page_sections
+    engine.engine.globals["nav_sections"] = nav_sections
     engine.engine.filters["content_hash"] = content_hash
     engine.engine.filters["rich_text"] = render_rich_text
     engine.engine.filters["nl2br"] = nl2br

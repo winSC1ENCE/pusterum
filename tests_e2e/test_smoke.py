@@ -146,6 +146,28 @@ def test_design_studio_without_violations(page: Page, server_url: str) -> None:
     assert_clean(page)
 
 
+def test_section_order_buttons_reorder_the_page(page: Page, server_url: str) -> None:
+    _login(page, server_url)
+    page.goto(server_url + "/admin/design#section-order")
+    page.locator("#move-practice-up").scroll_into_view_if_needed()
+    scroll_before = page.evaluate("window.scrollY")
+    assert scroll_before > 0
+    page.get_by_role("button", name="Praxis: Nach oben schieben").click()
+    expect(page.locator("#section-order li").nth(5)).to_contain_text("Praxis")
+    # HTMX swaps only the card: no reload, no jump, focus stays on the moved section's button
+    assert page.evaluate("window.scrollY") == scroll_before
+    expect(page.locator("#move-practice-up")).to_be_focused()
+    assert_clean(page)
+    page.goto(server_url + "/")
+    praxis = page.locator("#praxis").bounding_box()
+    quotes = page.locator("#zitate").bounding_box()
+    assert praxis and quotes and praxis["y"] < quotes["y"]
+    # Restore the default order for the other tests
+    page.goto(server_url + "/admin/design")
+    page.get_by_role("button", name="Praxis: Nach unten schieben").click()
+    expect(page.locator("#section-order li").nth(6)).to_contain_text("Praxis")
+
+
 def _login(page: Page, server_url: str) -> None:
     page.goto(server_url + "/admin/login")
     page.fill("#email", ADMIN_EMAIL)

@@ -281,10 +281,14 @@ jobs:
   # Pull-based deployment (ADR-0005): after a fully green run on main, move the branch
   # `production` to the tested commit. The server's systemd timer picks it up – no secrets
   # or SSH access from GitHub to the server.
+  # Manual fallback if GitHub drops the push event of a merge into main:
+  #   gh workflow run ci.yml --ref main
   promote:
     name: Promote to production
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      && github.ref == 'refs/heads/main'
     needs: [code-quality, tests, migrations, e2e, docker]
     permissions:
       contents: write

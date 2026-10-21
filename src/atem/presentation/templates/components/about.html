@@ -16,7 +16,8 @@
                         {{ editable('about.portrait', type='image', img_alt='Stephanie – PUSTERUM Praxis für Atem- und Körpertherapie', img_class='w-full h-full aspect-square object-cover shape-organic shadow-inner') }}
                     </div>
 
-                    <!-- Floating Quality Badge (Editable) -->
+                    <!-- Floating Quality Badge (Editable; hidden publicly while both texts are empty) -->
+                    {% if is_admin or content_value(content_blocks, 'about.badge_title') or content_value(content_blocks, 'about.badge_subtitle') %}
                     <div class="absolute -bottom-4 -right-2 bg-theme-card border border-theme px-4 py-2.5 rounded-2xl shadow-lg flex items-center gap-3 z-10">
                         <div class="w-8 h-8 rounded-full bg-theme-primary/10 flex items-center justify-center text-theme-primary flex-shrink-0">
                             <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,6 +29,7 @@
                             {{ editable('about.badge_subtitle', tag='span', class='text-xs text-theme-text-muted block') }}
                         </div>
                     </div>
+                    {% endif %}
                 </div>
             </div>
 

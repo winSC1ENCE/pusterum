@@ -202,6 +202,44 @@ async def test_empty_directions_hide_the_row(app_client: AsyncTestClient[Litesta
     await app_client.post(
         "/admin/content/practice.directions/save", data={"content": "", "tag": "div"}
     )
-    assert "Infrastruktur &amp; Anreise" in (await app_client.get("/")).text
+    assert ">Anreise</h4>" in (await app_client.get("/")).text
     app_client.cookies.delete("atem_session")
-    assert "Infrastruktur &amp; Anreise" not in (await app_client.get("/")).text
+    assert ">Anreise</h4>" not in (await app_client.get("/")).text
+
+
+async def test_empty_trust_and_badge_texts_hide_their_icons(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    await _login(app_client)
+    for key in ("hero.trust_1", "hero.trust_2", "about.badge_title", "about.badge_subtitle"):
+        await app_client.post(f"/admin/content/{key}/save", data={"content": "", "tag": "span"})
+    admin_page = (await app_client.get("/")).text
+    assert "content-block-hero-trust_1" in admin_page
+    assert "content-block-about-badge_title" in admin_page
+    app_client.cookies.delete("atem_session")
+    page = (await app_client.get("/")).text
+    assert "pt-6 border-t border-theme/60" not in page
+    assert "absolute -bottom-4 -right-2" not in page
+
+
+async def test_services_boxes_render_bullet_lists(app_client: AsyncTestClient[Litestar]) -> None:
+    await _login(app_client)
+    await app_client.post(
+        "/admin/content/services.insurance_text/save",
+        data={"content": "Ablauf:\n- Erstgespräch\n- Sitzung", "tag": "div"},
+    )
+    app_client.cookies.delete("atem_session")
+    page = (await app_client.get("/")).text
+    assert "<p>Ablauf:</p><ul><li>Erstgespräch</li><li>Sitzung</li></ul>" in page
+
+
+async def test_availability_card_is_hidden_when_empty(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    assert "Freitagvormittag" in (await app_client.get("/")).text
+    await _login(app_client)
+    await app_client.post(
+        "/admin/content/contact.availability/save", data={"content": "", "tag": "p"}
+    )
+    app_client.cookies.delete("atem_session")
+    assert "Terminmöglichkeiten" not in (await app_client.get("/")).text

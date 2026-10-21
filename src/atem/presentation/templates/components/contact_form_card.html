@@ -28,7 +28,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
                 <label for="sender_name" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
-                    Ihr Name <span class="text-theme-primary">*</span>
+                    Name <span class="text-theme-primary">*</span>
                 </label>
                 <input
                     type="text"
@@ -43,7 +43,7 @@
 
             <div>
                 <label for="sender_email" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
-                    Ihre E-Mail-Adresse <span class="text-theme-primary">*</span>
+                    E-Mail-Adresse <span class="text-theme-primary">*</span>
                 </label>
                 <input
                     type="email"
@@ -52,7 +52,7 @@
                     value="{{ form_data.sender_email if form_data else '' }}"
                     required
                     class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none"
-                    placeholder="ihre.mail@beispiel.ch"
+                    placeholder="mail@beispiel.ch"
                 />
             </div>
         </div>
@@ -61,7 +61,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
                 <label for="sender_phone" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
-                    Telefonnummer (optional)
+                    Telefonnummer
                 </label>
                 <input
                     type="tel"
@@ -101,7 +101,7 @@
         <!-- Message Field -->
         <div>
             <label for="message" class="block text-xs font-bold uppercase tracking-wider text-theme-text-main mb-2">
-                Ihre Nachricht <span class="text-theme-primary">*</span>
+                Nachricht <span class="text-theme-primary">*</span>
             </label>
             <textarea
                 id="message"
@@ -109,7 +109,7 @@
                 rows="5"
                 required
                 class="w-full px-4 py-3 rounded-xl bg-theme-card border border-theme focus:border-theme-primary focus:ring-2 focus:ring-theme-primary/20 text-theme-text-main text-sm transition-colors outline-none resize-y"
-                placeholder="Beschreiben Sie kurz Ihr Anliegen oder mögliche Terminvorschläge..."
+                placeholder="Kurze Beschreibung des Anliegens"
             >{{ form_data.message if form_data else '' }}</textarea>
         </div>
 

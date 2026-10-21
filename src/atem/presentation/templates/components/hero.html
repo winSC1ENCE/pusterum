@@ -36,21 +36,22 @@
                     </a>
                 </div>
 
-                <!-- Trust Indicators -->
+                <!-- Trust Indicators (empty entries and their icons are hidden publicly) -->
+                {% set trust_keys = ['hero.trust_1', 'hero.trust_2'] %}
+                {% if is_admin or content_value(content_blocks, 'hero.trust_1') or content_value(content_blocks, 'hero.trust_2') %}
                 <div class="pt-6 border-t border-theme/60 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-theme-text-muted">
+                    {% for key in trust_keys %}
+                    {% if is_admin or content_value(content_blocks, key) %}
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-theme-primary flex-shrink-0" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
-                        {{ editable('hero.trust_1', tag='span') }}
+                        {{ editable(key, tag='span') }}
                     </div>
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-theme-primary flex-shrink-0" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        {{ editable('hero.trust_2', tag='span') }}
-                    </div>
+                    {% endif %}
+                    {% endfor %}
                 </div>
+                {% endif %}
             </div>
 
             <!-- Right Pure Dandelion Artwork (No Card, No Box, No Text) -->

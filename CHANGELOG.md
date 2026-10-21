@@ -12,6 +12,20 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+### Hinzugefügt
+
+- Kontakt: neue Karte «Terminmöglichkeiten» (Freitagvormittag und über Mittag), im Admin editierbar.
+
+### Geändert
+
+- Kopfzeile: Der Zusatz «Gemeinschaftspraxis» unter dem Logo entfällt.
+- Leere Texte zeigen keine einsamen Symbole mehr (Häkchen im Startbereich, Badge beim Porträt,
+  Listeneinträge).
+- Die Texte unter «Angebote» und «Tarife» lassen sich formatieren (fett, kursiv, Aufzählungen).
+- Praxis: Die Überschriften heissen nur noch «Standort» und «Anreise».
+- Kontaktformular: kürzere Feldnamen ohne «Ihr/Ihre» und ohne «(optional)», neuer Hinweistext im
+  Nachrichtenfeld.
+
 ### Sicherheit
 
 - Bildverarbeitung (Pillow 13.0.0) und Zertifikatsliste (certifi 2026.10.19) aktualisiert;

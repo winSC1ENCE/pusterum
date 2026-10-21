@@ -38,7 +38,7 @@
                             </svg>
                         </div>
                         <div>
-                            <h4 class="font-bold text-theme-text-main text-sm">Standort &amp; Gemeinschaftspraxis</h4>
+                            <h4 class="font-bold text-theme-text-main text-sm">Standort</h4>
                             {{ editable('practice.location_name', tag='p', class='text-sm text-theme-text-muted font-semibold') }}
                             {% if is_admin %}
                             {# Plain editable fields in admin mode (no links while editing) #}
@@ -65,7 +65,7 @@
                             </svg>
                         </div>
                         <div class="space-y-1 w-full">
-                            <h4 class="font-bold text-theme-text-main text-sm">Infrastruktur &amp; Anreise</h4>
+                            <h4 class="font-bold text-theme-text-main text-sm">Anreise</h4>
                             {{ editable('practice.directions', tag='div', class='text-sm text-theme-text-muted', type='rich_text', rows=10) }}
                             {{ editable('practice.accessibility', tag='p', class='text-sm text-theme-text-muted mt-1', type='textarea', rows=2) }}
                         </div>

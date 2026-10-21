@@ -12,6 +12,11 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+### Sicherheit
+
+- Bildverarbeitung (Pillow 13.0.0) und Zertifikatsliste (certifi 2026.10.19) aktualisiert;
+  behebt bekannte Sicherheitslücken.
+
 ## [1.3.0] - 2026-10-18
 
 ### Hinzugefügt

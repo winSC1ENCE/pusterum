@@ -12,6 +12,10 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+### Hinzugefügt
+
+- Kontakt: neue Karte «Terminmöglichkeiten» (Freitagvormittag und über Mittag), im Admin editierbar.
+
 ### Geändert
 
 - Kopfzeile: Der Zusatz «Gemeinschaftspraxis» unter dem Logo entfällt.
@@ -22,9 +26,10 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 - Kontaktformular: kürzere Feldnamen ohne «Ihr/Ihre» und ohne «(optional)», neuer Hinweistext im
   Nachrichtenfeld.
 
-### Hinzugefügt
+### Sicherheit
 
-- Kontakt: neue Karte «Terminmöglichkeiten» (Freitagvormittag und über Mittag), im Admin editierbar.
+- Bildverarbeitung (Pillow 13.0.0) und Zertifikatsliste (certifi 2026.10.19) aktualisiert;
+  behebt bekannte Sicherheitslücken.
 
 ## [1.3.0] - 2026-10-18
 

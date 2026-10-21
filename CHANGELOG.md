@@ -12,6 +12,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-21
+
 ### Hinzugefügt
 
 - Kontakt: neue Karte «Terminmöglichkeiten» (Freitagvormittag und über Mittag), im Admin editierbar.

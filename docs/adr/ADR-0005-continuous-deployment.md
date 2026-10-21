@@ -56,6 +56,9 @@ sequenceDiagram
 
 * **CI** (`.github/workflows/ci.yml`, Job `promote`): läuft nur bei `push` auf `main` und erst, wenn
   alle anderen Jobs grün sind; verschiebt `production` ausschliesslich per Fast-Forward.
+  Bleibt das Push-Ereignis eines Merges nach `main` bei GitHub aus (so geschehen beim Release
+  1.4.0), startet `gh workflow run ci.yml --ref main` denselben Lauf von Hand (`workflow_dispatch`,
+  nur auf `main`). Die Pflicht-Checks laufen dabei vollständig mit.
 * **Server** (`ops/deploy/pusterum-deploy.sh`, `pusterum-deploy.service`/`.timer`): prüft alle
   5 Minuten auf einen neuen Commit, verweigert Deployments bei lokalen Änderungen oder ohne
   Fast-Forward, baut neu, prüft `/health/ready` (bis 5 Minuten) und rollt bei Fehler zurück.

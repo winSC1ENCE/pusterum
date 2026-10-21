@@ -31,6 +31,11 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 - Kontaktformular: kürzere Feldnamen ohne «Ihr/Ihre» und ohne «(optional)», neuer Hinweistext im
   Nachrichtenfeld.
 
+### Behoben
+
+- Betrieb: Bleibt das automatische Deployment nach einem Release aus, lässt es sich von Hand
+  starten.
+
 ### Sicherheit
 
 - Bildverarbeitung (Pillow 13.0.0) und Zertifikatsliste (certifi 2026.10.19) aktualisiert;

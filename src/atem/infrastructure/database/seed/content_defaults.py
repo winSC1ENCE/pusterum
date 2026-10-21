@@ -405,7 +405,7 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
     {
         "key": "services.empty_text",
         "section": "services",
-        "type": "textarea",
+        "type": "rich_text",
         "content": (
             "Tarife auf Anfrage – gerne beantworte ich Ihre Fragen zu Ablauf und Kosten persönlich."
         ),
@@ -419,7 +419,7 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
     {
         "key": "services.insurance_text",
         "section": "services",
-        "type": "textarea",
+        "type": "rich_text",
         "content": (
             "Als Atem- und Körpertherapeutin in Ausbildung am IKP begleite ich Sie einfühlsam und"
             " fundiert. Behandlungen finden in geschützter Atmosphäre in den Räumen der"
@@ -726,6 +726,21 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "content": (
             "Haben Sie Fragen zur Atem- und Körpertherapie oder möchten Sie einen Termin"
             " vereinbaren? Ich freue mich auf Ihre Nachricht oder Ihren Anruf."
+        ),
+    },
+    {
+        "key": "contact.availability_label",
+        "section": "contact",
+        "type": "text",
+        "content": "Terminmöglichkeiten",
+    },
+    {
+        "key": "contact.availability",
+        "section": "contact",
+        "type": "textarea",
+        "content": (
+            "Termine sind jeweils am Freitagvormittag und über Mittag möglich. Weitere Termine"
+            " können nach individueller Absprache vereinbart werden."
         ),
     },
     {

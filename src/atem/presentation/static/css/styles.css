@@ -129,6 +129,8 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 .rich-text li + li { margin-top: 0.25rem; }
 .rich-text strong { font-weight: 600; color: var(--theme-text-main, #1E293B); }
 .rich-text u { text-underline-offset: 2px; }
+/* Centred boxes: keep the bullet list as a left-aligned block in the middle */
+.rich-text.text-center ul { display: inline-block; text-align: left; }
 
 /* «Atmende Blume» for children (components/kids_flower_player.html, js/components/kids-flower.js) */
 .kids-petal {

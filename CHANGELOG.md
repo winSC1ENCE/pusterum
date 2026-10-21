@@ -15,6 +15,16 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 ### Geändert
 
 - Kopfzeile: Der Zusatz «Gemeinschaftspraxis» unter dem Logo entfällt.
+- Leere Texte zeigen keine einsamen Symbole mehr (Häkchen im Startbereich, Badge beim Porträt,
+  Listeneinträge).
+- Die Texte unter «Angebote» und «Tarife» lassen sich formatieren (fett, kursiv, Aufzählungen).
+- Praxis: Die Überschriften heissen nur noch «Standort» und «Anreise».
+- Kontaktformular: kürzere Feldnamen ohne «Ihr/Ihre» und ohne «(optional)», neuer Hinweistext im
+  Nachrichtenfeld.
+
+### Hinzugefügt
+
+- Kontakt: neue Karte «Terminmöglichkeiten» (Freitagvormittag und über Mittag), im Admin editierbar.
 
 ## [1.3.0] - 2026-10-18
 

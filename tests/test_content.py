@@ -227,6 +227,8 @@ async def test_universal_content_blocks_seeded(
         "services.insurance_title",
         "contact.badge",
         "contact.phone_label",
+        "contact.availability_label",
+        "contact.availability",
         "impressum.title",
         "impressum.responsible_title",
         "impressum.webdesign_title",

@@ -6,6 +6,13 @@
 
         {{ section_header('services', subtitle_rows=2) }}
 
+        <!-- Arbeitsweise: always above the offering cards (hidden publicly while empty) -->
+        {% if is_admin or content_value(content_blocks, 'services.intro') %}
+        <div class="mb-12 bg-theme-main border border-theme rounded-3xl p-8">
+            {{ editable('services.intro', tag='div', class='max-w-3xl mx-auto text-theme-text-muted leading-relaxed', type='rich_text', rows=12) }}
+        </div>
+        {% endif %}
+
         <!-- Service cards: fixed third-width cards in a centred, wrapping row (1–2 offers stay centred) -->
         <div class="flex flex-wrap justify-center gap-8">
             {% for service in services %}
@@ -45,29 +52,36 @@
                 </div>
             </div>
             {% else %}
-            <div class="w-full text-center bg-theme-main border border-theme rounded-3xl p-8">
-                {{ editable('services.empty_text', tag='div', class='text-theme-text-muted text-center', type='rich_text', rows=10) }}
-            </div>
+            {# No offerings yet: nothing publicly; admins get a fixed hint (not an editable text) #}
+            {% if is_admin %}
+            <p class="w-full text-center border border-dashed border-slate-400 rounded-lg px-4 py-3 text-sm text-slate-600 bg-slate-50">
+                Noch keine Angebote erfasst. Angebote mit Dauer und Preis unter
+                <a href="/admin/services" class="underline font-medium">Angebote verwalten</a> erfassen.
+            </p>
+            {% endif %}
             {% endfor %}
         </div>
 
-        <!-- Therapy Framework Info Box -->
+        <!-- Therapy Framework Info Box (empty labels and their dots are hidden publicly) -->
+        {% set label_keys = ['services.insurance_label_1', 'services.insurance_label_2'] %}
+        {% set ns = namespace(labels=[]) %}
+        {% for key in label_keys %}{% if is_admin or content_value(content_blocks, key) %}{% set ns.labels = ns.labels + [key] %}{% endif %}{% endfor %}
         <div class="mt-14 p-8 rounded-3xl bg-theme-muted border border-theme">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-                <div class="lg:col-span-8 space-y-2">
+                <div class="{{ 'lg:col-span-8' if ns.labels else 'lg:col-span-12' }} space-y-2">
                     {{ editable('services.insurance_title', tag='h4', class='font-heading text-xl font-bold text-theme-text-main') }}
                     {{ editable('services.insurance_text', tag='div', class='text-sm text-theme-text-muted leading-relaxed', type='rich_text', rows=10) }}
                 </div>
+                {% if ns.labels %}
                 <div class="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-center">
+                    {% for key in ns.labels %}
                     <div class="px-4 py-2.5 rounded-xl bg-theme-card border border-theme text-xs font-semibold text-theme-text-main flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-theme-primary flex-shrink-0"></span>
-                        {{ editable('services.insurance_label_1', tag='span') }}
+                        {{ editable(key, tag='span') }}
                     </div>
-                    <div class="px-4 py-2.5 rounded-xl bg-theme-card border border-theme text-xs font-semibold text-theme-text-main flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-theme-primary flex-shrink-0"></span>
-                        {{ editable('services.insurance_label_2', tag='span') }}
-                    </div>
+                    {% endfor %}
                 </div>
+                {% endif %}
             </div>
         </div>
 

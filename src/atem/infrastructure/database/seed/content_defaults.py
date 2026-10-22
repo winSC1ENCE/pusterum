@@ -403,12 +403,11 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         ),
     },
     {
-        "key": "services.empty_text",
+        # «Arbeitsweise» above the offering cards; empty = hidden publicly (practice owner's text)
+        "key": "services.intro",
         "section": "services",
         "type": "rich_text",
-        "content": (
-            "Tarife auf Anfrage – gerne beantworte ich Ihre Fragen zu Ablauf und Kosten persönlich."
-        ),
+        "content": "",
     },
     {
         "key": "services.insurance_title",

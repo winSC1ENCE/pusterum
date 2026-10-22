@@ -12,6 +12,15 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+### Geändert
+
+- Angebote & Tarife: Der Text zur Arbeitsweise steht jetzt fest über den Angeboten, linksbündig,
+  und bleibt sichtbar, wenn Angebote erfasst werden. Der bisherige Text wird übernommen.
+- Solange keine Angebote erfasst sind, erscheint öffentlich nichts; im Admin ein Hinweis mit Link
+  auf «Angebote verwalten».
+- Leere Preis-Labels in der Tarife-Box werden ausgeblendet; der Tarife-Text nutzt dann die volle
+  Breite.
+
 ## [1.4.0] - 2026-10-21
 
 ### Hinzugefügt

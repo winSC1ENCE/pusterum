@@ -40,7 +40,7 @@ async def test_services_admin_crud_and_public_rendering(
     app_client: AsyncTestClient[Litestar],
 ) -> None:
     public_before = await app_client.get("/")
-    assert "Tarife auf Anfrage" in public_before.text
+    assert SERVICE_FORM["subtitle"] not in public_before.text  # no offerings yet, no placeholder
 
     await _login(app_client)
     created = await app_client.post("/admin/services", data=SERVICE_FORM, follow_redirects=False)
@@ -243,3 +243,45 @@ async def test_availability_card_is_hidden_when_empty(
     )
     app_client.cookies.delete("atem_session")
     assert "Terminmöglichkeiten" not in (await app_client.get("/")).text
+
+
+async def test_services_intro_is_shown_above_the_offerings(
+    app_client: AsyncTestClient[Litestar],
+) -> None:
+    """«Arbeitsweise» stays visible with offerings; the empty-offerings hint is admin-only."""
+    page = (await app_client.get("/")).text
+    assert "content-block-services-intro" not in page  # empty default: hidden publicly
+    assert "Noch keine Angebote erfasst" not in page
+
+    await _login(app_client)
+    admin_page = (await app_client.get("/")).text
+    assert "Noch keine Angebote erfasst" in admin_page
+    assert 'href="/admin/services"' in admin_page
+    await app_client.post(
+        "/admin/content/services.intro/save",
+        data={"content": "Ich begleite Sie:\n- Atemübungen\n- Gespräch", "tag": "div"},
+    )
+    await app_client.post("/admin/services", data=SERVICE_FORM)
+    app_client.cookies.delete("atem_session")
+
+    page = (await app_client.get("/")).text
+    intro = page.index("<li>Atemübungen</li>")
+    assert (
+        page.index('id="angebote"')
+        < intro
+        < page.index(SERVICE_FORM["title"].replace("&", "&amp;"))
+    )
+    assert "Noch keine Angebote erfasst" not in page
+
+
+async def test_empty_price_labels_are_hidden(app_client: AsyncTestClient[Litestar]) -> None:
+    page = (await app_client.get("/")).text
+    assert "lg:col-span-8 space-y-2" in page  # default labels shown next to the text
+    await _login(app_client)
+    for key in ("services.insurance_label_1", "services.insurance_label_2"):
+        await app_client.post(f"/admin/content/{key}/save", data={"content": "", "tag": "span"})
+    assert "content-block-services-insurance_label_1" in (await app_client.get("/")).text
+    app_client.cookies.delete("atem_session")
+    page = (await app_client.get("/")).text
+    assert "lg:col-span-12 space-y-2" in page
+    assert "lg:col-span-8 space-y-2" not in page

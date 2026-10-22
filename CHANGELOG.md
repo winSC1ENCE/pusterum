@@ -12,6 +12,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-10-22
+
 ### Geändert
 
 - Angebote & Tarife: Der Text zur Arbeitsweise steht jetzt fest über den Angeboten, linksbündig,

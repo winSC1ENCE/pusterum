@@ -1,5 +1,5 @@
 # Backup sidecar: pg_dump (matching PostgreSQL major version) + restic → SFTP backup target.
-FROM postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+FROM postgres:16-alpine@sha256:f4610795587492cd4fb887c2dc3de301b813278bb6f616992061141b5f15ac36
 
 RUN apk add --no-cache restic openssh-client curl tzdata
 

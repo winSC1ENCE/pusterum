@@ -7,7 +7,7 @@
 # ------------------------------------------------------------------------------
 # Stage 1: Python dependencies (uv)
 # ------------------------------------------------------------------------------
-FROM python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258 AS builder
+FROM python:3.12-slim-bookworm@sha256:6a0e06f5ba0b373d051aabd3fffb9b873f27f9a2a3a14bcbe37dee6f0e3bbc70 AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential libpq-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -30,7 +30,7 @@ RUN uv sync --frozen --no-dev
 # ------------------------------------------------------------------------------
 # Stage 2: Frontend assets – compile Tailwind CSS (standalone CLI, pinned + SHA256)
 # ------------------------------------------------------------------------------
-FROM debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587 AS assets
+FROM debian:bookworm-slim@sha256:7ff6ba31527b9e336162fa061746c366c4b2032f4d2cff2078bea43f78efe3f8 AS assets
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /build
@@ -44,7 +44,7 @@ RUN mkdir -p src/atem/presentation/static/css && sh scripts/build-css.sh
 # ------------------------------------------------------------------------------
 # Stage 3: Runtime image (non-root, no compilers, no curl)
 # ------------------------------------------------------------------------------
-FROM python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258 AS runner
+FROM python:3.12-slim-bookworm@sha256:6a0e06f5ba0b373d051aabd3fffb9b873f27f9a2a3a14bcbe37dee6f0e3bbc70 AS runner
 
 RUN groupadd -r atem && useradd -r -g atem -d /app -s /sbin/nologin atem
 

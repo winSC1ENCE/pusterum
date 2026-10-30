@@ -12,6 +12,14 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-10-30
+
+### Geändert
+
+- Das Menü (oben, mobil und in der Fusszeile) zeigt die Abschnittsnamen, die über den Titeln
+  stehen. Wer einen Abschnittsnamen im Admin ändert, ändert damit auch das Menü. Bei leerem Namen
+  erscheint der bisherige Menütext.
+
 ## [1.5.0] - 2026-10-30
 
 ### Hinzugefügt

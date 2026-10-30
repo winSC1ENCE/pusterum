@@ -61,15 +61,15 @@ def numbered_content(
     ]
 
 
-# Start-page sections in the navigation: anchor, short label (desktop bar) and long label
-# (mobile menu, footer). Labels follow the section badges; the anchors stay stable for old
-# links. The quotes band has no link.
-_NAV_LINKS: dict[PageSection, tuple[str, str, str]] = {
-    PageSection.COMPETENCIES: ("kompetenzen", "Methode", "Methode"),
-    PageSection.SERVICES: ("angebote", "Angebot", "Angebot & Tarife"),
-    PageSection.KIDS: ("kinder", "Für Kinder", "Atmen mit Kindern"),
-    PageSection.ABOUT: ("ueber-mich", "Über mich", "Über mich & PUSTERUM"),
-    PageSection.PRACTICE: ("praxis", "Praxis", "Praxis"),
+# Start-page sections in the navigation: anchor, badge key and fallback short label (desktop
+# bar) / long label (mobile menu, footer). The menu shows the section's badge as edited by the
+# practice owner; the fallbacks only apply while a badge is empty. The quotes band has no link.
+_NAV_LINKS: dict[PageSection, tuple[str, str, str, str]] = {
+    PageSection.COMPETENCIES: ("kompetenzen", "competencies.badge", "Methode", "Methode"),
+    PageSection.SERVICES: ("angebote", "services.badge", "Angebot", "Angebot & Tarife"),
+    PageSection.KIDS: ("kinder", "kids.badge", "Für Kinder", "Atmen mit Kindern"),
+    PageSection.ABOUT: ("ueber-mich", "about.badge", "Über mich", "Über mich & PUSTERUM"),
+    PageSection.PRACTICE: ("praxis", "practice.setting", "Praxis", "Praxis"),
 }
 
 
@@ -79,15 +79,26 @@ def page_sections(theme: Any) -> list[PageSection]:
     return PageSection.parse_order(getattr(theme or None, "section_order", None))
 
 
-def nav_sections(theme: Any) -> list[dict[str, str]]:
-    """Navigation links in page order; the children's link only while that offer is enabled."""
+def nav_sections(theme: Any, content_blocks: dict[str, Any] | None = None) -> list[dict[str, str]]:
+    """Navigation links in page order, labelled with the section badges.
+
+    The children's link only appears while that offer is enabled.
+    """
     kids_enabled = bool(getattr(theme or None, "kids_enabled", False))
     links: list[dict[str, str]] = []
     for section in page_sections(theme):
         if section not in _NAV_LINKS or (section == PageSection.KIDS and not kids_enabled):
             continue
-        anchor, short, label = _NAV_LINKS[section]
-        links.append({"key": section.value, "anchor": anchor, "short": short, "label": label})
+        anchor, badge_key, short, label = _NAV_LINKS[section]
+        badge = " ".join(content_value(content_blocks or None, badge_key).split())
+        links.append(
+            {
+                "key": section.value,
+                "anchor": anchor,
+                "short": badge or short,
+                "label": badge or label,
+            }
+        )
     return links
 
 

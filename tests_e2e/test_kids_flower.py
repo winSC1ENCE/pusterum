@@ -110,10 +110,12 @@ def test_kids_link_in_navigation(page: Page, server_url: str) -> None:
     # Desktop bar from xl (1280 px) – it has to fit there; at lg widths only footer/mobile menu
     page.set_viewport_size({"width": 1280, "height": 800})
     page.goto(server_url + "/")
-    expect(page.get_by_role("link", name="Für Kinder", exact=True)).to_be_visible()
+    # The footer carries the same label (section badge); check the desktop bar only
+    kids_link = page.locator("header nav").get_by_role("link", name="Für Kinder", exact=True)
+    expect(kids_link).to_be_visible()
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
     page.set_viewport_size({"width": 1024, "height": 800})
-    expect(page.get_by_role("link", name="Für Kinder", exact=True)).to_be_hidden()
+    expect(kids_link).to_be_hidden()
 
 
 def test_print_card_renders_under_csp(page: Page, server_url: str) -> None:

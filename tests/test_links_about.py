@@ -139,5 +139,4 @@ async def test_page_renders_links_badge_and_navigation(
     assert "Über mich" in page and "Philosophie &amp; Praxis" not in page
     assert 'href="/#kompetenzen" class="hover:text-theme-primary' in page
     assert ">Methode</a>" in page and ">Angebot</a>" in page
-    assert ">Angebot &amp; Tarife</a>" in page
     assert ">Kompetenzen</a>" not in page

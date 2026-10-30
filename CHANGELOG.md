@@ -12,6 +12,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-30
+
 ### Hinzugefügt
 
 - Links in formatierten Texten: Knopf «Link» im Editor, Schreibweise `[Text](https://…)`.

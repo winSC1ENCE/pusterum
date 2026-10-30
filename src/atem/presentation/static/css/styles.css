@@ -129,6 +129,8 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 .rich-text li + li { margin-top: 0.25rem; }
 .rich-text strong { font-weight: 600; color: var(--theme-text-main, #1E293B); }
 .rich-text u { text-underline-offset: 2px; }
+.rich-text a { color: var(--theme-primary, #4A6C50); text-decoration: underline; text-underline-offset: 2px; }
+.rich-text a:hover { color: var(--theme-primary-hover, #3C5641); }
 
 /* «Atmende Blume» for children (components/kids_flower_player.html, js/components/kids-flower.js) */
 .kids-petal {

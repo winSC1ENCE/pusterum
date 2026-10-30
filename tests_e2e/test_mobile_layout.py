@@ -31,7 +31,7 @@ def test_mobile_menu_jump_lands_below_header(page: Page, server_url: str) -> Non
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto(server_url + "/")
     page.get_by_role("button", name="Menü öffnen").click()
-    page.locator("#mobile-menu").get_by_role("link", name="Angebote & Tarife").click()
+    page.locator("#mobile-menu").get_by_role("link", name="Angebot & Tarife").click()
     page.wait_for_function(ANCHOR_BELOW_HEADER, arg="angebote", timeout=5000)
     assert_clean(page)
 

@@ -52,6 +52,12 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "content": "In Gemeinschaftspraxis Physiotherapie",
     },
     {
+        "key": "about.badge",
+        "section": "about",
+        "type": "text",
+        "content": "Über mich",
+    },
+    {
         "key": "about.title",
         "section": "about",
         "type": "text",
@@ -143,28 +149,34 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
     {
         "key": "about.credential_1",
         "section": "about",
-        "type": "text",
+        # Markup incl. [Text](https://…) links: presentation/rich_text.py
+        "type": "rich_text",
         "content": (
             "2023 – heute: Ausbildung Ganzheitlich integrative Atemtherapie,"
-            " IKP Institut für Körperzentrierte Psychotherapie"
+            " [IKP Institut für Körperzentrierte Psychotherapie](https://www.ikp-therapien.com/)"
         ),
     },
     {
         "key": "about.credential_2",
         "section": "about",
-        "type": "text",
-        "content": "2014: Diplom Yogalehrerin, International Sivananda Yoga Vedanta Centre",
+        "type": "rich_text",
+        "content": (
+            "2014: Diplom Yogalehrerin,"
+            " [International Sivananda Yoga Vedanta Centre](https://sivananda.org.in/)"
+        ),
     },
     {
         "key": "about.credential_3",
         "section": "about",
-        "type": "text",
-        "content": "2006 – 2007: Diplom ErnährungsCoach, Klubschule Migros",
+        "type": "rich_text",
+        "content": (
+            "2006 – 2007: Diplom ErnährungsCoach, [Klubschule Migros](https://www.klubschule.ch/)"
+        ),
     },
     {
         "key": "about.credential_4",
         "section": "about",
-        "type": "text",
+        "type": "rich_text",
         "content": "In Gemeinschaftspraxis Physiotherapie",
     },
     {
@@ -632,7 +644,7 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
     {
         "key": "practice.description",
         "section": "practice",
-        "type": "textarea",
+        "type": "rich_text",
         "content": (
             "Die Praxis PUSTERUM für Atem- und Körpertherapie ist eingebettet in eine modern"
             " ausgestattete Physiotherapie-Gemeinschaftspraxis. Ein geschützter, ruhiger Raum mit"

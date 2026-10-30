@@ -12,6 +12,18 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+### Hinzugefügt
+
+- Links in formatierten Texten: Knopf «Link» im Editor, Schreibweise `[Text](https://…)`.
+  Ausbildungen und Praxisbeschreibung sind neu formatierbar; IKP, Atemfachverband AFS, Sivananda,
+  Klubschule Migros und LaFontaine sind bereits verlinkt.
+
+### Geändert
+
+- Navigation heisst wie die Abschnitte: «Methode» und «Angebot» (mobil und Fusszeile «Angebot &
+  Tarife») statt «Kompetenzen» und «Angebote & Tarife».
+- Über dem Titel PUSTERUM steht «Über mich» statt «Philosophie & Praxis»; der Text ist editierbar.
+
 ## [1.4.1] - 2026-10-22
 
 ### Geändert

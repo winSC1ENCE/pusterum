@@ -28,12 +28,13 @@
 </span>
 {% endmacro %}
 
-{# Checklist entry with an editable text (rendered as <li>; hidden publicly while empty) #}
-{% macro check_item(key) %}
+{# Checklist entry with an editable text (rendered as <li>; hidden publicly while empty).
+   type='rich_text' allows links/formatting and renders into a <div> (rich text yields <p>). #}
+{% macro check_item(key, type='text') %}
 {% if is_admin or content_value(content_blocks, key) %}
 <li class="flex items-start gap-3">
     {{ check_icon() }}
-    {{ editable(key, tag='span', class='text-sm text-theme-text-main') }}
+    {{ editable(key, tag='div' if type == 'rich_text' else 'span', class='text-sm text-theme-text-main', type=type) }}
 </li>
 {% endif %}
 {% endmacro %}

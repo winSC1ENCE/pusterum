@@ -55,3 +55,44 @@ def test_nl2br_escapes_before_adding_breaks() -> None:
     assert html == (
         "&lt;script&gt;alert(1)&lt;/script&gt;<br>&lt;b onclick=&#34;x&#34;&gt;fett&lt;/b&gt;"
     )
+
+
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        (
+            "Ausbildung am [IKP](https://www.ikp-therapien.com/)",
+            '<p>Ausbildung am <a href="https://www.ikp-therapien.com/" target="_blank"'
+            ' rel="noopener noreferrer">IKP</a></p>',
+        ),
+        (
+            "[**fett**](https://a.ch/x_y_z*1*) und __u__",
+            '<p><a href="https://a.ch/x_y_z*1*" target="_blank" rel="noopener noreferrer">'
+            "<strong>fett</strong></a> und <u>u</u></p>",
+        ),
+        (
+            "- [A&B](https://a.ch/?a=1&b=2)",
+            '<ul><li><a href="https://a.ch/?a=1&amp;b=2" target="_blank"'
+            ' rel="noopener noreferrer">A&amp;B</a></li></ul>',
+        ),
+    ],
+)
+def test_links(source: str, expected: str) -> None:
+    assert str(render_rich_text(source)) == expected
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "[x](http://a.ch)",
+        "[x](javascript:alert(1))",
+        '[x](https://a.ch" onmouseover="alert(1))',
+        "[x](https://a.ch/<script>)",
+        "[x](https://a b)",
+        "[x](https:)",
+    ],
+)
+def test_unsafe_links_stay_text(source: str) -> None:
+    html = str(render_rich_text(source))
+    assert "<a " not in html
+    assert "<script>" not in html

@@ -62,10 +62,11 @@ def numbered_content(
 
 
 # Start-page sections in the navigation: anchor, short label (desktop bar) and long label
-# (mobile menu, footer). The quotes band has no link.
+# (mobile menu, footer). Labels follow the section badges; the anchors stay stable for old
+# links. The quotes band has no link.
 _NAV_LINKS: dict[PageSection, tuple[str, str, str]] = {
-    PageSection.COMPETENCIES: ("kompetenzen", "Kompetenzen", "Kompetenzen"),
-    PageSection.SERVICES: ("angebote", "Angebote & Tarife", "Angebote & Tarife"),
+    PageSection.COMPETENCIES: ("kompetenzen", "Methode", "Methode"),
+    PageSection.SERVICES: ("angebote", "Angebot", "Angebot & Tarife"),
     PageSection.KIDS: ("kinder", "Für Kinder", "Atmen mit Kindern"),
     PageSection.ABOUT: ("ueber-mich", "Über mich", "Über mich & PUSTERUM"),
     PageSection.PRACTICE: ("praxis", "Praxis", "Praxis"),

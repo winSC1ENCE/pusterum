@@ -77,6 +77,8 @@ pre-commit `check-added-large-files` blockiert Dateien > 500 KB → Bilder vorhe
   Siehe TDR-0003.
 - Content-Saves sind abgesichert: Key-Muster + nur existierende Keys, Bildpfad-Muster, max. 10 000 Zeichen,
   Tag-Allowlist; Werte in Alpine-Attributen immer mit `|tojson` bzw. `data-*`.
+- Rich-Text (`presentation/rich_text.py`): fett/kursiv/unterstrichen, Listen und Links
+  `[Text](https://…)` (nur https, TDR-0015).
 - UI-Bausteine: `components/ui_macros.html` (`section_header`, `check_item`).
 - Angebote & Tarife: `Offering`-Modul (Admin `/admin/services`). Keine Fakten (Preise, Adressen,
   Anerkennungen) erfinden – das pflegt die Praxisinhaberin im Admin.

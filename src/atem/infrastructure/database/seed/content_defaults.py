@@ -183,7 +183,7 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "key": "competencies.badge",
         "section": "competencies",
         "type": "text",
-        "content": "Methode & Wirkung",
+        "content": "Methode",
     },
     {
         "key": "competencies.title",
@@ -397,7 +397,7 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "key": "services.badge",
         "section": "services",
         "type": "text",
-        "content": "Transparente Tarife & Behandlungsablauf",
+        "content": "Angebot",
     },
     {
         "key": "services.title",
@@ -633,7 +633,7 @@ DEFAULT_CONTENT_BLOCKS: list[dict[str, str]] = [
         "key": "practice.setting",
         "section": "practice",
         "type": "text",
-        "content": "Gemeinschaftspraxis • Raum für Ruhe & Ankommen",
+        "content": "Praxis",
     },
     {
         "key": "practice.title",

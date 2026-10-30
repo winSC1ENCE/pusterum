@@ -12,6 +12,8 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-10-30
+
 ### Geändert
 
 - Das Menü (oben, mobil und in der Fusszeile) zeigt die Abschnittsnamen, die über den Titeln

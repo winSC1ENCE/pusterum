@@ -12,6 +12,13 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+### Sicherheit
+
+- Abhängigkeit `dnspython` (E-Mail-Prüfung) auf 2.9.1 aktualisiert (bekannte Sicherheitslücke
+  CVE-2026-114605 behoben).
+- Basis-Images (Python, Debian, PostgreSQL, Caddy) auf den aktuellen Stand gebracht; behebt die
+  OpenSSL-Sicherheitslücke CVE-2026-84782.
+
 ## [1.4.1] - 2026-10-22
 
 ### Geändert

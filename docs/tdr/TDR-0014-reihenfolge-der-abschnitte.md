@@ -46,3 +46,11 @@ je eine eigene Linkliste, die von Hand gleich gehalten werden musste.
 * **Impact on existing code:**
   * `index.html`, `navbar.html` und `footer.html` lesen die Reihenfolge statt fester Listen.
   * Presets, Formen und Farbanpassungen lassen die Reihenfolge unverändert.
+
+## Nachtrag 2026-10-30: Menütexte aus den Abschnitts-Badges
+
+`nav_sections(theme, content_blocks)` beschriftet die Links mit dem Badge des Abschnitts
+(`competencies.badge`, `services.badge`, `kids.badge`, `about.badge`, `practice.setting`).
+Die Texte in `_NAV_LINKS` dienen nur noch als Rückfall, solange ein Badge leer ist. Die
+Standard-Badges sind kurz gehalten (Migration `0026_nav_badges`). Der Markenblock im Header
+(PUSTERUM / Atem- und Körpertherapie) bleibt fix im Code.

@@ -4,6 +4,7 @@ The practice owner writes a tiny Markdown subset (toolbar in the inline editor).
 is HTML-escaped **first**, so the only tags that can reach the page are the ones produced here:
 
 * ``**fett**`` → ``<strong>``, ``*kursiv*`` → ``<em>``, ``__unterstrichen__`` → ``<u>``
+* ``[Text](https://…)`` → external link (``https`` only, new tab, ``rel="noopener noreferrer"``)
 * lines starting with ``- `` or ``• `` → bullet list
 * blank line → new paragraph, single line break → ``<br>``
 """
@@ -17,13 +18,31 @@ _UNDERLINE = re.compile(r"__(?=\S)(.+?)(?<=\S)__")
 _ITALIC = re.compile(r"\*(?=\S)(.+?)(?<=\S)\*")
 _BULLET = re.compile(r"^[-•]\s+")
 _PARAGRAPH_BREAK = re.compile(r"\n[ \t]*\n")
+# Matched on the raw source: the URL must be https and must not contain characters that could
+# leave the attribute or the markup (quotes, angle brackets, brackets, whitespace, backslash).
+_LINK = re.compile(r"\[([^\[\]\n]+)\]\((https://[^\s()<>\"'\\\[\]]+)\)")
 
 
-def _inline(text: str) -> str:
+def _format(text: str) -> str:
     html = str(escape(text))
     html = _BOLD.sub(r"<strong>\1</strong>", html)
     html = _UNDERLINE.sub(r"<u>\1</u>", html)
     return _ITALIC.sub(r"<em>\1</em>", html)
+
+
+def _inline(text: str) -> str:
+    """Format one line; links are split off first so ``_``/``*`` in URLs stay untouched."""
+    html: list[str] = []
+    position = 0
+    for link in _LINK.finditer(text):
+        html.append(_format(text[position : link.start()]))
+        html.append(
+            f'<a href="{escape(link.group(2))}" target="_blank" rel="noopener noreferrer">'
+            f"{_format(link.group(1))}</a>"
+        )
+        position = link.end()
+    html.append(_format(text[position:]))
+    return "".join(html)
 
 
 def _render_block(block: str) -> str:

@@ -142,8 +142,8 @@ class PageSection(StrEnum):
 
 
 _SECTION_LABELS: dict[PageSection, str] = {
-    PageSection.COMPETENCIES: "Kompetenzen",
-    PageSection.SERVICES: "Angebote & Tarife",
+    PageSection.COMPETENCIES: "Methode",
+    PageSection.SERVICES: "Angebot & Tarife",
     PageSection.KIDS: "Atmen mit Kindern",
     PageSection.ABOUT: "Über mich & PUSTERUM",
     PageSection.QUOTES: "Zitate",

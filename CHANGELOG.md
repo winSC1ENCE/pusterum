@@ -12,6 +12,27 @@ Version. Nach grüner CI auf `main` entstehen automatisch Tag `vX.Y.Z` und GitHu
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-30
+
+### Hinzugefügt
+
+- Links in formatierten Texten: Knopf «Link» im Editor, Schreibweise `[Text](https://…)`.
+  Ausbildungen und Praxisbeschreibung sind neu formatierbar; IKP, Atemfachverband AFS, Sivananda,
+  Klubschule Migros und LaFontaine sind bereits verlinkt.
+
+### Geändert
+
+- Navigation heisst wie die Abschnitte: «Methode» und «Angebot» (mobil und Fusszeile «Angebot &
+  Tarife») statt «Kompetenzen» und «Angebote & Tarife».
+- Über dem Titel PUSTERUM steht «Über mich» statt «Philosophie & Praxis»; der Text ist editierbar.
+
+### Sicherheit
+
+- Abhängigkeit `dnspython` (E-Mail-Prüfung) auf 2.9.1 aktualisiert (bekannte Sicherheitslücke
+  CVE-2026-114605 behoben).
+- Basis-Images (Python, Debian, PostgreSQL, Caddy) auf den aktuellen Stand gebracht; behebt die
+  OpenSSL-Sicherheitslücke CVE-2026-84782.
+
 ## [1.4.1] - 2026-10-22
 
 ### Geändert

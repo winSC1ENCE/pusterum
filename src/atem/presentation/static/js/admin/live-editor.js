@@ -69,7 +69,7 @@ document.addEventListener("alpine:init", () => {
             field.style.height = "auto";
             field.style.height = field.scrollHeight + "px";
         },
-        // Rich-text toolbar: wrap the selection in markup (bold/italic/underline) or turn the
+        // Rich-text toolbar: wrap the selection in markup (bold/italic/underline/link) or turn the
         // selected lines into a bullet list. Rendered server-side by presentation/rich_text.py.
         format(kind) {
             const rootEl = this.$root || (this.$el ? this.$el.closest(".editable-block-container") : null);
@@ -85,6 +85,13 @@ document.addEventListener("alpine:init", () => {
                 const listed = lines.map((line) => (line.startsWith("- ") || line === "" ? line : "- " + line)).join("\n");
                 field.value = value.slice(0, lineStart) + listed + value.slice(end);
                 field.setSelectionRange(lineStart, lineStart + listed.length);
+            } else if (kind === "link") {
+                // [Auswahl](https://) – the cursor lands after "https://" to paste the address
+                const text = value.slice(start, end) || "Linktext";
+                const inserted = "[" + text + "](https://)";
+                field.value = value.slice(0, start) + inserted + value.slice(end);
+                const cursor = start + inserted.length - 1;
+                field.setSelectionRange(cursor, cursor);
             } else {
                 const markers = { bold: "**", italic: "*", underline: "__" };
                 const marker = markers[kind];

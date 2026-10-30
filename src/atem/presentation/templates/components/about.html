@@ -37,7 +37,7 @@
             <div class="lg:col-span-7 space-y-6 order-1 lg:order-2">
                 <div>
                     <span class="text-xs uppercase font-bold tracking-widest text-theme-primary block mb-2">
-                        Philosophie &amp; Praxis
+                        {{ editable('about.badge', tag='span') }}
                     </span>
                     {{ editable('about.title', tag='h2', class='font-heading text-3xl sm:text-4xl font-bold text-theme-text-main') }}
                     {{ editable('about.subtitle', tag='p', class='text-theme-primary font-medium text-lg mt-1') }}
@@ -68,7 +68,7 @@
                 <!-- Key Credentials List -->
                 <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                     {% for i in range(1, count_numbered_keys('about.credential_') + 1) %}
-                    {{ check_item('about.credential_' ~ i) }}
+                    {{ check_item('about.credential_' ~ i, type='rich_text') }}
                     {% endfor %}
                 </ul>
 
